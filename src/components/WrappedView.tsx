@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { X, ChevronLeft, ChevronRight, Share2, Sparkles, Flame, RefreshCw } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { exportNodeAsPng } from "../lib/exportImage";
+import { X, ChevronLeft, ChevronRight, Share2, Sparkles, Flame, RefreshCw, Download } from "lucide-react";
 
 interface WrappedViewProps {
   wrappedData: {
@@ -16,6 +17,23 @@ interface WrappedViewProps {
 
 export default function WrappedView({ wrappedData, onClose, onShare }: WrappedViewProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [downloading, setDownloading] = useState(false);
+  const slideRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadSlide = async () => {
+    if (!slideRef.current) return;
+    setDownloading(true);
+    try {
+      await exportNodeAsPng(
+        slideRef.current,
+        `marginalia-wrapped-slide-${currentSlide + 1}`
+      );
+    } catch (err) {
+      console.error("Falha ao exportar slide do Wrapped:", err);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const totalSlides = 5;
 
@@ -73,7 +91,7 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
       </div>
 
       {/* SLIDE CANVAS DISPLAY AREA */}
-      <div className="w-full max-w-lg aspect-[9/16] bg-[#2A2624] border border-[#BDAB9C]/30 rounded-2xl p-6 md:p-8 journal-shadow relative overflow-hidden flex flex-col justify-between z-10 animate-page-turn">
+      <div ref={slideRef} className="w-full max-w-lg aspect-[9/16] bg-[#2A2624] border border-[#BDAB9C]/30 rounded-2xl p-6 md:p-8 journal-shadow relative overflow-hidden flex flex-col justify-between z-10 animate-page-turn">
         
         {/* Subtle page lines inside card */}
         <div className="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(#FAF8F3_1px,transparent_1px)] [background-size:16px_16px]" />
@@ -81,7 +99,7 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
         {/* SLIDE 0: Welcome / Slogan */}
         {currentSlide === 0 && (
           <div className="my-auto space-y-6 text-center animate-page-turn">
-            <span className="text-[10px] font-mono tracking-widest text-amber-500 uppercase block">Fase 10 — Retrospectiva</span>
+            <span className="text-[10px] font-mono tracking-widest text-amber-500 uppercase block">Retrospectiva Literária</span>
             
             <div className="w-16 h-16 rounded-full border-2 border-dashed border-amber-500/55 flex items-center justify-center mx-auto mb-2 animate-spin-slow">
               <Sparkles className="w-6 h-6 text-amber-500" />
@@ -250,13 +268,23 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
         </div>
 
         {currentSlide === totalSlides - 1 ? (
-          <button
-            onClick={onShare}
-            className="px-5 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:opacity-90 text-white font-sans text-xs font-bold tracking-wide flex items-center gap-1.5 cursor-pointer shadow-md"
-          >
-            <Share2 className="w-4 h-4" />
-            <span>Compartilhar Wrapped</span>
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleDownloadSlide}
+              disabled={downloading}
+              className="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-[#FAF8F3] font-sans text-xs font-bold tracking-wide flex items-center gap-1.5 cursor-pointer disabled:opacity-50 border border-[#BDAB9C]/20"
+            >
+              <Download className="w-4 h-4" />
+              <span>{downloading ? "Salvando..." : "Baixar"}</span>
+            </button>
+            <button
+              onClick={onShare}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:opacity-90 text-white font-sans text-xs font-bold tracking-wide flex items-center gap-1.5 cursor-pointer shadow-md"
+            >
+              <Share2 className="w-4 h-4" />
+              <span>Copiar Texto</span>
+            </button>
+          </div>
         ) : (
           <span className="text-[10px] font-mono text-[#BDAB9C] uppercase tracking-wider">
             Slide {currentSlide + 1} de {totalSlides}

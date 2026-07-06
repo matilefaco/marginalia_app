@@ -1,6 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import { exportNodeAsPng } from "../lib/exportImage";
 import { UserProfile, Margem } from "../types";
-import { Sliders, Flame, Heart, BookOpen, Clock, Calendar, Sparkles, Trophy, Plus, HelpCircle } from "lucide-react";
+import { Sliders, Flame, Heart, BookOpen, Clock, Calendar, Sparkles, Trophy, Plus, HelpCircle, Download } from "lucide-react";
+
+import { LiteraryAura } from "./LiteraryAura";
+import { SoulMap } from "./SoulMap";
+import { IdentityQuoteCard } from "./IdentityQuoteCard";
+import { LiteraryCompatibility } from "./LiteraryCompatibility";
 
 interface ReaderProfileProps {
   userProfile: UserProfile;
@@ -10,7 +16,24 @@ interface ReaderProfileProps {
 }
 
 export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, onReset }: ReaderProfileProps) {
-  const [activeSubTab, setActiveSubTab] = useState<"identidade" | "historico" | "recompensas">("identidade");
+  const [activeSubTab, setActiveSubTab] = useState<"identidade" | "aura" | "mapa" | "compatibilidade" | "historico" | "recompensas">("identidade");
+  const [exportingCard, setExportingCard] = useState(false);
+  const identityCardRef = useRef<HTMLDivElement>(null);
+
+  const handleExportIdentityCard = async () => {
+    if (!identityCardRef.current) return;
+    setExportingCard(true);
+    try {
+      await exportNodeAsPng(
+        identityCardRef.current,
+        `marginalia-cartao-${userProfile.username || "leitor"}`
+      );
+    } catch (err) {
+      console.error("Falha ao exportar cartão de identidade:", err);
+    } finally {
+      setExportingCard(false);
+    }
+  };
 
   // Filter margins created by user
   const userMargins = margens.filter(m => m.authorAvatar === userProfile.avatarSeed || m.authorName === userProfile.name);
@@ -41,7 +64,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
     { date: "2026-07-02", event: "Criou sua primeira Margem na eternidade do Realismo Mágico.", book: "Cem Anos de Solidão" }
   ];
 
-  // Literary Honors (Phase 7 - Recompensas Não Infantis)
+  // Literary Honors (Recompensas Não Infantis)
   const honors = [
     {
       title: "🕯️ Guardião da Melancolia",
@@ -73,7 +96,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
     <div className="space-y-6 animate-page-turn">
       
       {/* Identity Banner header */}
-      <div className="bg-[#FAF8F3] border border-[#BDAB9C] rounded-2xl overflow-hidden journal-shadow">
+      <div ref={identityCardRef} className="bg-[#FAF8F3] border border-[#BDAB9C] rounded-2xl overflow-hidden journal-shadow">
         <div className="h-28 bg-[#BDAB9C]/15 relative overflow-hidden">
           <div className="absolute inset-0 tactile-overlay" />
           <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF8F3] text-[10px] font-sans font-semibold text-[#1C1916] border border-[#BDAB9C]">
@@ -91,17 +114,25 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
           <div className="mt-4 text-center md:text-left space-y-3">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div>
-                <h3 className="font-display text-xl font-semibold text-[#1C1916]">{userProfile.name}</h3>
+                <div className="flex flex-wrap items-center gap-2 justify-center md:justify-start">
+                  <h3 className="font-display text-xl font-semibold text-[#1C1916]">{userProfile.name}</h3>
+                  <span className="px-2 py-0.5 bg-[#1C1916]/10 text-[#1C1916] rounded-full text-[10px] font-sans font-medium border border-[#BDAB9C]/30">
+                    🎭 {userProfile.title}
+                  </span>
+                </div>
                 <p className="text-xs font-mono text-[#BDAB9C]">@{userProfile.username}</p>
               </div>
 
               {/* Archetype badge */}
-              <div className="flex flex-col md:flex-row gap-2 self-center md:self-end">
-                <span className="px-3 py-1 bg-[#1C1916]/10 text-[#1C1916] rounded-full text-xs font-sans font-medium border border-[#BDAB9C]/40">
-                  🎭 {userProfile.title}
-                </span>
-                
-                {/* Wrapped Button - Phase 10 */}
+              <div className="flex flex-col md:flex-row gap-2 self-center md:self-end no-export">
+                <button
+                  onClick={handleExportIdentityCard}
+                  disabled={exportingCard}
+                  className="px-3.5 py-1 bg-stone-800 hover:bg-stone-700 text-[#FAF8F3] rounded-full text-xs font-sans font-semibold border border-[#BDAB9C]/20 transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                >
+                  <Download className="w-3 h-3" />
+                  <span>{exportingCard ? "Gerando..." : "Exportar Cartão"}</span>
+                </button>
                 <button
                   onClick={onTriggerWrapped}
                   className="px-3.5 py-1 bg-gradient-to-r from-orange-600 to-amber-700 text-white rounded-full text-xs font-sans font-bold shadow-xs hover:opacity-90 transition-opacity flex items-center gap-1 cursor-pointer"
@@ -126,18 +157,42 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
       </div>
 
       {/* Profile sub-navigation (Notion-like) */}
-      <div className="flex border-b border-[#BDAB9C]/30 gap-6 text-xs font-sans font-medium">
+      <div className="flex border-b border-[#BDAB9C]/30 gap-6 text-xs font-sans font-medium overflow-x-auto scrollbar-none pb-1 no-export">
         <button
           onClick={() => setActiveSubTab("identidade")}
-          className={`pb-2 border-b-2 transition-all ${
+          className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
             activeSubTab === "identidade" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
           }`}
         >
           Minha Alma Leitora
         </button>
         <button
+          onClick={() => setActiveSubTab("aura")}
+          className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            activeSubTab === "aura" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
+          }`}
+        >
+          ✨ Aura Poética
+        </button>
+        <button
+          onClick={() => setActiveSubTab("mapa")}
+          className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            activeSubTab === "mapa" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
+          }`}
+        >
+          🌌 Mapa da Alma
+        </button>
+        <button
+          onClick={() => setActiveSubTab("compatibilidade")}
+          className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            activeSubTab === "compatibilidade" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
+          }`}
+        >
+          👥 Sintonia de Leitores
+        </button>
+        <button
           onClick={() => setActiveSubTab("historico")}
-          className={`pb-2 border-b-2 transition-all ${
+          className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
             activeSubTab === "historico" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
           }`}
         >
@@ -145,7 +200,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
         </button>
         <button
           onClick={() => setActiveSubTab("recompensas")}
-          className={`pb-2 border-b-2 transition-all ${
+          className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
             activeSubTab === "recompensas" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
           }`}
         >
@@ -252,6 +307,40 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* TAB SUB-CONTENT: AURA POÉTICA */}
+      {activeSubTab === "aura" && (
+        <div className="space-y-6 animate-page-turn">
+          <LiteraryAura userProfile={userProfile} margens={margens} />
+        </div>
+      )}
+
+      {/* TAB SUB-CONTENT: MAPA DA ALMA */}
+      {activeSubTab === "mapa" && (
+        <div className="space-y-6 animate-page-turn">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <div className="lg:col-span-2">
+              <SoulMap userProfile={userProfile} />
+            </div>
+            <div className="space-y-6">
+              <IdentityQuoteCard username={userProfile.name} />
+              <div className="bg-[#FAF8F3] border border-[#BDAB9C] rounded-xl p-5 journal-shadow space-y-3.5">
+                <h4 className="font-sans font-bold text-xs uppercase tracking-wider text-[#1C1916]">Sinal Cósmico</h4>
+                <p className="font-serif italic text-xs leading-relaxed text-stone-700">
+                  Sua alma emite vibrações na frequência da pena de ganso. Cada margem criada expande seu rastro estelar no grande arquivo da sensibilidade humana.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB SUB-CONTENT: SINTONIA DE LEITORES */}
+      {activeSubTab === "compatibilidade" && (
+        <div className="space-y-6 animate-page-turn">
+          <LiteraryCompatibility userProfile={userProfile} />
         </div>
       )}
 

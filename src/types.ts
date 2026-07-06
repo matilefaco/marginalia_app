@@ -83,7 +83,57 @@ export interface Challenge {
   id: string;
   title: string;
   description: string;
-  xpPoints: number;
   completed: boolean;
   category: string;
 }
+
+export interface SharePreset {
+  key: string;
+  name: string;
+  bgClass: string;
+  textClass: string;
+  fontClass: string;
+  borderClass: string;
+  texture?: boolean;
+  aspectRatio?: string; // "aspect-[9/16]" or "aspect-square" or "aspect-[3/4]"
+}
+
+export interface AuraData {
+  emotions: Record<string, number>;
+  archetype: string;
+  themes: string[];
+  symbol: string;
+  phrase: string;
+}
+
+export interface SoulMapNode {
+  id: string;
+  x: number;
+  y: number;
+  label: string;
+  type: "book" | "emotion" | "margem" | "author" | "eco";
+  details: string;
+}
+
+export interface CompatibilityResult {
+  score: number;
+  motifs: string[];
+  conversationStarter: string;
+}
+
+export interface FutureLetterEntry {
+  margemId: string;
+  writtenDaysAgo: number;
+  response?: string;
+  respondedAt?: string;
+}
+
+export interface DailyMoment {
+  date: string;
+  title: string;
+  description: string;
+  emotion: string;
+  ctaText: string;
+  actionType: "aura" | "soulmap" | "companion" | "write" | "letter";
+}
+

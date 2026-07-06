@@ -108,7 +108,7 @@ export const INITIAL_ECOS: Eco[] = [
     icon: "Hourglass",
     imageBg: "https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&q=80&w=400"
   },
-  // --- Ecos Emocionais (Fase 4) ---
+  // --- Ecos Emocionais ---
   {
     id: "amor-impossivel",
     name: "❤️ Amor Impossível",
@@ -293,7 +293,6 @@ export const INITIAL_CHALLENGES: Challenge[] = [
     id: "ch1",
     title: "Escrever na Margem",
     description: "Crie e publique sua primeira margem expressando uma emoção real.",
-    xpPoints: 50,
     completed: false,
     category: "Criação"
   },
@@ -301,7 +300,6 @@ export const INITIAL_CHALLENGES: Challenge[] = [
     id: "ch2",
     title: "Conversa de Café",
     description: "Comente na margem de outro leitor para estender a discussão poética.",
-    xpPoints: 30,
     completed: false,
     category: "Social"
   },
@@ -309,7 +307,6 @@ export const INITIAL_CHALLENGES: Challenge[] = [
     id: "ch3",
     title: "Visita aos Ecos",
     description: "Visite um novo Eco temático e leia pelo menos 3 anotações.",
-    xpPoints: 20,
     completed: false,
     category: "Exploração"
   },
@@ -317,7 +314,6 @@ export const INITIAL_CHALLENGES: Challenge[] = [
     id: "ch4",
     title: "Conselho da Companheira",
     description: "Inicie um diálogo profundo com sua Companheira de Leitura sobre uma citação.",
-    xpPoints: 40,
     completed: false,
     category: "Inteligência"
   }

@@ -43,12 +43,43 @@ export default function JardimDescobertas({ onSelectHighlight, margens }: Jardim
     return matchesEmotion && matchesSearch;
   });
 
+  // Filter community margins
+  const displayedMargins = margens.filter((m) => {
+    let matchesEmotion = true;
+    if (selectedEmotion) {
+      const emoMap: Record<string, string[]> = {
+        "Solidão": ["solidão", "solidao", "solitude", "m2", "solidao-bonita"],
+        "Existencial": ["existencial", "existência", "existencia", "absurdo", "filosofia", "camus", "m3", "filosofia-existencialista"],
+        "Nostalgia": ["nostalgia", "saudade", "lembrança", "lembranca", "tempo", "gabo", "m1", "realismo-magico"],
+        "Amor": ["amor", "paixão", "paixao", "romance", "amor-impossivel"],
+        "Desejo": ["desejo", "tentação", "tentacao", "pecado", "wilde", "poesia-lirica"],
+        "Melancolia": ["melancolia", "tristeza", "luto", "saudade", "classicos-russos", "melancolia-elegante"]
+      };
+      const keywords = emoMap[selectedEmotion] || [selectedEmotion.toLowerCase()];
+      const quoteText = m.quote.toLowerCase();
+      const thoughtText = m.thought.toLowerCase();
+      const bookText = m.bookTitle.toLowerCase();
+      const hasKeyword = keywords.some(kw => quoteText.includes(kw) || thoughtText.includes(kw) || bookText.includes(kw) || m.ecoId?.includes(kw));
+      matchesEmotion = hasKeyword;
+    }
+
+    const matchesSearch = searchTerm 
+      ? m.quote.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        m.thought.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.bookTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.authorName.toLowerCase().includes(searchTerm.toLowerCase())
+      : true;
+
+    return matchesEmotion && matchesSearch;
+  });
+
   return (
     <div className="space-y-6 animate-page-turn">
       
       {/* Intro header */}
       <div className="space-y-1">
-        <span className="text-[10px] font-mono tracking-widest text-[#BDAB9C] uppercase">Fase 5 — Jardim das Descobertas</span>
+        <span className="text-[10px] font-mono tracking-widest text-[#BDAB9C] uppercase">Sua bússola poética</span>
         <h3 className="font-display font-semibold text-xl text-[#1C1916] tracking-tight">O Jardim das Descobertas</h3>
         <p className="text-xs text-[#3D3D3D] opacity-80 leading-relaxed">
           Navegue pelas entrelinhas do sentimento humano. Descubra citações que acolheram outros leitores sob atmosferas de pura contemplação.
@@ -178,7 +209,7 @@ export default function JardimDescobertas({ onSelectHighlight, margens }: Jardim
             {displayedHighlights.map((h) => (
               <div 
                 key={h.id}
-                className="bg-[#FAF8F3] border border-[#BDAB9C]/40 rounded-xl p-5 journal-shadow flex flex-col justify-between hover:border-[#1C1916] transition-all cursor-pointer group"
+                className="bg-[#FAF8F3] border border-[#BDAB9C]/40 rounded-xl p-5 journal-shadow flex flex-col justify-between hover:border-[#1C1916] transition-all cursor-pointer group animate-page-turn"
                 onClick={() => onSelectHighlight(h)}
               >
                 <p className="font-serif italic text-xs leading-relaxed text-[#1C1916] mb-4">
@@ -200,6 +231,57 @@ export default function JardimDescobertas({ onSelectHighlight, margens }: Jardim
         ) : (
           <p className="text-center py-6 text-xs font-serif italic text-[#BDAB9C]">
             Nenhum trecho de alma coincide com esses filtros. Experimente buscar outra atmosfera.
+          </p>
+        )}
+      </div>
+
+      {/* Community margins board */}
+      <div className="space-y-4 pt-4 border-t border-[#BDAB9C]/25">
+        <h4 className="font-display font-semibold text-xs uppercase tracking-wider text-[#1C1916] border-b border-[#BDAB9C]/20 pb-1.5 flex justify-between items-center">
+          <span>Descobertas da Comunidade ({displayedMargins.length})</span>
+          <span className="text-[9px] font-mono lowercase opacity-60">anotações reais de leitores</span>
+        </h4>
+
+        {displayedMargins.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {displayedMargins.map((m) => (
+              <div 
+                key={m.id}
+                className="bg-[#FAF8F3] border border-[#BDAB9C]/30 rounded-xl p-5 journal-shadow flex flex-col justify-between hover:border-[#1C1916] transition-all cursor-pointer group animate-page-turn"
+                onClick={() => onSelectHighlight({
+                  id: m.id,
+                  title: m.bookTitle,
+                  author: m.author,
+                  quote: m.quote,
+                  emotion: selectedEmotion || "Comunidade"
+                })}
+              >
+                <div className="space-y-3">
+                  <div className="flex justify-between items-start">
+                    <span className="text-[9.5px] font-mono text-[#BDAB9C] uppercase tracking-wider">{m.bookTitle}</span>
+                    <span className="text-[9px] font-sans font-semibold text-[#1C1916] bg-[#1C1916]/5 px-2 py-0.5 rounded-full border border-[#BDAB9C]/20">@{m.authorName}</span>
+                  </div>
+                  <p className="font-serif italic text-xs leading-relaxed text-[#1C1916] pr-2">
+                    "{m.quote}"
+                  </p>
+                  <p className="text-xs font-serif italic text-[#3D3D3D] leading-relaxed pl-3 border-l border-[#BDAB9C]/30 opacity-90">
+                    "{m.thought}"
+                  </p>
+                </div>
+
+                <div className="flex justify-between items-center border-t border-[#BDAB9C]/10 pt-3 mt-4 text-[9px] font-mono text-[#BDAB9C]">
+                  <span>{new Date(m.date).toLocaleDateString("pt-BR")}</span>
+                  <div className="flex items-center gap-2">
+                    <span>❤️ {m.lovesCount || 0}</span>
+                    <span>💬 {m.comments?.length || 0}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center py-6 text-xs font-serif italic text-[#BDAB9C]">
+            Nenhuma anotação de leitor coincide com esse sentimento no momento. Seja o primeiro a criar uma margem!
           </p>
         )}
       </div>

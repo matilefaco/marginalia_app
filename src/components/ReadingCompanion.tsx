@@ -95,7 +95,7 @@ Sua Companheira de Leitura.`);
       
       {/* Intro Header */}
       <div className="space-y-1">
-        <span className="text-[10px] font-mono tracking-widest text-[#BDAB9C] uppercase">Fase 9 — Companheira de Leitura</span>
+        <span className="text-[10px] font-mono tracking-widest text-[#BDAB9C] uppercase">Sintonização de Emoções</span>
         <h3 className="font-display font-semibold text-xl text-[#1C1916]">Sua Companheira Literária</h3>
         <p className="text-xs text-[#3D3D3D] opacity-80 leading-relaxed">
           Ela não é um robô utilitário. Ela é uma inteligência contemplativa que habita a biblioteca antiga com você. Peça conselhos, debata metáforas ou analise seus sentimentos profundos.

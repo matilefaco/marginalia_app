@@ -28,7 +28,8 @@ import {
   HelpCircle,
   Eye,
   LogOut,
-  AlertCircle
+  AlertCircle,
+  Clock
 } from "lucide-react";
 import { UserProfile, Margem, Eco, BookHighlight, Challenge, SpoilerLevel } from "./types";
 import { INITIAL_ECOS, INITIAL_MARGENS, PRESET_HIGHLIGHTS, INITIAL_CHALLENGES, AESTHETIC_THEMES } from "./data";
@@ -37,12 +38,31 @@ import ReaderProfile from "./components/ReaderProfile";
 import WrappedView from "./components/WrappedView";
 import JardimDescobertas from "./components/JardimDescobertas";
 import ReadingCompanion from "./components/ReadingCompanion";
+import { DailyOpeningMoment } from "./components/DailyOpeningMoment";
+import { FutureLetter } from "./components/FutureLetter";
+import { LiteraryCoincidence } from "./components/LiteraryCoincidence";
+import { MuseuDasMargens } from "./components/MuseuDasMargens";
+import { 
+  getStoredProfile, 
+  setStoredProfile, 
+  getStoredMargens, 
+  setStoredMargens, 
+  getStoredChallenges, 
+  setStoredChallenges, 
+  clearAllStorage 
+} from "./lib/storage";
+import {
+  orderFeedForDiscovery,
+  pickMargemDoDia,
+  pickEcoDaSemana,
+  computeEmotionalMap,
+  computeShapingBooks
+} from "./utils/feedAlgorithm";
 
 export default function App() {
   // Onboarding & Profile State
   const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
-    const saved = localStorage.getItem("marginalia_profile");
-    return saved ? JSON.parse(saved) : null;
+    return getStoredProfile();
   });
 
   const [onboardingStep, setOnboardingStep] = useState(1);
@@ -60,15 +80,16 @@ export default function App() {
 
   // Core App State
   const [activeTab, setActiveTab] = useState<"diario" | "descoberta" | "ecos" | "companheira" | "perfil">("diario");
+  const [feedMode, setFeedMode] = useState<"descoberta" | "recentes">("descoberta");
   const [margens, setMargens] = useState<Margem[]>(() => {
-    const saved = localStorage.getItem("marginalia_margens");
-    return saved ? JSON.parse(saved) : INITIAL_MARGENS;
+    return getStoredMargens(INITIAL_MARGENS);
   });
   const [ecos] = useState<Eco[]>(INITIAL_ECOS);
   const [selectedEco, setSelectedEco] = useState<Eco | null>(null);
   
   // Custom Margem Editor
   const [showAddMargem, setShowAddMargem] = useState(false);
+  const [showFutureLetter, setShowFutureLetter] = useState(false);
   const [newMargem, setNewMargem] = useState({
     quote: "",
     thought: "",
@@ -82,8 +103,7 @@ export default function App() {
 
   // Interactive Challenges
   const [challenges, setChallenges] = useState<Challenge[]>(() => {
-    const saved = localStorage.getItem("marginalia_challenges");
-    return saved ? JSON.parse(saved) : INITIAL_CHALLENGES;
+    return getStoredChallenges(INITIAL_CHALLENGES);
   });
 
   // Companheira (AI Assistant) Chat state
@@ -103,7 +123,7 @@ export default function App() {
   // Sharing Modal
   const [sharingMargem, setSharingMargem] = useState<Margem | null>(null);
 
-  // --- Spotify Wrapped-style Retrospective States (Fase 10) ---
+  // --- Retrospective States ---
   const [showWrapped, setShowWrapped] = useState(false);
   const [wrappedData, setWrappedData] = useState<any>(null);
   const [generatingWrapped, setGeneratingWrapped] = useState(false);
@@ -170,15 +190,15 @@ export default function App() {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    localStorage.setItem("marginalia_profile", JSON.stringify(userProfile));
+    setStoredProfile(userProfile);
   }, [userProfile]);
 
   useEffect(() => {
-    localStorage.setItem("marginalia_margens", JSON.stringify(margens));
+    setStoredMargens(margens);
   }, [margens]);
 
   useEffect(() => {
-    localStorage.setItem("marginalia_challenges", JSON.stringify(challenges));
+    setStoredChallenges(challenges);
   }, [challenges]);
 
   useEffect(() => {
@@ -320,7 +340,7 @@ export default function App() {
     }
   };
 
-  // Generate reflection using Gemini AI
+  // Generate reflection using Companion AI
   const handleGenerateAIEcoReflection = async () => {
     if (!newMargem.quote || !newMargem.bookTitle) {
       alert("Por favor, insira o Trecho e o Nome do Livro primeiro para inspirar a IA.");
@@ -479,7 +499,7 @@ export default function App() {
   // Reset Onboarding / Log Out
   const handleResetApp = () => {
     if (confirm("Deseja redefinir seu perfil literário e recomeçar o diário?")) {
-      localStorage.clear();
+      clearAllStorage();
       setUserProfile(null);
       setOnboardingStep(1);
       setMargens(INITIAL_MARGENS);
@@ -722,7 +742,7 @@ export default function App() {
                     Analisando a tinta dos seus autores e a geometria dos seus sentimentos...
                   </p>
                   <p className="text-[10px] font-mono text-[#BDAB9C] uppercase tracking-wider">
-                    Gemini AI decodificando sua alma de leitor
+                    Sua Companheira de Leitura interpretando os rastros da sua biblioteca
                   </p>
                 </div>
               ) : (
@@ -734,7 +754,7 @@ export default function App() {
                   >
                     <div className="absolute top-2 right-2 flex items-center gap-1 font-mono text-[9px] opacity-60">
                       <Sparkle className="w-3 h-3 text-[#BDAB9C]" />
-                      <span>GERADO POR GEMINI</span>
+                      <span>CONEXÃO LITERÁRIA</span>
                     </div>
 
                     <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 border" style={{ borderColor: generatedProfile?.aestheticColor, color: generatedProfile?.aestheticColor }}>
@@ -796,6 +816,28 @@ export default function App() {
       </div>
     );
   }
+
+  // --- DYNAMIC ALGORITHMIC COMPUTATIONS (Para Você, Margem do Dia & Eco da Semana) ---
+  const margemDoDia = pickMargemDoDia(margens);
+  const ecoDaSemana = pickEcoDaSemana(ecos);
+
+  // Compute live profile attributes to be reactive
+  const userMargins = margens.filter(m => m.authorAvatar === userProfile.avatarSeed || m.authorName === userProfile.name);
+  const liveEmotionalMap = computeEmotionalMap(userMargins) || userProfile.emotionalMap;
+  const liveShapingBooks = computeShapingBooks(userMargins) || userProfile.shapingBooks;
+  
+  // Combine userProfile with live calculated fields to feed to ReaderProfile
+  const reactiveUserProfile = {
+    ...userProfile,
+    emotionalMap: liveEmotionalMap,
+    shapingBooks: liveShapingBooks
+  };
+
+  const displayedFeed = feedMode === "descoberta"
+    ? orderFeedForDiscovery(margens.filter(m => m.id !== margemDoDia?.id), userProfile)
+    : [...margens]
+        .filter(m => m.id !== margemDoDia?.id)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // --- MAIN APP RENDER ---
   return (
@@ -947,7 +989,7 @@ export default function App() {
                     onClick={handleGenerateAIEcoReflection}
                     disabled={generatingReflection || !newMargem.quote || !newMargem.bookTitle}
                     className="text-[10px] font-sans text-[#BDAB9C] hover:text-[#1C1916] flex items-center gap-1 disabled:opacity-50 transition-colors"
-                    title="Gere uma reflexão poética automática inspirada neste trecho com o Gemini AI"
+                    title="Gere uma reflexão poética automática inspirada neste trecho com a Companheira de Leitura"
                   >
                     {generatingReflection ? (
                       <>
@@ -1029,6 +1071,20 @@ export default function App() {
           {activeTab === "diario" && !selectedEco && (
             <div className="space-y-6 animate-page-turn">
               
+              <DailyOpeningMoment 
+                onTriggerAction={(action) => {
+                  if (action === "aura" || action === "soulmap") {
+                    setActiveTab("perfil");
+                  } else if (action === "companion") {
+                    setActiveTab("companheira");
+                  } else if (action === "write") {
+                    setShowAddMargem(true);
+                  } else if (action === "letter") {
+                    setShowFutureLetter(true);
+                  }
+                }}
+              />
+
               {/* Warm intro card */}
               <div className="bg-[#BDAB9C]/10 border border-[#BDAB9C]/30 rounded-xl p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
@@ -1049,18 +1105,80 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Feed Title */}
-              <div className="flex justify-between items-center border-b border-[#BDAB9C]/20 pb-3">
+              {/* Feed Selector Toggle & Title */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#BDAB9C]/20 pb-3 gap-3">
                 <h3 className="font-display font-semibold text-lg text-[#1C1916] tracking-tight flex items-center gap-2">
                   <Library className="w-4 h-4 text-[#BDAB9C]" />
                   O Livro das Páginas Dobradas
                 </h3>
-                <span className="text-xs text-[#BDAB9C] font-sans font-medium">{margens.length} Margens ativas</span>
+                
+                <div className="flex bg-[#FAF8F3] border border-[#BDAB9C]/40 p-0.5 rounded-lg shadow-xs self-stretch md:self-auto">
+                  <button
+                    onClick={() => setFeedMode("descoberta")}
+                    className={`flex-1 md:flex-none px-3.5 py-1 rounded-md text-xs font-sans font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      feedMode === "descoberta"
+                        ? "bg-[#1C1916] text-[#FAF8F3] shadow-xs"
+                        : "text-[#BDAB9C] hover:text-[#1C1916]"
+                    }`}
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    <span>Para Você</span>
+                  </button>
+                  <button
+                    onClick={() => setFeedMode("recentes")}
+                    className={`flex-1 md:flex-none px-3.5 py-1 rounded-md text-xs font-sans font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      feedMode === "recentes"
+                        ? "bg-[#1C1916] text-[#FAF8F3] shadow-xs"
+                        : "text-[#BDAB9C] hover:text-[#1C1916]"
+                    }`}
+                  >
+                    <Clock className="w-3 h-3" />
+                    <span>Recentes</span>
+                  </button>
+                </div>
               </div>
+
+              {/* Margem do Dia Highlight Card */}
+              {margemDoDia && (
+                <div className="bg-[#FAF8F3] border-2 border-[#C5A880] rounded-2xl journal-shadow overflow-hidden relative group transition-all duration-300 hover:scale-[1.005] animate-page-turn">
+                  <div className="absolute top-3 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C5A880]/15 text-[9.5px] font-sans font-semibold text-stone-800 border border-[#C5A880]/40">
+                    <Sparkles className="w-3 h-3 text-amber-700 animate-pulse" />
+                    <span>MARGEM DO DIA</span>
+                  </div>
+
+                  <div className="p-6 md:p-8 space-y-4">
+                    <span className="text-[10px] font-mono tracking-wider text-[#BDAB9C] uppercase block break-words">{margemDoDia.bookTitle}</span>
+                    <p className="font-serif italic text-base md:text-lg leading-relaxed text-[#1C1916] font-semibold pr-4 break-words">
+                      "{margemDoDia.quote}"
+                    </p>
+                    <div className="w-10 h-[1.5px] bg-[#BDAB9C]/50 my-2" />
+                    <p className="font-sans font-light text-xs md:text-sm leading-relaxed italic text-[#3D3D3D] pl-3 border-l-2 border-[#BDAB9C]/30 break-words">
+                      {margemDoDia.thought}
+                    </p>
+                    
+                    <div className="flex flex-wrap justify-between items-center pt-3 border-t border-[#BDAB9C]/10 text-xs text-[#3D3D3D] gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-6 h-6 rounded-full bg-[#BDAB9C]/20 border border-[#BDAB9C]/30 flex items-center justify-center font-display text-[10px] font-bold text-[#1C1916] flex-shrink-0">
+                          {margemDoDia.authorName.charAt(0)}
+                        </div>
+                        <span className="font-sans font-semibold truncate max-w-[120px] md:max-w-[180px]">@{margemDoDia.authorAvatar}</span>
+                      </div>
+                      
+                      <button 
+                        onClick={() => setSharingMargem(margemDoDia)}
+                        className="text-[10px] font-sans text-stone-800 hover:text-[#1C1916] flex items-center gap-1 cursor-pointer font-semibold bg-[#BDAB9C]/10 px-2.5 py-1 rounded-lg border border-[#BDAB9C]/30 flex-shrink-0"
+                      >
+                        <Share2 className="w-3 h-3" />
+                        <span>Exportar</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Main Feed Container */}
               <div className="space-y-6">
-                {margens.map((margem) => {
+                {displayedFeed.map((margem) => {
                   const theme = AESTHETIC_THEMES.find(t => t.key === (margem.themeKey || "classic")) || AESTHETIC_THEMES[0];
                   const hasSpoiler = margem.spoilerLevel !== "none";
                   const spoilerUnlocked = unlockedSpoilers[margem.id];
@@ -1274,21 +1392,43 @@ export default function App() {
 
           {/* Active View: DISCOVERY/DESCOBERTA (Pinterest & Emoções) */}
           {activeTab === "descoberta" && (
-            <JardimDescobertas 
-              onSelectHighlight={(h) => {
-                setNewMargem({
-                  quote: h.quote,
-                  thought: "",
-                  bookTitle: h.title,
-                  author: h.author,
-                  spoilerLevel: "none",
-                  themeKey: "classic",
-                  ecoId: ""
-                });
-                setShowAddMargem(true);
-              }}
-              margens={margens}
-            />
+            <div className="space-y-8 animate-page-turn">
+              <JardimDescobertas 
+                onSelectHighlight={(h) => {
+                  setNewMargem({
+                    quote: h.quote,
+                    thought: "",
+                    bookTitle: h.title,
+                    author: h.author,
+                    spoilerLevel: "none",
+                    themeKey: "classic",
+                    ecoId: ""
+                  });
+                  setShowAddMargem(true);
+                }}
+                margens={margens}
+              />
+
+              <div className="border-t border-[#BDAB9C]/20 pt-8 space-y-4">
+                <div>
+                  <h3 className="font-display font-semibold text-lg text-[#1C1916] tracking-tight flex items-center gap-2">
+                    <span>🏛️ O Museu das Margens</span>
+                  </h3>
+                  <p className="text-xs text-stone-600 font-sans">
+                    Navegue pelas reflexões mais sintonizadas, melancólicas e profundas curadas pelos próprios leitores.
+                  </p>
+                </div>
+
+                <MuseuDasMargens 
+                  margens={margens}
+                  onOpenShareModal={(m) => setSharingMargem(m)}
+                  onLikeMargem={(id) => handleToggleLove(id)}
+                  onSaveMargem={(m) => {
+                    alert(`"${m.bookTitle}" salvo na sua biblioteca de inspirações.`);
+                  }}
+                />
+              </div>
+            </div>
           )}
 
           {/* Active View: ECOS / ECO DETAILS */}
@@ -1524,7 +1664,7 @@ export default function App() {
           {/* Active View: PERFIL */}
           {activeTab === "perfil" && (
             <ReaderProfile 
-              userProfile={userProfile}
+              userProfile={reactiveUserProfile}
               margens={margens}
               onTriggerWrapped={handleTriggerWrapped}
               onReset={handleResetApp}
@@ -1558,13 +1698,13 @@ export default function App() {
 
           </div>
 
-          {/* READING STREAK & DAILY CHALLENGES (Duolingo Style but clean & beautiful) */}
+          {/* READING STREAK & WEEKLY RITUALS (De-gamified literary flow) */}
           <div className="bg-[#FAF8F3] border border-[#BDAB9C] rounded-xl p-5 journal-shadow space-y-4">
             
             <div className="flex justify-between items-center">
               <h4 className="font-display font-semibold text-xs uppercase tracking-wider text-[#1C1916] flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-orange-600 animate-pulse" />
-                Desafios Diários
+                <Compass className="w-4 h-4 text-[#BDAB9C]" />
+                Rituais da Semana
               </h4>
               <span className="text-[10px] font-sans text-[#BDAB9C]">
                 {challenges.filter(c => c.completed).length} / {challenges.length}
@@ -1607,37 +1747,52 @@ export default function App() {
 
           </div>
 
-          {/* LIVRO DO MÊS / MARGEM DA SEMANA (Curated book club highlights) */}
-          <div className="bg-[#FAF8F3] border border-[#BDAB9C] rounded-xl p-5 journal-shadow space-y-4">
-            
-            <div className="space-y-1">
-              <span className="text-[10px] font-mono tracking-widest text-[#BDAB9C] uppercase block">
-                Clube Coletivo
-              </span>
-              <h4 className="font-display font-semibold text-xs uppercase tracking-wider text-[#1C1916]">
-                Livro do Mês
-              </h4>
-            </div>
-
-            <div className="flex items-start gap-3">
-              {/* Minimalist Book Jacket placeholder */}
-              <div className="w-16 h-24 bg-[#1E1C1A] text-[#DCD5CD] rounded relative shadow-md flex items-center justify-center p-2 text-center text-[10px] font-serif border border-[#BDAB9C]/20 overflow-hidden flex-shrink-0">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#FAF8F3]/10" />
-                <span className="z-10 text-[8.5px] leading-tight font-display tracking-tighter uppercase font-semibold text-[#BDAB9C]">
-                  Cem Anos de Solidão
+          {/* ECO DA SEMANA (Curated collection trigger) */}
+          {ecoDaSemana && (
+            <div className="bg-[#FAF8F3] border border-[#C5A880]/60 rounded-xl p-5 journal-shadow space-y-4 cursor-pointer hover:border-[#1C1916] transition-all" onClick={() => { setSelectedEco(ecoDaSemana); setActiveTab("ecos"); }}>
+              
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono tracking-widest text-[#C5A880] uppercase block font-semibold">
+                  Sintonização Coletiva
                 </span>
+                <h4 className="font-display font-semibold text-xs uppercase tracking-wider text-[#1C1916]">
+                  Eco da Semana
+                </h4>
               </div>
 
-              <div className="space-y-1 flex-1 min-w-0">
-                <p className="text-xs font-serif font-bold text-[#1C1916] truncate">Cem Anos de Solidão</p>
-                <p className="text-[10px] font-sans text-[#BDAB9C]">Gabriel García Márquez</p>
-                <p className="text-[10.5px] text-[#3D3D3D] leading-relaxed italic font-serif">
-                  "Um clássico que ecoa gerações de solidão e mágica."
-                </p>
+              <div className="flex items-start gap-3">
+                {/* Vintage Minimalist eco cover */}
+                <div className="w-16 h-20 bg-[#1C1916] text-[#FAF8F3] rounded relative shadow-md flex flex-col justify-between p-2 text-center border border-[#BDAB9C]/30 overflow-hidden flex-shrink-0">
+                  <div className="absolute inset-0 tactile-overlay opacity-30" />
+                  <span className="text-[8px] font-mono tracking-widest text-[#BDAB9C]/70 uppercase block">ECO</span>
+                  <span className="z-10 text-[8.5px] leading-tight font-serif italic text-amber-100 font-semibold truncate">
+                    {ecoDaSemana.name.split(" ")[0]}
+                  </span>
+                </div>
+
+                <div className="space-y-1 flex-1 min-w-0">
+                  <p className="text-xs font-sans font-bold text-[#1C1916] truncate">{ecoDaSemana.name}</p>
+                  <p className="text-[9px] font-mono text-[#BDAB9C] uppercase">{ecoDaSemana.category}</p>
+                  <p className="text-[10.5px] text-[#3D3D3D] leading-relaxed italic font-serif line-clamp-3">
+                    "{ecoDaSemana.description}"
+                  </p>
+                </div>
               </div>
+
             </div>
+          )}
 
-          </div>
+          <LiteraryCoincidence 
+            onExploreEco={(name) => {
+              const found = ecos.find(e => e.name.toLowerCase() === name.toLowerCase() || e.category.toLowerCase() === name.toLowerCase() || e.name.toLowerCase().includes(name.toLowerCase()));
+              if (found) {
+                setSelectedEco(found);
+                setActiveTab("ecos");
+              } else {
+                setActiveTab("ecos");
+              }
+            }}
+          />
 
           {/* PLATFORM PHILOSOPHY BOX */}
           <div className="p-5 bg-[#BDAB9C]/10 border border-[#BDAB9C]/30 rounded-xl space-y-2">
@@ -1746,7 +1901,7 @@ export default function App() {
         />
       )}
 
-      {/* WRAPPED RETROSPECTIVE VIEW (Fase 10) */}
+      {/* WRAPPED RETROSPECTIVE VIEW */}
       {showWrapped && wrappedData && (
         <WrappedView 
           wrappedData={wrappedData}
@@ -1769,6 +1924,11 @@ export default function App() {
             </p>
           </div>
         </div>
+      )}
+
+      {/* FUTURE LETTER POPUP MODAL */}
+      {showFutureLetter && (
+        <FutureLetter onClose={() => setShowFutureLetter(false)} />
       )}
 
     </div>

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import { exportNodeAsPng } from "../lib/exportImage";
 import { X, Download, Share2, AlignLeft, AlignCenter, Sliders, Check, Eye, Minimize2, Sparkles } from "lucide-react";
 import { Margem } from "../types";
 
@@ -21,26 +22,50 @@ interface ArtStyle {
 }
 
 export default function ShareModal({ margem, onClose }: ShareModalProps) {
-  const [selectedStyle, setSelectedStyle] = useState("parchment");
+  const [selectedStyle, setSelectedStyle] = useState("story_etereo");
   const [aspect, setAspect] = useState<"square" | "story">("square");
   const [alignment, setAlignment] = useState<"left" | "center">("center");
   const [fontSize, setFontSize] = useState<"sm" | "base" | "lg">("base");
   const [hasNoise, setHasNoise] = useState(true);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  // 6 World-Class Aesthetic Presets (Fase 6 - Share Studio)
+  // 7 Margem Viva World-Class Aesthetic Presets (Share Studio)
   const artStyles: ArtStyle[] = [
     {
-      key: "parchment",
-      name: "📜 Papel Envelhecido",
-      bgClass: "bg-[#F7F1E3] text-[#3E2723]",
-      quoteClass: "text-[#2D1B18] font-serif italic",
+      key: "story_etereo",
+      name: "✨ Story Etéreo",
+      bgClass: "bg-gradient-to-tr from-[#FFFDF9] via-[#FAF6EE] to-[#F1ECE1] text-[#2C2720]",
+      quoteClass: "text-[#1C1814] font-serif italic tracking-wide",
       fontClass: "font-serif",
-      borderClass: "border-[#D8C49F]",
-      badgeText: "Manuscrito Antigo",
-      extraClass: "bg-[radial-gradient(#fcf8f0_1px,transparent_1px)] [background-size:16px_16px]",
-      decor: <div className="absolute right-4 bottom-14 text-xs font-serif opacity-20 transform rotate-12">Bibliotheca</div>
+      borderClass: "border-[#E0D8CB]",
+      badgeText: "Estética Celestial",
+      extraClass: "bg-[radial-gradient(#C5A880_0.7px,transparent_0.7px)] [background-size:24px_24px]",
+      decor: <div className="absolute right-6 bottom-14 text-[9px] font-mono tracking-widest uppercase opacity-35">Ethereal Symphony</div>
+    },
+    {
+      key: "wallpaper_noturno",
+      name: "🌌 Wallpaper Noturno",
+      bgClass: "bg-gradient-to-b from-[#121110] via-[#1A1816] to-[#0A0909] text-[#EBE6DF]",
+      quoteClass: "text-[#FAF8F5] font-serif italic",
+      fontClass: "font-serif",
+      borderClass: "border-[#4A3E31]",
+      badgeText: "Céu Estrelado",
+      extraClass: "bg-[radial-gradient(#FAF8F5_0.5px,transparent_0.5px)] [background-size:20px_20px]",
+      decor: <div className="absolute top-4 right-4 text-[9px] font-mono tracking-widest uppercase opacity-40">Midnight Muse</div>
+    },
+    {
+      key: "carta_dobrada",
+      name: "✉️ Carta Dobrada",
+      bgClass: "bg-[#F4EFE6] text-[#3A2D25]",
+      quoteClass: "text-[#2D1B13] font-serif italic",
+      fontClass: "font-serif",
+      borderClass: "border-[#C1B5A3]",
+      badgeText: "Mensagem Secreta",
+      extraClass: "bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px)] [background-size:100%_20px]",
+      decor: <div className="absolute bottom-12 right-6 w-8 h-8 rounded-full bg-red-800/10 border border-red-800/30 flex items-center justify-center text-[10px] text-red-800 transform rotate-12 shadow-xs">封</div>
     },
     {
       key: "typewriter",
@@ -51,51 +76,40 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
       borderClass: "border-[#CED6E0] border-dashed",
       badgeText: "Edição Mecânica",
       extraClass: "bg-[linear-gradient(rgba(0,0,0,0.05)_1px,transparent_1px)] [background-size:100%_24px]",
-      decor: <div className="absolute top-4 right-4 text-[9px] font-mono bg-red-800 text-white px-1 py-0.5 rounded uppercase tracking-wider opacity-80 rotate-3">REPROVADO</div>
+      decor: <div className="absolute top-4 right-4 text-[9px] font-mono bg-red-800 text-white px-1 py-0.5 rounded uppercase tracking-wider opacity-80 rotate-3">MECÂNICO</div>
     },
     {
-      key: "library",
-      name: "🏛️ Biblioteca Antiga",
-      bgClass: "bg-gradient-to-br from-[#1B3022] to-[#0F1E14] text-[#F3E9DC]",
-      quoteClass: "text-[#F8F1E5] font-serif italic font-semibold",
-      fontClass: "font-serif",
-      borderClass: "border-[#C5A880] border-2",
-      badgeText: "Coleção de Luxo",
-      extraClass: "shadow-[inset_0_0_50px_rgba(0,0,0,0.6)]",
-      decor: <div className="absolute top-1/2 left-4 right-4 h-[1px] bg-[#C5A880]/15 pointer-events-none" />
+      key: "poster_editorial",
+      name: "📰 Pôster Editorial",
+      bgClass: "bg-[#1C1916] text-[#FAF8F3]",
+      quoteClass: "text-white font-sans font-extrabold tracking-tight leading-snug",
+      fontClass: "font-sans",
+      borderClass: "border-[#C5A880] border-[4px]",
+      badgeText: "Brutalismo Suíço",
+      extraClass: "tracking-tight uppercase",
+      decor: <div className="absolute bottom-16 left-6 text-[10px] font-mono text-[#C5A880] uppercase tracking-widest">MARGINALIA EXTRA</div>
     },
     {
-      key: "notebook",
-      name: "📓 Caderno de Viagem",
+      key: "diario",
+      name: "📖 Página de Diário",
       bgClass: "bg-[#FCF6EC] text-[#5D4037]",
       quoteClass: "text-[#3E2723] font-serif italic",
       fontClass: "font-serif",
       borderClass: "border-[#EFE5D3]",
-      badgeText: "Notas de Campo",
+      badgeText: "Notas Íntimas",
       extraClass: "bg-[linear-gradient(90deg,rgba(189,171,156,0.15)_1px,transparent_1px)] [background-size:20px_100%]",
-      decor: <div className="absolute left-6 top-0 bottom-0 w-[1px] bg-red-400/30" />
+      decor: <div className="absolute left-6 top-0 bottom-0 w-[1px] bg-red-400/35" />
     },
     {
-      key: "love_letter",
-      name: "💌 Carta de Amor",
-      bgClass: "bg-[#FDF6F6] text-[#6D4C41]",
-      quoteClass: "text-[#4E342E] font-serif italic",
-      fontClass: "font-serif",
-      borderClass: "border-[#ECC4C4]",
-      badgeText: "Diário do Coração",
-      extraClass: "bg-[radial-gradient(#ecc4c4_0.8px,transparent_0.8px)] [background-size:12px_12px]",
-      decor: <div className="absolute bottom-16 right-6 w-8 h-8 rounded-full bg-red-700/10 border border-red-700/30 flex items-center justify-center text-[10px] text-red-800 transform rotate-6">❤️</div>
-    },
-    {
-      key: "minimalist",
-      name: "📐 Edição Minimalista",
-      bgClass: "bg-white text-black",
-      quoteClass: "text-black font-sans font-normal tracking-tight leading-snug",
+      key: "bio_quote",
+      name: "✒️ Bio Quote",
+      bgClass: "bg-[#090909] text-[#FAF8F3]",
+      quoteClass: "text-white font-sans tracking-tight leading-relaxed",
       fontClass: "font-sans",
-      borderClass: "border-black border-[3px]",
-      badgeText: "Design Moderno",
-      extraClass: "tracking-tight",
-      decor: <div className="absolute top-3 left-4 text-[9px] font-mono uppercase tracking-widest text-black/40">MARGINALIA / CH-04</div>
+      borderClass: "border-neutral-800 border-[2px]",
+      badgeText: "Assinatura Minimal",
+      extraClass: "text-center",
+      decor: <div className="absolute top-3 left-4 text-[8px] font-mono uppercase tracking-widest text-neutral-500">BIO SIGNATURE</div>
     }
   ];
 
@@ -104,17 +118,27 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
   const handleCopyLink = () => {
     setCopied(true);
     navigator.clipboard.writeText(
-      `"${margem.quote}"\n\n— Margem: "${margem.thought}"\n(${margem.bookTitle}, por ${margem.author} | Criado no Marginalia)`
+      `📖 "${margem.quote}"\n\n— Minha Margem: "${margem.thought}"\n(${margem.bookTitle}, por ${margem.author} | Criado no Marginalia.app)`
     );
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownloadSimulated = () => {
+  const handleDownloadCard = async () => {
+    if (!cardRef.current) return;
     setDownloading(true);
-    setTimeout(() => {
+    setDownloadError(false);
+    try {
+      const safeTitle = margem.bookTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
+      await exportNodeAsPng(
+        cardRef.current,
+        `marginalia-${safeTitle || "margem"}-${aspect}`
+      );
+    } catch (err) {
+      console.error("Falha ao exportar o cartão:", err);
+      setDownloadError(true);
+    } finally {
       setDownloading(false);
-      alert(`Obra-prima exportada com sucesso!\n\nSeu cartão no formato "${aspect === "square" ? "Quadrado (Instagram/Feed)" : "Story/Pinterest"}" foi salvo como arte literária de altíssima definição.`);
-    }, 1500);
+    }
   };
 
   const getFontSizeClass = () => {
@@ -134,6 +158,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
           
           <div 
             id="share-card-container"
+            ref={cardRef}
             className={`w-full relative rounded-xl p-8 relative journal-shadow transition-all duration-300 border ${
               currentStyle.bgClass
             } ${currentStyle.borderClass} ${currentStyle.extraClass} flex flex-col justify-between overflow-hidden ${
@@ -157,13 +182,13 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
               
               {/* Highlight Quote */}
               <div className="relative px-2">
-                {selectedStyle !== "minimalist" && (
+                {selectedStyle !== "bio_quote" && (
                   <span className="absolute -top-3 left-0 text-3xl opacity-20 font-serif">“</span>
                 )}
                 <p className={`${getFontSizeClass()} font-serif italic leading-relaxed ${currentStyle.quoteClass}`}>
                   {margem.quote}
                 </p>
-                {selectedStyle !== "minimalist" && (
+                {selectedStyle !== "bio_quote" && (
                   <span className="absolute -bottom-5 right-0 text-3xl opacity-20 font-serif">”</span>
                 )}
               </div>
@@ -206,7 +231,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
           <div>
             <div className="flex justify-between items-center mb-5">
               <div>
-                <span className="text-[9px] font-sans text-[#BDAB9C] font-semibold tracking-widest uppercase block">Fase 6 — Share Studio</span>
+                <span className="text-[9px] font-sans text-[#BDAB9C] font-semibold tracking-widest uppercase block">Oficina Poética</span>
                 <h3 className="font-display font-semibold text-lg text-[#1C1916] tracking-tight">Estúdio de Arte</h3>
               </div>
               <button 
@@ -217,7 +242,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
               </button>
             </div>
 
-            {/* Preset Art styles selection (Fase 6) */}
+            {/* Preset Art styles selection */}
             <div className="space-y-3 mb-5">
               <label className="text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider block">
                 Variantes de Arte
@@ -334,7 +359,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
           {/* Action triggers */}
           <div className="space-y-2 mt-4 pt-4 border-t border-[#BDAB9C]/30">
             <button
-              onClick={handleDownloadSimulated}
+              onClick={handleDownloadCard}
               disabled={downloading}
               className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-2.5 rounded-xl font-sans text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
@@ -346,10 +371,16 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
               ) : (
                 <>
                   <Download className="w-4 h-4" />
-                  <span>Salvar na Galeria</span>
+                  <span>Baixar Imagem (PNG)</span>
                 </>
               )}
             </button>
+
+            {downloadError && (
+              <p className="text-[10px] text-red-600 text-center font-serif italic mt-1 animate-pulse">
+                Não conseguimos gerar a imagem agora. Tente novamente.
+              </p>
+            )}
             
             <button
               onClick={handleCopyLink}
