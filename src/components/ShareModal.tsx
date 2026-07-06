@@ -143,9 +143,9 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
 
   const getFontSizeClass = () => {
     switch (fontSize) {
-      case "sm": return "text-xs md:text-sm";
-      case "lg": return "text-lg md:text-xl";
-      default: return "text-sm md:text-base";
+      case "sm": return "text-[15px] md:text-[16px] leading-relaxed";
+      case "lg": return "text-[20px] md:text-[22px] leading-relaxed";
+      default: return "text-[17px] md:text-[18px] leading-relaxed";
     }
   };
 
@@ -172,54 +172,56 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
             {currentStyle.decor}
 
             {/* Top Frame Branding */}
-            <div className="flex justify-between items-center opacity-60 font-mono text-[9px] tracking-widest uppercase">
-              <span>MARGINALIA JOURNAL</span>
-              <span>ESTILO: {currentStyle.badgeText}</span>
+            <div className="flex justify-between items-center opacity-70 font-mono text-[10px] tracking-wider uppercase">
+              <span>MARGINALIA</span>
+              <span>{currentStyle.badgeText}</span>
             </div>
 
             {/* Content Core Block */}
-            <div className={`my-auto flex flex-col space-y-4 ${alignment === "center" ? "text-center" : "text-left"}`}>
+            <div className={`my-auto flex flex-col space-y-5 ${alignment === "center" ? "text-center" : "text-left"}`}>
               
               {/* Highlight Quote */}
               <div className="relative px-2">
                 {selectedStyle !== "bio_quote" && (
-                  <span className="absolute -top-3 left-0 text-3xl opacity-20 font-serif">“</span>
+                  <span className="absolute -top-4 left-0 text-4xl opacity-30 font-serif">“</span>
                 )}
                 <p className={`${getFontSizeClass()} font-serif italic leading-relaxed ${currentStyle.quoteClass}`}>
                   {margem.quote}
                 </p>
                 {selectedStyle !== "bio_quote" && (
-                  <span className="absolute -bottom-5 right-0 text-3xl opacity-20 font-serif">”</span>
+                  <span className="absolute -bottom-6 right-0 text-4xl opacity-30 font-serif">”</span>
                 )}
               </div>
 
               {/* Classic Book Divider */}
-              <div className="flex justify-center py-1">
-                <div className={`w-16 h-[1.5px] opacity-25 bg-current`} />
+              <div className="flex justify-center py-1.5">
+                <div className="w-16 h-[1.5px] bg-[#C8854A]" style={{ opacity: 0.75 }} />
               </div>
 
               {/* Author's Personal Reflection */}
-              <div className="font-serif">
-                <p className="text-[12px] md:text-xs leading-relaxed italic opacity-90 pl-3 border-l-2 border-current/35">
-                  "{margem.thought}"
+              <div className="font-sans">
+                <p className="text-[15px] md:text-[16px] leading-relaxed italic opacity-95 pl-3.5 border-l-2 border-[#C8854A] font-normal">
+                  “{margem.thought}”
                 </p>
               </div>
 
               {/* Source Attribution Metadata */}
               <div className="pt-2">
-                <p className="font-sans font-bold text-[11px] uppercase tracking-wider">
+                <p className="font-sans font-bold text-[14px] tracking-wide text-current">
                   {margem.bookTitle}
                 </p>
-                <p className="font-sans text-[9px] opacity-65 tracking-widest">
+                <p className="font-sans text-[11px] opacity-75 tracking-wider mt-0.5">
                   {margem.author}
                 </p>
               </div>
             </div>
 
             {/* Aesthetic Bottom Footer */}
-            <div className="flex justify-between items-center pt-3 border-t border-current border-opacity-15 font-mono text-[9px] opacity-50">
-              <span>Reflexão de @{margem.authorAvatar || "leitor"}</span>
-              <span className="tracking-widest uppercase font-sans font-medium">marginalia.app</span>
+            <div className="flex justify-between items-center pt-3.5 border-t border-current border-opacity-15 font-mono text-[9px] opacity-60">
+              <span className="font-sans">Reflexão de @{margem.authorAvatar || "leitor"}</span>
+              <span className="tracking-wider uppercase font-sans font-medium flex items-center gap-1">
+                <span className="text-[#C8854A]">★</span> marginalia.app • o que fica em você
+              </span>
             </div>
 
           </div>
@@ -361,40 +363,40 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
             <button
               onClick={handleDownloadCard}
               disabled={downloading}
-              className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-2.5 rounded-xl font-sans text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-3 rounded-xl font-sans text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {downloading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-[#FAF8F3] border-t-transparent rounded-full animate-spin" />
-                  <span>Prensando Papel...</span>
+                  <span>Prensando Papel de Fibra...</span>
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4" />
-                  <span>Baixar Imagem (PNG)</span>
+                  <span>Gravar e Baixar Cartão</span>
                 </>
               )}
             </button>
 
             {downloadError && (
               <p className="text-[10px] text-red-600 text-center font-serif italic mt-1 animate-pulse">
-                Não conseguimos gerar a imagem agora. Tente novamente.
+                Não conseguimos gravar o cartão agora. Tente novamente.
               </p>
             )}
             
             <button
               onClick={handleCopyLink}
-              className="w-full bg-[#FAF8F3] hover:bg-[#1C1916]/5 text-[#1C1916] border border-[#1C1916] py-2.5 rounded-xl font-sans text-xs font-medium transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full bg-[#FAF8F3] hover:bg-[#1C1916]/5 text-[#1C1916] border border-[#1C1916] py-3 rounded-xl font-sans text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4 text-green-600" />
-                  <span className="text-green-600 font-semibold">Copiado para colagem!</span>
+                  <Check className="w-4 h-4 text-[#C5A880]" />
+                  <span className="text-[#C5A880] font-bold">Inscrição copiada!</span>
                 </>
               ) : (
                 <>
                   <Share2 className="w-4 h-4" />
-                  <span>Copiar Citação + Margem</span>
+                  <span>Estender Citação às Margens</span>
                 </>
               )}
             </button>

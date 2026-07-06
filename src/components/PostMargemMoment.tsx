@@ -63,47 +63,47 @@ export default function PostMargemMoment({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1C1916]/85 backdrop-blur-md overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1C1916]/90 backdrop-blur-md overflow-y-auto">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 15, filter: "blur(4px)" }}
         animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
         exit={{ opacity: 0, scale: 0.95, y: 15, filter: "blur(4px)" }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-xl bg-[#FAF8F3] border border-[#BDAB9C] rounded-2xl p-6 md:p-8 journal-shadow relative overflow-hidden my-8"
+        className="w-full max-w-xl elevation-2 p-6 md:p-8 relative overflow-hidden my-8 rounded-2xl"
       >
         {/* Subtle decorative elements for editorial/paper look */}
         <div className="absolute top-0 left-0 w-full h-1.5 bg-[#1C1916]" />
-        <div className="absolute right-4 top-4 text-[9px] font-mono tracking-widest uppercase opacity-25">
+        <div className="absolute right-6 top-5 text-[10px] font-mono tracking-wide uppercase opacity-35">
           Marginalia Record
         </div>
 
         {/* HEADER */}
-        <div className="space-y-2 text-center pb-6 border-b border-[#BDAB9C]/30">
+        <div className="space-y-2 text-center pb-6 border-b border-[#BDAB9C]/35">
           <motion.div
             initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 0.4, y: 0 }}
+            animate={{ opacity: 0.5, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-[10px] font-mono uppercase tracking-widest text-[#BDAB9C]"
+            className="text-[11px] font-mono uppercase tracking-wide text-[#BDAB9C]"
           >
-            Anotação Consagrada
+            MARGINÁLIA ESCRITA
           </motion.div>
           
           <motion.h3 
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="font-display text-xl md:text-2xl text-[#1C1916] font-semibold font-serif tracking-tight"
+            className="font-serif text-2xl md:text-3xl text-[#1C1916] font-medium tracking-tight leading-tight"
           >
-            Essa frase agora tem uma segunda vida.
+            Sua voz gravada na eternidade do papel.
           </motion.h3>
           
           <motion.p 
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.8 }}
+            animate={{ opacity: 0.9 }}
             transition={{ delay: 0.4 }}
-            className="text-xs font-serif italic text-[#3D3D3D]/80 max-w-md mx-auto leading-relaxed"
+            className="text-[13px] font-serif italic text-[#3D3D3D]/90 max-w-md mx-auto leading-relaxed"
           >
-            “Algumas palavras terminam na página.<br />Outras continuam vivendo dentro de quem as encontrou.”
+            “Há palavras que morrem na página física. <br className="hidden sm:block" />Outras criam raízes permanentes no coração de quem as colhe.”
           </motion.p>
         </div>
 
@@ -112,28 +112,28 @@ export default function PostMargemMoment({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="my-6 p-5 rounded-xl border border-[#BDAB9C]/40 bg-[#FAF8F3] relative journal-shadow overflow-hidden"
+          className="my-6 p-5.5 rounded-2xl elevation-1 relative overflow-hidden bg-[#FAF8F3]"
         >
           {/* Paper lines background effect */}
           <div className="absolute left-0 top-0 bottom-0 w-[1px] bg-red-400/20 ml-6 pointer-events-none" />
-          <div className="pl-4 space-y-3.5">
-            <div className="space-y-1">
-              <span className="text-[10px] font-mono text-[#BDAB9C] tracking-wider block uppercase">Trecho destacado</span>
-              <p className="font-serif italic text-xs md:text-sm text-[#1C1916] leading-relaxed border-l-2 border-[#1C1916]/10 pl-3">
+          <div className="pl-4 space-y-4">
+            <div className="space-y-1.5">
+              <span className="text-[10px] font-mono text-[#BDAB9C] tracking-wide block uppercase">Trecho destacado</span>
+              <p className="font-serif italic text-[15px] md:text-[16px] text-[#1C1916] leading-relaxed border-l-2 border-[#1C1916]/15 pl-3.5">
                 “{margem.quote}”
               </p>
             </div>
             
-            <div className="flex gap-2 items-center text-[10px] font-sans text-[#3D3D3D]/70 font-medium">
+            <div className="flex gap-2 items-center text-xs font-sans text-stone-800 font-medium">
               <BookOpen className="w-3.5 h-3.5 text-[#BDAB9C]" />
-              <span>{margem.bookTitle}</span>
+              <span className="font-semibold">{margem.bookTitle}</span>
               <span className="opacity-40">•</span>
               <span className="italic">por {margem.author}</span>
             </div>
 
-            <div className="pt-2.5 border-t border-[#BDAB9C]/25 space-y-1">
-              <span className="text-[10px] font-mono text-[#BDAB9C] tracking-wider block uppercase">Sua Margem</span>
-              <p className="font-serif text-xs text-[#3D3D3D] leading-relaxed italic">
+            <div className="pt-3 border-t border-[#BDAB9C]/25 space-y-1.5">
+              <span className="text-[10px] font-mono text-[#BDAB9C] tracking-wide block uppercase">Sua Margem</span>
+              <p className="font-serif text-[14px] md:text-[15px] text-stone-850 leading-relaxed italic">
                 {margem.thought}
               </p>
             </div>
@@ -145,31 +145,31 @@ export default function PostMargemMoment({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="p-4 bg-[#BDAB9C]/10 border border-[#BDAB9C]/30 rounded-xl space-y-1 text-center relative"
+          className="p-4 bg-[#BDAB9C]/10 border border-[#BDAB9C]/25 rounded-xl space-y-1.5 text-center relative"
         >
           <div className="absolute top-2 right-3 text-[#C5A880] animate-pulse">
             <Sparkles className="w-3.5 h-3.5" />
           </div>
-          <p className="text-[9px] font-mono uppercase tracking-widest text-[#BDAB9C] font-semibold">
-            Talvez isso diga algo sobre você
+          <p className="text-[10px] font-mono uppercase tracking-wide text-[#BDAB9C] font-bold">
+            Reflexo de Alma Leitora
           </p>
-          <p className="text-xs font-serif italic text-[#1C1916] px-2 leading-relaxed">
+          <p className="text-sm font-serif italic text-[#1C1916] px-2 leading-relaxed">
             “{insight}”
           </p>
         </motion.div>
 
         {/* ACTIONS SECTION */}
-        <div className="mt-6 pt-5 border-t border-[#BDAB9C]/30 space-y-3">
+        <div className="mt-6 pt-5 border-t border-[#BDAB9C]/35 space-y-3">
           
           {/* ACTION 1: Story (Dominant) */}
           <motion.button
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
             onClick={onShareStory}
-            className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-3 px-4 rounded-xl font-sans text-xs font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 journal-shadow cursor-pointer border border-[#1C1916]"
+            className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-3 px-4 rounded-xl font-sans text-sm font-bold tracking-wide transition-all flex items-center justify-center gap-2 journal-shadow cursor-pointer border border-[#1C1916]"
           >
             <Share2 className="w-4 h-4 text-[#BDAB9C]" />
-            <span>Transformar em Story</span>
+            <span>Modelar para Partilha</span>
           </motion.button>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -178,10 +178,10 @@ export default function PostMargemMoment({
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               onClick={handleDNAAction}
-              className={`py-3 px-3 rounded-xl font-sans text-xs font-semibold tracking-wide transition-all flex items-center justify-center gap-2 cursor-pointer border ${
+              className={`py-3 px-3 rounded-xl font-sans text-sm font-semibold tracking-wide transition-all flex items-center justify-center gap-2 cursor-pointer border ${
                 addedToDNA 
                   ? "bg-[#FAF8F3] border-[#BDAB9C] text-[#BDAB9C] cursor-default" 
-                  : "bg-[#FAF8F3] border-[#BDAB9C]/60 hover:border-[#1C1916] text-[#3D3D3D] hover:bg-[#1C1916]/5"
+                  : "bg-[#FAF8F3] border-[#BDAB9C]/60 hover:border-[#1C1916] text-stone-850 hover:bg-[#1C1916]/5"
               }`}
             >
               {addedToDNA ? (
@@ -192,7 +192,7 @@ export default function PostMargemMoment({
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-[#BDAB9C]" />
-                  <span>Adicionar ao DNA Literário</span>
+                  <span>Entrelaçar ao DNA Literário</span>
                 </>
               )}
             </motion.button>
@@ -202,10 +202,10 @@ export default function PostMargemMoment({
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               onClick={onFindEcos}
-              className="py-3 px-3 rounded-xl bg-[#FAF8F3] border border-[#BDAB9C]/60 hover:border-[#1C1916] text-[#3D3D3D] hover:bg-[#1C1916]/5 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="py-3 px-3 rounded-xl bg-[#FAF8F3] border border-[#BDAB9C]/60 hover:border-[#1C1916] text-stone-850 hover:bg-[#1C1916]/5 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <Compass className="w-4 h-4 text-[#BDAB9C]" />
-              <span>Encontrar Ecos Parecidos</span>
+              <span>Escutar Ecos do Jardim</span>
             </motion.button>
           </div>
 
@@ -213,9 +213,9 @@ export default function PostMargemMoment({
           <div className="flex justify-center pt-3">
             <button
               onClick={onClose}
-              className="text-xs font-sans font-medium text-[#BDAB9C] hover:text-[#1C1916] transition-colors cursor-pointer"
+              className="text-xs font-sans font-semibold text-[#BDAB9C] hover:text-[#1C1916] transition-colors cursor-pointer"
             >
-              Concluir e voltar ao Diário
+              Concluir e recolher ao silêncio
             </button>
           </div>
         </div>

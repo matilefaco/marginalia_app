@@ -7,15 +7,17 @@ import { LiteraryAura } from "./LiteraryAura";
 import { SoulMap } from "./SoulMap";
 import { IdentityQuoteCard } from "./IdentityQuoteCard";
 import { LiteraryCompatibility } from "./LiteraryCompatibility";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 interface ReaderProfileProps {
   userProfile: UserProfile;
   margens: Margem[];
   onTriggerWrapped: () => void;
   onReset: () => void;
+  onOpenAddMargem?: () => void;
 }
 
-export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, onReset }: ReaderProfileProps) {
+export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, onReset, onOpenAddMargem }: ReaderProfileProps) {
   const [activeSubTab, setActiveSubTab] = useState<"identidade" | "aura" | "mapa" | "compatibilidade" | "historico" | "recompensas">("identidade");
   const [exportingCard, setExportingCard] = useState(false);
   const identityCardRef = useRef<HTMLDivElement>(null);
@@ -143,8 +145,8 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
               </div>
             </div>
 
-            <p className="font-serif italic text-xs leading-relaxed text-[#3D3D3D] max-w-xl">
-              "{userProfile.bio || "Habitante de mundos dobrados nas margens."}"
+            <p className="font-serif italic text-[14px] md:text-[15px] leading-relaxed text-stone-800 max-w-xl">
+              “{userProfile.bio || "Habitante de mundos dobrados nas margens."}”
             </p>
 
             <div className="pt-2 flex justify-center md:justify-start gap-5 text-xs font-sans text-[#3D3D3D]">
@@ -213,23 +215,23 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
         <div className="space-y-6 animate-page-turn">
           
           {/* Aesthetic Quote block */}
-          <div className="p-5 bg-gradient-to-tr from-[#FAF8F3] to-[#F5ECE1] border border-[#BDAB9C] rounded-xl relative overflow-hidden journal-shadow">
-            <div className="absolute top-2 right-3 font-mono text-[9px] text-[#BDAB9C]">
+          <div className="elevation-1 p-6 relative overflow-hidden rounded-2xl bg-gradient-to-tr from-[#FAF8F3] to-[#F5ECE1]">
+            <div className="absolute top-4 right-4 font-mono text-[10px] text-[#BDAB9C] tracking-wide">
               SÍMBOLO: {userProfile.aestheticSymbol || "Pena de Ganso"}
             </div>
-            <h4 className="font-sans font-bold text-[10px] text-[#BDAB9C] uppercase tracking-wider mb-2">Assinatura Literária</h4>
-            <p className="font-serif italic text-sm text-[#1C1916] leading-relaxed font-semibold">
-              "{userProfile.signatureQuote || "Pensar é o ato de tatear o invisível no escuro."}"
+            <h4 className="font-sans font-bold text-[11px] text-[#BDAB9C] uppercase tracking-wider mb-2.5">Assinatura Literária</h4>
+            <p className="font-serif italic text-[15px] md:text-[16px] text-[#1C1916] leading-relaxed font-semibold">
+              “{userProfile.signatureQuote || "Pensar é o ato de tatear o invisível no escuro."}”
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Emotional Map (Fase 3 - Mapa Emocional) */}
-            <div className="bg-[#FAF8F3] border border-[#BDAB9C]/40 rounded-xl p-5 journal-shadow space-y-4">
+            <div className="elevation-1 p-6 rounded-2xl space-y-4.5">
               <div>
-                <h4 className="font-sans font-bold text-xs uppercase text-[#1C1916] tracking-wider">Mapa Emocional</h4>
-                <p className="text-[10px] text-[#BDAB9C]">Padrões sentimentais destilados de suas reflexões</p>
+                <h4 className="font-sans font-bold text-sm uppercase text-[#1C1916] tracking-wide">Mapa Emocional</h4>
+                <p className="text-xs text-[#BDAB9C] mt-0.5">Padrões sentimentais destilados de suas reflexões</p>
               </div>
 
               <div className="space-y-3.5">
@@ -255,12 +257,12 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
             <div className="space-y-4">
               
               {/* Atmosferas Favoritas */}
-              <div className="bg-[#FAF8F3] border border-[#BDAB9C]/40 rounded-xl p-5 journal-shadow space-y-3">
-                <h4 className="font-sans font-bold text-xs uppercase text-[#1C1916] tracking-wider">Atmosferas Prediletas</h4>
-                <ul className="space-y-2">
+              <div className="elevation-1 p-5 rounded-2xl space-y-3.5">
+                <h4 className="font-sans font-bold text-sm uppercase text-[#1C1916] tracking-wide">Atmosferas Prediletas</h4>
+                <ul className="space-y-2.5">
                   {atmospheres.map((atm, idx) => (
-                    <li key={idx} className="text-xs font-serif italic text-[#3D3D3D] flex items-center gap-2">
-                      <span className="text-[10px] opacity-40">☕</span>
+                    <li key={idx} className="text-sm font-serif italic text-stone-850 flex items-center gap-2">
+                      <span className="text-[10px] opacity-50">☕</span>
                       <span>{atm}</span>
                     </li>
                   ))}
@@ -268,8 +270,8 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
               </div>
 
               {/* Livros de Origem / que moldaram a alma */}
-              <div className="bg-[#FAF8F3] border border-[#BDAB9C]/40 rounded-xl p-5 journal-shadow space-y-3">
-                <h4 className="font-sans font-bold text-xs uppercase text-[#1C1916] tracking-wider">Livros de Origem</h4>
+              <div className="elevation-1 p-5 rounded-2xl space-y-3.5">
+                <h4 className="font-sans font-bold text-sm uppercase text-[#1C1916] tracking-wide">Livros de Origem</h4>
                 {userProfile.literaryDNA?.originBooks && userProfile.literaryDNA.originBooks.length > 0 ? (
                   <div className="space-y-3">
                     {userProfile.literaryDNA.originBooks.map((book, idx) => (
@@ -306,10 +308,10 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
           </div>
 
           {/* Literary Timeline (Fase 3) */}
-          <div className="bg-[#FAF8F3] border border-[#BDAB9C]/40 rounded-xl p-5 journal-shadow space-y-4">
+          <div className="elevation-1 p-6 rounded-2xl space-y-5">
             <div>
-              <h4 className="font-sans font-bold text-xs uppercase text-[#1C1916] tracking-wider">Evolução Literária</h4>
-              <p className="text-[10px] text-[#BDAB9C]">Linha do tempo poética das suas descobertas</p>
+              <h4 className="font-sans font-bold text-sm uppercase text-[#1C1916] tracking-wide">Evolução Literária</h4>
+              <p className="text-xs text-[#BDAB9C] mt-0.5">Linha do tempo poética das suas descobertas</p>
             </div>
 
             <div className="border-l border-[#BDAB9C]/30 ml-2 pl-4 space-y-5 relative">
@@ -341,20 +343,22 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
       {/* TAB SUB-CONTENT: MAPA DA ALMA */}
       {activeSubTab === "mapa" && (
         <div className="space-y-6 animate-page-turn">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-            <div className="lg:col-span-2">
-              <SoulMap userProfile={userProfile} />
-            </div>
-            <div className="space-y-6">
-              <IdentityQuoteCard username={userProfile.name} />
-              <div className="bg-[#FAF8F3] border border-[#BDAB9C] rounded-xl p-5 journal-shadow space-y-3.5">
-                <h4 className="font-sans font-bold text-xs uppercase tracking-wider text-[#1C1916]">Sinal Cósmico</h4>
-                <p className="font-serif italic text-xs leading-relaxed text-stone-700">
-                  Sua alma emite vibrações na frequência da pena de ganso. Cada margem criada expande seu rastro estelar no grande arquivo da sensibilidade humana.
-                </p>
+          <ErrorBoundary fallbackMessage="Seu Mapa da Alma ainda está sendo desenhado.">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+              <div className="lg:col-span-2">
+                <SoulMap userProfile={userProfile} margens={margens} onOpenAddMargem={onOpenAddMargem} />
+              </div>
+              <div className="space-y-6">
+                <IdentityQuoteCard userProfile={userProfile} margens={margens} />
+                <div className="elevation-1 p-5 rounded-2xl space-y-3.5">
+                  <h4 className="font-sans font-bold text-sm uppercase tracking-wide text-[#1C1916]">Sinal Cósmico</h4>
+                  <p className="font-serif italic text-sm leading-relaxed text-stone-800">
+                    Sua alma emite vibrações na frequência da pena de ganso. Cada margem criada expande seu rastro estelar no grande arquivo da sensibilidade humana.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          </ErrorBoundary>
         </div>
       )}
 

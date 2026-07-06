@@ -169,23 +169,23 @@ export const LiteraryAura: React.FC<LiteraryAuraProps> = ({ userProfile, margens
                <Library className="w-8 h-8 text-amber-100" />}
             </div>
           </div>
-          <span className="text-[10px] font-mono text-[#BDAB9C] tracking-widest uppercase mt-4 block">
+          <span className="text-[12px] font-mono text-[#BDAB9C] tracking-wider uppercase mt-4 block">
             {aura.archetype}
           </span>
         </div>
 
         {/* Emotions Proportions List */}
-        <div className="z-10 space-y-3.5 px-3">
+        <div className="z-10 space-y-4 px-3">
           {Object.entries(aura.emotions).map(([emotion, val]) => (
-            <div key={emotion} className="space-y-1">
-              <div className="flex justify-between items-end text-xs">
-                <span className="font-sans font-medium text-[#FAF8F3]/85 flex items-center gap-1.5">
-                  <Star className="w-2.5 h-2.5 text-[#C5A880]/70" />
+            <div key={emotion} className="space-y-1.5">
+              <div className="flex justify-between items-end text-[13px] md:text-sm">
+                <span className="font-sans font-medium text-[#FAF8F3]/90 flex items-center gap-1.5">
+                  <Star className="w-3 h-3 text-[#C5A880]/90" />
                   {emotion}
                 </span>
-                <span className="font-mono text-[10px] text-[#BDAB9C]">{val}%</span>
+                <span className="font-mono text-[11px] text-[#BDAB9C]">{val}%</span>
               </div>
-              <div className="w-full h-[1px] bg-[#FAF8F3]/10 relative">
+              <div className="w-full h-[1.5px] bg-[#FAF8F3]/10 relative">
                 <div 
                   className="absolute top-0 left-0 h-full bg-[#C5A880]" 
                   style={{ width: `${val}%` }}
@@ -196,16 +196,16 @@ export const LiteraryAura: React.FC<LiteraryAuraProps> = ({ userProfile, margens
         </div>
 
         {/* Signature Quote & Branding Footer */}
-        <div className="z-10 space-y-4 text-center mt-6 mb-4 px-2">
-          <p className="font-serif italic text-xs md:text-sm leading-relaxed text-[#DCD5CD]">
-            "{aura.phrase}"
+        <div className="z-10 space-y-5 text-center mt-6 mb-4 px-2">
+          <p className="font-serif italic text-[14px] md:text-[16px] leading-relaxed text-[#FAF8F3]/90 font-medium">
+            “{aura.phrase}”
           </p>
           
-          <div className="space-y-1 pt-3 border-t border-[#BDAB9C]/15">
-            <p className="font-sans text-xs font-semibold tracking-wide text-[#FAF8F3]/95">
+          <div className="space-y-1.5 pt-3 border-t border-[#BDAB9C]/15">
+            <p className="font-sans text-[13px] font-bold tracking-wide text-[#FAF8F3]/95">
               @{userProfile.username || "leitor_marginalia"}
             </p>
-            <p className="text-[7.5px] font-mono tracking-widest text-[#BDAB9C] uppercase">
+            <p className="text-[9px] font-mono tracking-wider text-[#BDAB9C] uppercase">
               ORGANIZANDO EMOÇÕES · MARGINALIA.APP
             </p>
           </div>
@@ -216,19 +216,19 @@ export const LiteraryAura: React.FC<LiteraryAuraProps> = ({ userProfile, margens
       <div className="no-export flex flex-wrap justify-center gap-3">
         <button 
           onClick={handleCopyPhrase}
-          className="text-xs font-sans font-semibold text-stone-800 hover:text-[#1C1916] flex items-center gap-1.5 bg-[#FAF8F3] hover:bg-stone-50 px-4 py-2 rounded-xl border border-[#BDAB9C]/30 shadow-xs cursor-pointer transition-all"
+          className="text-xs font-sans font-semibold text-stone-800 hover:text-[#1C1916] flex items-center gap-1.5 bg-[#FAF8F3] hover:bg-stone-50 px-4 py-2.5 rounded-xl border border-[#BDAB9C]/30 shadow-xs cursor-pointer transition-all"
         >
           {copied ? <Check className="w-4 h-4 text-green-700" /> : <Copy className="w-4 h-4" />}
-          <span>{copied ? "Frase Copiada!" : "Copiar Frase Signature"}</span>
+          <span>{copied ? "Selo Copiado!" : "Copiar Selo Signature"}</span>
         </button>
 
         <button 
           onClick={handleExport}
           disabled={exporting}
-          className="text-xs font-sans font-semibold bg-[#1C1916] text-[#FAF8F3] hover:bg-stone-800 flex items-center gap-1.5 px-4.5 py-2 rounded-xl shadow-md cursor-pointer disabled:opacity-50 transition-all"
+          className="text-xs font-sans font-semibold bg-[#1C1916] text-[#FAF8F3] hover:bg-stone-800 flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl shadow-md cursor-pointer disabled:opacity-50 transition-all"
         >
           <Download className="w-4 h-4" />
-          <span>{exporting ? "Gerando Aura..." : "Exportar para Stories (PNG)"}</span>
+          <span>{exporting ? "Invocando Aura..." : "Guardar Aura no Rolo de Fotos"}</span>
         </button>
       </div>
     </div>

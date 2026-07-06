@@ -69,14 +69,14 @@ export const DailyOpeningMoment: React.FC<DailyOpeningMomentProps> = ({ onTrigge
   if (!visible) return null;
 
   return (
-    <div className="bg-[#FAF8F3] border-2 border-[#1C1916] rounded-xl p-5 relative overflow-hidden journal-shadow flex gap-4 animate-fade-in no-export">
+    <div className="elevation-1 p-6 relative overflow-hidden flex gap-4 animate-fade-in no-export rounded-2xl">
       {/* Decorative side accent */}
       <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-[#C5A880]" />
 
       {/* Center content */}
-      <div className="flex-1 space-y-2 pl-2">
+      <div className="flex-1 space-y-2.5 pl-2.5">
         <div className="flex justify-between items-start">
-          <div className="flex items-center gap-1.5 text-[10px] font-mono tracking-wider text-[#BDAB9C] uppercase font-bold">
+          <div className="flex items-center gap-1.5 text-[11px] font-mono tracking-wide text-[#BDAB9C] uppercase font-bold">
             <Feather className="w-3.5 h-3.5 text-[#C5A880]" />
             <span>DESPERTAR DIÁRIO</span>
           </div>
@@ -90,10 +90,10 @@ export const DailyOpeningMoment: React.FC<DailyOpeningMomentProps> = ({ onTrigge
         </div>
 
         <div className="space-y-1">
-          <h4 className="font-serif italic font-bold text-[#1C1916] text-sm leading-snug">
+          <h4 className="font-serif italic text-[16px] md:text-[17px] text-[#1C1916] leading-snug font-semibold">
             {content.title}
           </h4>
-          <p className="font-sans font-light text-xs text-stone-700 leading-relaxed pr-2">
+          <p className="font-sans text-[14px] text-stone-800 leading-relaxed pr-2">
             {content.description}
           </p>
         </div>
@@ -103,7 +103,7 @@ export const DailyOpeningMoment: React.FC<DailyOpeningMomentProps> = ({ onTrigge
             onTriggerAction(content.actionType);
             handleDismiss(); // auto-close on navigate/action
           }}
-          className="text-[10px] font-sans font-semibold text-[#1C1916] hover:text-[#C5A880] flex items-center gap-1 cursor-pointer underline decoration-[#C5A880] underline-offset-4"
+          className="text-xs font-sans font-bold text-[#1C1916] hover:text-[#C5A880] flex items-center gap-1 cursor-pointer underline decoration-[#C5A880] underline-offset-4"
         >
           <span>{content.cta}</span>
           <Star className="w-3 h-3 text-[#C5A880]" />

@@ -64,6 +64,8 @@ import {
   computeShapingBooks
 } from "./utils/feedAlgorithm";
 
+export type OnboardingGenerationState = "idle" | "generating" | "ready" | "error";
+
 export default function App() {
   // Onboarding & Profile State
   const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
@@ -81,12 +83,14 @@ export default function App() {
     spoilerTolerance: "moderate" as SpoilerLevel
   });
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [onboardingGenerationState, setOnboardingGenerationState] = useState<OnboardingGenerationState>("idle");
   const [generatedProfile, setGeneratedProfile] = useState<UserProfile | null>(null);
   
   // Onboarding card reference & download state for shareable aura
   const onboardingCardRef = useRef<HTMLDivElement>(null);
   const [downloadingAura, setDownloadingAura] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [downloadAuraError, setDownloadAuraError] = useState<string | null>(null);
 
   // Origin Books onboarding states
   const [originBooks, setOriginBooks] = useState<OriginBook[]>([]);
@@ -239,19 +243,120 @@ export default function App() {
     });
   };
 
+  // Core Helper Functions for Onboarding AI Generation
+  const createFallbackLiteraryProfile = (form: typeof onboardingForm, booksList: OriginBook[]): UserProfile => {
+    console.log("[AuraFlow] Gerando fallback literário offline centralizado...");
+    const fallbackDNA = {
+      originBooks: booksList,
+      shapingAuthors: [
+        ...new Set([
+          ...(booksList.map(b => b.author).filter(a => a && a !== "Autor Desconhecido")),
+          ...(form.favoriteAuthors ? form.favoriteAuthors.split(",").map(a => a.trim()) : [])
+        ])
+      ].slice(0, 3),
+      dominantEmotions: {
+        "Melancolia Elegante": 35,
+        "Desejo Impossível": 25,
+        "Inquietação Filosófica": 25,
+        "Esperança Atenta": 15
+      },
+      identityFormula: "35% melancolia elegante · 25% desejo impossível · 25% inquietação filosófica · 15% esperança atenta",
+      sharePhrase: booksList.length > 0
+        ? `Você lê como quem busca abrigo nos rastros de "${booksList[0].title}".`
+        : "Você lê como quem procura uma casa dentro das frases."
+    };
+
+    if (fallbackDNA.shapingAuthors.length === 0) {
+      fallbackDNA.shapingAuthors.push("Clarice Lispector", "Gabriel García Márquez");
+    }
+
+    return {
+      title: "O Filósofo Silencioso",
+      description: "Você enxerga nas entrelinhas uma conversa silenciosa sobre a existência humana. Seus hábitos apontam para reflexões meditativas, colecionando pensamentos profundos como quem recolhe conchas raras na maré baixa.",
+      signatureQuote: "Pensar é o ato de tatear o invisível no escuro.",
+      recommendedEcos: ["Filosofia Existencialista", "Clássicos Russos"],
+      aestheticColor: "#BDAB9C",
+      aestheticSymbol: "Lamparina",
+      name: form.name,
+      username: form.username,
+      avatarSeed: form.username.toLowerCase(),
+      bio: `Leitor devoto de ${form.genres.slice(0, 2).join(" e ") || "clássicos"}. Escrevendo margens sob a influência de ${form.favoriteAuthors || "grandes mentes"}.`,
+      streakDays: 3,
+      booksReadCount: 4,
+      savedCount: 12,
+      literaryDNA: fallbackDNA
+    };
+  };
+
+  const normalizeGeneratedProfile = (raw: any, form: typeof onboardingForm, booksList: OriginBook[]): UserProfile => {
+    console.log("[AuraFlow] Normalizando dados retornados da API...", raw);
+    const fallback = createFallbackLiteraryProfile(form, booksList);
+    
+    const rawDNA = raw?.literaryDNA || {};
+    
+    const cleanDNA = {
+      originBooks: booksList,
+      shapingAuthors: Array.isArray(rawDNA.shapingAuthors) && rawDNA.shapingAuthors.length > 0
+        ? rawDNA.shapingAuthors
+        : fallback.literaryDNA.shapingAuthors,
+      dominantEmotions: rawDNA.dominantEmotions && typeof rawDNA.dominantEmotions === "object"
+        ? rawDNA.dominantEmotions
+        : fallback.literaryDNA.dominantEmotions,
+      identityFormula: typeof rawDNA.identityFormula === "string" && rawDNA.identityFormula.trim() !== ""
+        ? rawDNA.identityFormula
+        : fallback.literaryDNA.identityFormula,
+      sharePhrase: typeof rawDNA.sharePhrase === "string" && rawDNA.sharePhrase.trim() !== ""
+        ? rawDNA.sharePhrase
+        : fallback.literaryDNA.sharePhrase
+    };
+
+    return {
+      title: typeof raw?.title === "string" && raw.title.trim() !== "" ? raw.title : fallback.title,
+      description: typeof raw?.description === "string" && raw.description.trim() !== "" ? raw.description : fallback.description,
+      signatureQuote: typeof raw?.signatureQuote === "string" && raw.signatureQuote.trim() !== "" ? raw.signatureQuote : fallback.signatureQuote,
+      recommendedEcos: Array.isArray(raw?.recommendedEcos) && raw.recommendedEcos.length > 0
+        ? raw.recommendedEcos
+        : fallback.recommendedEcos,
+      aestheticColor: typeof raw?.aestheticColor === "string" && raw.aestheticColor.startsWith("#") ? raw.aestheticColor : fallback.aestheticColor,
+      aestheticSymbol: typeof raw?.aestheticSymbol === "string" && raw.aestheticSymbol.trim() !== "" ? raw.aestheticSymbol : fallback.aestheticSymbol,
+      name: form.name,
+      username: form.username,
+      avatarSeed: form.username.toLowerCase(),
+      bio: `Leitor devoto de ${form.genres.slice(0, 2).join(" e ") || "clássicos"}. Escrevendo margens sob a influência de ${form.favoriteAuthors || "grandes mentes"}.`,
+      streakDays: 3,
+      booksReadCount: 4,
+      savedCount: 12,
+      literaryDNA: cleanDNA
+    };
+  };
+
   const handleStartOnboardingAI = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!onboardingForm.name || !onboardingForm.username) {
       alert("Por favor, preencha seu nome e apelido literário.");
       return;
     }
+    
+    console.log("[AuraFlow] clicked reveal");
+    setOnboardingGenerationState("generating");
     setLoadingProfile(true);
     setOnboardingStep(5); // Advance to step 5 (generation and reveal step)
 
+    // Configurando AbortController com timeout de 15 segundos
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.warn("[AuraFlow] Requisição excedeu 15 segundos! Abortando...");
+      controller.abort();
+    }, 15000);
+
     try {
+      console.log("[AuraFlow] state generating");
+      console.log("[AuraFlow] request started");
+      
       const res = await fetch("/api/ai/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           genres: onboardingForm.genres,
           books: onboardingForm.favoriteBooks,
@@ -261,69 +366,39 @@ export default function App() {
           originBooks: originBooks
         })
       });
-      const data = await res.json();
-      if (data.profile) {
-        const fullProfile: UserProfile = {
-          ...data.profile,
-          name: onboardingForm.name,
-          username: onboardingForm.username,
-          avatarSeed: onboardingForm.username.toLowerCase(),
-          bio: `Leitor devoto de ${onboardingForm.genres.slice(0, 2).join(" e ") || "clássicos"}. Escrevendo margens sob a influência de ${onboardingForm.favoriteAuthors || "grandes mentes"}.`,
-          streakDays: 3,
-          booksReadCount: 4,
-          savedCount: 12
-        };
-        // Explicitly preserve originBooks inside literaryDNA if present
-        if (fullProfile.literaryDNA) {
-          fullProfile.literaryDNA.originBooks = originBooks;
-        }
-        setGeneratedProfile(fullProfile);
-      }
-    } catch (err) {
-      console.error(err);
+
+      clearTimeout(timeoutId);
+
+      console.log("[AuraFlow] Resposta da API recebida. Status HTTP:", res.status);
       
-      const fallbackDNA = {
-        originBooks: originBooks,
-        shapingAuthors: [
-          ...new Set([
-            ...(originBooks.map(b => b.author).filter(a => a && a !== "Autor Desconhecido")),
-            ...(onboardingForm.favoriteAuthors ? onboardingForm.favoriteAuthors.split(",").map(a => a.trim()) : [])
-          ])
-        ].slice(0, 3),
-        dominantEmotions: {
-          "Melancolia Elegante": 35,
-          "Desejo Impossível": 25,
-          "Inquietação Filosófica": 25,
-          "Esperança Atenta": 15
-        },
-        identityFormula: "35% melancolia elegante · 25% desejo impossível · 25% inquietação filosófica · 15% esperança atenta",
-        sharePhrase: originBooks.length > 0
-          ? `Você lê como quem busca abrigo nos rastros de "${originBooks[0].title}".`
-          : "Você lê como quem procura uma casa dentro das frases."
-      };
-
-      if (fallbackDNA.shapingAuthors.length === 0) {
-        fallbackDNA.shapingAuthors.push("Clarice Lispector", "Gabriel García Márquez");
+      if (!res.ok) {
+        throw new Error(`Erro na resposta HTTP da API: ${res.status}`);
       }
 
-      // Fallback
-      setGeneratedProfile({
-        title: "O Filósofo Silencioso",
-        description: "Você enxerga nas entrelinhas uma conversa silenciosa sobre a existência humana. Seus hábitos apontam para reflexões meditativas, colecionando pensamentos profundos como quem recolhe conchas raras na maré baixa.",
-        signatureQuote: "Pensar é o ato de tatear o invisível no escuro.",
-        recommendedEcos: ["Filosofia Existencialista", "Clássicos Russos"],
-        aestheticColor: "#BDAB9C",
-        aestheticSymbol: "Lamparina",
-        name: onboardingForm.name,
-        username: onboardingForm.username,
-        avatarSeed: onboardingForm.username.toLowerCase(),
-        bio: "Explorador literário das margens do pensamento.",
-        streakDays: 3,
-        booksReadCount: 4,
-        savedCount: 12,
-        literaryDNA: fallbackDNA
-      });
+      const data = await res.json();
+      console.log("[AuraFlow] request success", data);
+
+      if (!data.profile) {
+        throw new Error("A API não retornou um perfil literário válido em 'profile'.");
+      }
+
+      const normalizedProfile = normalizeGeneratedProfile(data.profile, onboardingForm, originBooks);
+      console.log("[AuraFlow] normalized profile", normalizedProfile);
+      
+      setGeneratedProfile(normalizedProfile);
+      setOnboardingGenerationState("ready");
+
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      console.error("[AuraFlow] request failed, using fallback", err);
+      
+      const fallbackProfile = createFallbackLiteraryProfile(onboardingForm, originBooks);
+      console.log("[AuraFlow] normalized profile", fallbackProfile);
+      
+      setGeneratedProfile(fallbackProfile);
+      setOnboardingGenerationState("ready");
     } finally {
+      console.log("[AuraFlow] state ready (or error resolved to ready)");
       setLoadingProfile(false);
     }
   };
@@ -561,24 +636,45 @@ export default function App() {
     }
   };
 
+  const handleDownloadAura = async () => {
+    console.log("[handleDownloadAura] Iniciando exportação da Aura Literária...");
+    console.log("[handleDownloadAura] generatedProfile:", generatedProfile);
+    console.log("[handleDownloadAura] onboardingCardRef.current:", onboardingCardRef.current);
+
+    if (!generatedProfile) {
+      console.error("[handleDownloadAura] Erro: perfil gerado está vazio (null).");
+      setDownloadAuraError("Não consegui preparar o story agora. Tente novamente em alguns instantes.");
+      return;
+    }
+
+    if (!onboardingCardRef.current) {
+      console.error("[handleDownloadAura] Erro: elemento do card não foi renderizado ou ref é null.");
+      setDownloadAuraError("Não consegui preparar o story agora. Tente novamente em alguns instantes.");
+      return;
+    }
+
+    setDownloadingAura(true);
+    setDownloadSuccess(false);
+    setDownloadAuraError(null);
+
+    try {
+      console.log("[handleDownloadAura] Chamando exportNodeAsPng com o ref do card...");
+      await exportNodeAsPng(
+        onboardingCardRef.current,
+        `marginalia-aura-${generatedProfile.username}`
+      );
+      console.log("[handleDownloadAura] Exportação bem-sucedida!");
+      setDownloadSuccess(true);
+    } catch (err: any) {
+      console.error("[handleDownloadAura] Erro ao exportar imagem da Aura Literária:", err);
+      setDownloadAuraError("Não consegui preparar o story agora. Tente novamente em alguns instantes.");
+    } finally {
+      setDownloadingAura(false);
+    }
+  };
+
   // If there's NO user profile in localStorage, show the immersive paper-vintage onboarding questionnaire
   if (!userProfile) {
-    const handleDownloadAura = async () => {
-      if (!generatedProfile || !onboardingCardRef.current) return;
-      setDownloadingAura(true);
-      setDownloadSuccess(false);
-      try {
-        await exportNodeAsPng(
-          onboardingCardRef.current,
-          `marginalia-aura-${generatedProfile.username}`
-        );
-        setDownloadSuccess(true);
-      } catch (err) {
-        console.error("Erro ao baixar a aura:", err);
-      } finally {
-        setDownloadingAura(false);
-      }
-    };
 
     return (
       <div className="min-h-screen paper-grain flex items-center justify-center p-4 md:p-8 selection:bg-[#BDAB9C]/30 selection:text-[#1C1916]">
@@ -1049,160 +1145,169 @@ export default function App() {
           )}
 
           {/* STEP 5: AI Profile Result / Generation screen */}
-          {onboardingStep === 5 && (
-            <div className="space-y-6">
-              {loadingProfile ? (
-                <div className="py-16 text-center space-y-6">
-                  <div className="relative w-16 h-16 mx-auto">
-                    <div className="absolute inset-0 border-2 border-[#1C1916]/10 rounded-full" />
-                    <div className="absolute inset-0 border-2 border-[#1C1916] border-t-transparent rounded-full animate-spin" />
-                    <Hourglass className="absolute inset-0 m-auto w-6 h-6 text-[#1C1916]/60 animate-pulse" />
+          {onboardingStep === 5 && (() => {
+            const safeProfile = generatedProfile || createFallbackLiteraryProfile(onboardingForm, originBooks);
+            return (
+              <div className="space-y-6">
+                {onboardingGenerationState === "generating" || loadingProfile ? (
+                  <div className="py-16 text-center space-y-6">
+                    <div className="relative w-16 h-16 mx-auto">
+                      <div className="absolute inset-0 border-2 border-[#1C1916]/10 rounded-full" />
+                      <div className="absolute inset-0 border-2 border-[#1C1916] border-t-transparent rounded-full animate-spin" />
+                      <Hourglass className="absolute inset-0 m-auto w-6 h-6 text-[#1C1916]/60 animate-pulse" />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="font-serif italic text-base text-[#1C1916] font-semibold">
+                        "Sua Aura Literária está sendo escrita..."
+                      </p>
+                      <p className="text-xs font-sans text-[#3D3D3D] max-w-xs mx-auto leading-relaxed">
+                        Tecendo os silêncios, obsessões e deuses das suas leituras prediletas...
+                      </p>
+                      <p className="text-[9px] font-mono text-[#BDAB9C] uppercase tracking-widest mt-2">
+                        Interpretando a tinta dos seus autores favoritos
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <p className="font-serif italic text-base text-[#1C1916] font-semibold">
-                      "Sua Aura Literária está sendo escrita..."
-                    </p>
-                    <p className="text-xs font-sans text-[#3D3D3D] max-w-xs mx-auto leading-relaxed">
-                      Tecendo os silêncios, obsessões e deuses das suas leituras prediletas...
-                    </p>
-                    <p className="text-[9px] font-mono text-[#BDAB9C] uppercase tracking-widest mt-2">
-                      Interpretando a tinta dos seus autores favoritos
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-6 animate-page-turn">
-                  {/* Generated Card Graphic - Styled for Story Sharing */}
-                  <div 
-                    ref={onboardingCardRef}
-                    className="p-8 md:p-10 rounded-2xl text-center border relative overflow-hidden journal-shadow bg-[#1C1916] border-[#1C1916] text-[#FAF8F3] flex flex-col items-center justify-center"
-                    style={{ 
-                      boxShadow: `0 20px 40px -15px ${generatedProfile?.aestheticColor || "#BDAB9C"}35`
-                    }}
-                  >
-                    {/* Corner Borders */}
-                    <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-[#FAF8F3]/30" />
-                    <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-[#FAF8F3]/30" />
-                    <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-[#FAF8F3]/30" />
-                    <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-[#FAF8F3]/30" />
-
-                    {/* Subtle aesthetic radial gradient */}
+                ) : (
+                  <div className="space-y-6 animate-page-turn">
+                    {/* Generated Card Graphic - Styled for Story Sharing */}
                     <div 
-                      className="absolute inset-0 opacity-20 pointer-events-none mix-blend-screen"
-                      style={{
-                        background: `radial-gradient(circle at center, ${generatedProfile?.aestheticColor || "#BDAB9C"} 0%, transparent 70%)`
+                      ref={onboardingCardRef}
+                      className="p-10 md:p-12 rounded-2xl text-center border relative overflow-hidden journal-shadow bg-[#1C1916] border-[#1C1916] text-[#FAF8F3] flex flex-col items-center justify-center"
+                      style={{ 
+                        boxShadow: `0 20px 40px -15px ${safeProfile.aestheticColor || "#BDAB9C"}35`
                       }}
-                    />
+                    >
+                      {/* Corner Borders */}
+                      <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-[#FAF8F3]/30" />
+                      <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-[#FAF8F3]/30" />
+                      <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-[#FAF8F3]/30" />
+                      <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-[#FAF8F3]/30" />
 
-                    <div className="relative z-10 space-y-5 w-full">
-                      <div className="flex flex-col items-center justify-center space-y-1">
-                        <span className="text-[9px] font-mono tracking-[0.25em] text-[#FAF8F3]/50 uppercase">
-                          M A R G I N A L I A
-                        </span>
-                        <span className="text-[10px] font-mono tracking-widest text-[#BDAB9C] uppercase font-semibold">
-                          AURA LITERÁRIA • @{generatedProfile?.username}
-                        </span>
-                      </div>
-
+                      {/* Subtle aesthetic radial gradient */}
                       <div 
-                        className="w-16 h-16 rounded-full flex items-center justify-center mx-auto border-2 transition-transform duration-500 hover:scale-105" 
-                        style={{ 
-                          borderColor: generatedProfile?.aestheticColor || "#BDAB9C",
-                          boxShadow: `0 0 15px ${(generatedProfile?.aestheticColor || "#BDAB9C")}30`
+                        className="absolute inset-0 opacity-20 pointer-events-none mix-blend-screen"
+                        style={{
+                          background: `radial-gradient(circle at center, ${safeProfile.aestheticColor || "#BDAB9C"} 0%, transparent 70%)`
                         }}
-                      >
-                        {generatedProfile?.aestheticSymbol?.toLowerCase().includes("flor") ? (
-                          <Sparkle className="w-8 h-8" style={{ color: generatedProfile?.aestheticColor }} />
-                        ) : generatedProfile?.aestheticSymbol?.toLowerCase().includes("lamp") ? (
-                          <Flame className="w-8 h-8 animate-pulse" style={{ color: generatedProfile?.aestheticColor }} />
-                        ) : generatedProfile?.aestheticSymbol?.toLowerCase().includes("ampulheta") ? (
-                          <Hourglass className="w-8 h-8" style={{ color: generatedProfile?.aestheticColor }} />
-                        ) : (
-                          <Feather className="w-8 h-8" style={{ color: generatedProfile?.aestheticColor }} />
-                        )}
-                      </div>
+                      />
 
-                      <div className="space-y-1">
-                        <h4 className="font-serif italic text-3xl font-semibold text-[#FAF8F3] tracking-tight">
-                          {generatedProfile?.title}
-                        </h4>
-                        <p className="text-[10px] font-mono text-[#BDAB9C] uppercase tracking-widest">
-                          Símbolo: {generatedProfile?.aestheticSymbol || "Pena de Ganso"}
-                        </p>
-                      </div>
+                      <div className="relative z-10 space-y-5 w-full">
+                        <div className="flex flex-col items-center justify-center space-y-1">
+                          <span className="text-[9px] font-mono tracking-[0.25em] text-[#FAF8F3]/50 uppercase">
+                            M A R G I N A L I A
+                          </span>
+                          <span className="text-[10px] font-mono tracking-widest text-[#BDAB9C] uppercase font-semibold">
+                            AURA LITERÁRIA • @{safeProfile.username}
+                          </span>
+                        </div>
 
-                      <div className="py-2">
-                        <p className="font-serif text-sm leading-relaxed text-[#FAF8F3]/90 max-w-sm mx-auto italic">
-                          "{generatedProfile?.description}"
-                        </p>
-                      </div>
+                        <div 
+                          className="w-16 h-16 rounded-full flex items-center justify-center mx-auto border-2 transition-transform duration-500 hover:scale-105" 
+                          style={{ 
+                            borderColor: "#C8854A",
+                            boxShadow: `0 0 15px #C8854A35`
+                          }}
+                        >
+                          {safeProfile.aestheticSymbol?.toLowerCase()?.includes("flor") ? (
+                            <Sparkle className="w-8 h-8" style={{ color: safeProfile.aestheticColor }} />
+                          ) : safeProfile.aestheticSymbol?.toLowerCase()?.includes("lamp") ? (
+                            <Flame className="w-8 h-8 animate-pulse" style={{ color: safeProfile.aestheticColor }} />
+                          ) : safeProfile.aestheticSymbol?.toLowerCase()?.includes("ampulheta") ? (
+                            <Hourglass className="w-8 h-8" style={{ color: safeProfile.aestheticColor }} />
+                          ) : (
+                            <Feather className="w-8 h-8" style={{ color: safeProfile.aestheticColor }} />
+                          )}
+                        </div>
 
-                      <div className="flex justify-center items-center gap-3">
-                        <div className="w-12 h-[1px] bg-[#FAF8F3]/20" />
-                        <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-[#FAF8F3]/40">ASSINATURA</span>
-                        <div className="w-12 h-[1px] bg-[#FAF8F3]/20" />
-                      </div>
+                        <div className="space-y-1">
+                          <h4 className="font-serif italic text-3xl font-semibold text-[#FAF8F3] tracking-tight">
+                            {safeProfile.title}
+                          </h4>
+                          <p className="text-[10px] font-mono text-[#BDAB9C] uppercase tracking-widest">
+                            Símbolo: {safeProfile.aestheticSymbol || "Pena de Ganso"}
+                          </p>
+                        </div>
 
-                      <div className="space-y-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
-                        <p className="font-serif italic text-base text-[#FAF8F3] font-medium leading-relaxed">
-                          {generatedProfile?.signatureQuote}
-                        </p>
-                      </div>
+                        <div className="py-2">
+                          <p className="font-serif text-sm leading-relaxed text-[#FAF8F3]/90 max-w-sm mx-auto italic">
+                            "{safeProfile.description}"
+                          </p>
+                        </div>
 
-                      <div className="space-y-2">
-                        <p className="text-[9px] font-mono text-[#BDAB9C] uppercase tracking-wider">ECOS SINTONIZADOS</p>
-                        <div className="flex flex-wrap justify-center gap-2">
-                          {generatedProfile?.recommendedEcos.map((eco) => (
-                            <span 
-                              key={eco}
-                              className="px-3 py-1 rounded-full text-[10px] font-sans font-medium bg-[#FAF8F3]/10 border border-[#FAF8F3]/20 text-[#FAF8F3]"
-                            >
-                              🍃 {eco}
-                            </span>
-                          ))}
+                        <div className="flex justify-center items-center gap-3">
+                          <div className="w-12 h-[1px] bg-[#FAF8F3]/20" />
+                          <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-[#FAF8F3]/40">ASSINATURA</span>
+                          <div className="w-12 h-[1px] bg-[#FAF8F3]/20" />
+                        </div>
+
+                        <div className="space-y-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
+                          <p className="font-serif italic text-base text-[#FAF8F3] font-medium leading-relaxed">
+                            {safeProfile.signatureQuote}
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <p className="text-[9px] font-mono text-[#BDAB9C] uppercase tracking-wider">ECOS SINTONIZADOS</p>
+                          <div className="flex flex-wrap justify-center gap-2">
+                            {safeProfile.recommendedEcos?.map((eco) => (
+                              <span 
+                                key={eco}
+                                className="px-3 py-1 rounded-full text-[10px] font-sans font-medium bg-[#FAF8F3]/10 border border-[#FAF8F3]/20 text-[#FAF8F3]"
+                              >
+                                🍃 {eco}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="pt-3 text-[10px] font-mono tracking-widest text-[#FAF8F3]/50 uppercase flex items-center justify-center gap-1.5">
+                          <span className="text-[#C8854A]">★</span> marginalia.app • o que fica em você
                         </div>
                       </div>
+                    </div>
 
-                      <div className="pt-3 text-[9px] font-mono tracking-widest text-[#FAF8F3]/30 uppercase">
-                        marginalia.app • o que fica em você
+                    {downloadSuccess && (
+                      <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center text-xs font-sans text-emerald-700 animate-pulse">
+                        ✨ Aura Literária exportada! Poste nos stories do Instagram com <strong>#Marginalia</strong> para encontrar seus pares.
                       </div>
+                    )}
+
+                    {downloadAuraError && (
+                      <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-center text-xs font-sans text-red-700">
+                        😞 {downloadAuraError}
+                      </div>
+                    )}
+
+                    <div className="space-y-2 pt-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <button
+                          onClick={handleDownloadAura}
+                          disabled={downloadingAura}
+                          className="w-full border-2 border-[#1C1916] hover:bg-[#1C1916]/5 text-[#1C1916] py-3 rounded-lg font-sans text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                        >
+                          <Download className="w-4 h-4" />
+                          <span>{downloadingAura ? "Preparando sua Aura para atravessar páginas…" : "Compartilhar como Story"}</span>
+                        </button>
+
+                        <button
+                          onClick={handleConfirmProfile}
+                          className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-3 rounded-lg font-sans text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl"
+                        >
+                          <span>Salvar Aura & Entrar</span>
+                          <Check className="w-4 h-4" />
+                        </button>
+                      </div>
+                      
+                      <p className="text-center text-[10px] font-mono text-[#BDAB9C] uppercase tracking-wider">
+                        Esse arquétipo ditará o estilo das suas análises e reverberará nos seus Ecos
+                      </p>
                     </div>
                   </div>
-
-                  {downloadSuccess && (
-                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center text-xs font-sans text-emerald-700 animate-pulse">
-                      ✨ Aura Literária exportada! Poste nos stories do Instagram com <strong>#Marginalia</strong> para encontrar seus pares.
-                    </div>
-                  )}
-
-                  <div className="space-y-2 pt-2">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <button
-                        onClick={handleDownloadAura}
-                        disabled={downloadingAura}
-                        className="w-full border-2 border-[#1C1916] hover:bg-[#1C1916]/5 text-[#1C1916] py-3 rounded-lg font-sans text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                      >
-                        <Download className="w-4 h-4" />
-                        <span>{downloadingAura ? "Exportando..." : "Compartilhar como Story"}</span>
-                      </button>
-
-                      <button
-                        onClick={handleConfirmProfile}
-                        className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-3 rounded-lg font-sans text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl"
-                      >
-                        <span>Salvar Aura & Entrar</span>
-                        <Check className="w-4 h-4" />
-                      </button>
-                    </div>
-                    
-                    <p className="text-center text-[10px] font-mono text-[#BDAB9C] uppercase tracking-wider">
-                      Esse arquétipo ditará o estilo das suas análises e reverberará nos seus Ecos
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            );
+          })()}
 
         </div>
       </div>
@@ -1249,7 +1354,7 @@ export default function App() {
                 Marginalia
               </span>
               <span className="text-[9px] font-sans tracking-widest text-[#BDAB9C] uppercase block -mt-1">
-                organizando emoções
+                o que fica em você
               </span>
             </div>
           </div>
@@ -1477,7 +1582,7 @@ export default function App() {
                     type="submit"
                     className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-2.5 rounded-lg font-sans text-xs font-semibold tracking-wide uppercase transition-colors mt-2 cursor-pointer"
                   >
-                    Publicar Margem
+                    Registrar na margem
                   </button>
 
                 </form>
@@ -1527,7 +1632,7 @@ export default function App() {
                   className="bg-[#1C1916] text-[#FAF8F3] hover:bg-[#2A2724] px-4 py-2 rounded-lg text-xs font-sans font-medium transition-all cursor-pointer shadow-sm flex items-center justify-center gap-1.5 self-start md:self-center"
                 >
                   <Feather className="w-3.5 h-3.5" />
-                  <span>Registrar sentimento</span>
+                  <span>Abrir a margem</span>
                 </button>
               </div>
 
@@ -1574,11 +1679,11 @@ export default function App() {
 
                   <div className="p-6 md:p-8 space-y-4">
                     <span className="text-[10px] font-mono tracking-wider text-[#BDAB9C] uppercase block break-words">{margemDoDia.bookTitle}</span>
-                    <p className="font-serif italic text-base md:text-lg leading-relaxed text-[#1C1916] font-semibold pr-4 break-words">
+                    <p className="font-serif italic text-[18px] md:text-[20px] leading-relaxed text-[#1C1916] font-semibold pr-4 break-words">
                       "{margemDoDia.quote}"
                     </p>
-                    <div className="w-10 h-[1.5px] bg-[#BDAB9C]/50 my-2" />
-                    <p className="font-sans font-light text-xs md:text-sm leading-relaxed italic text-[#3D3D3D] pl-3 border-l-2 border-[#BDAB9C]/30 break-words">
+                    <div className="w-10 h-[1.5px] bg-[#C8854A] my-3 opacity-80" />
+                    <p className="font-sans font-normal text-[15px] leading-relaxed italic text-[#3D3D3D] pl-3 border-l-2 border-[#BDAB9C]/30 break-words">
                       {margemDoDia.thought}
                     </p>
                     
@@ -1595,7 +1700,7 @@ export default function App() {
                         className="text-[10px] font-sans text-stone-800 hover:text-[#1C1916] flex items-center gap-1 cursor-pointer font-semibold bg-[#BDAB9C]/10 px-2.5 py-1 rounded-lg border border-[#BDAB9C]/30 flex-shrink-0"
                       >
                         <Share2 className="w-3 h-3" />
-                        <span>Exportar</span>
+                        <span>Compartilhar margem</span>
                       </button>
                     </div>
                   </div>
@@ -1670,17 +1775,17 @@ export default function App() {
 
                         {/* Left quote border */}
                         <div className="space-y-4">
-                          <p className="font-serif italic text-base md:text-lg leading-relaxed relative font-medium opacity-95">
+                          <p className="font-serif italic text-[17px] md:text-[19px] leading-relaxed relative font-medium opacity-95">
                             <span className="absolute -top-3 -left-3 text-3xl font-serif text-[#BDAB9C] opacity-40">“</span>
                             {margem.quote}
                           </p>
 
-                          <div className="flex justify-start my-2 opacity-25">
-                            <div className="w-10 h-[1.5px] bg-current" />
+                          <div className="flex justify-start my-2.5">
+                            <div className="w-10 h-[1.5px] bg-[#C8854A]" style={{ opacity: 0.7 }} />
                           </div>
 
                           {/* Reader margin reflection */}
-                          <p className="font-sans font-light text-xs md:text-sm leading-relaxed italic opacity-90 pl-3 border-l-2 border-[#BDAB9C]/30">
+                          <p className="font-sans font-normal text-[15px] leading-relaxed italic opacity-95 pl-3 border-l-2 border-[#BDAB9C]/30">
                             {margem.thought}
                           </p>
                         </div>
@@ -1705,7 +1810,7 @@ export default function App() {
                             className="flex items-center gap-1.5 hover:text-red-600 transition-colors cursor-pointer"
                           >
                             <Heart className={`w-4 h-4 ${margem.loves.includes(userProfile.username || "anon") ? "fill-red-600 text-red-600 animate-pulse" : ""}`} />
-                            <span className="font-medium">{margem.lovesCount} apoios</span>
+                            <span className="font-medium">{margem.lovesCount} ressoou</span>
                           </button>
 
                           {/* Comments Trigger */}
@@ -1743,7 +1848,7 @@ export default function App() {
                             title="Debater trecho com a Companheira IA"
                           >
                             <Sparkles className="w-3.5 h-3.5" />
-                            <span className="hidden md:inline">Debater com IA</span>
+                            <span className="hidden md:inline">Aprofundar com a Companheira</span>
                           </button>
 
                           {/* Share Modal Trigger */}
@@ -1753,7 +1858,7 @@ export default function App() {
                             title="Exportar para Redes Sociais"
                           >
                             <Share2 className="w-3.5 h-3.5" />
-                            <span>Exportar</span>
+                            <span>Compartilhar margem</span>
                           </button>
                         </div>
 
@@ -2095,6 +2200,7 @@ export default function App() {
               margens={margens}
               onTriggerWrapped={handleTriggerWrapped}
               onReset={handleResetApp}
+              onOpenAddMargem={() => setShowAddMargem(true)}
             />
           )}
 
@@ -2241,7 +2347,7 @@ export default function App() {
         <button
           onClick={() => { setActiveTab("diario"); setSelectedEco(null); }}
           className={`flex flex-col items-center gap-1 cursor-pointer transition-all ${
-            activeTab === "diario" ? "text-[#1C1916]" : "text-[#BDAB9C] hover:text-[#1C1916]"
+            activeTab === "diario" ? "text-[#C8854A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
           }`}
         >
           <Library className="w-5 h-5" />
@@ -2251,7 +2357,7 @@ export default function App() {
         <button
           onClick={() => { setActiveTab("descoberta"); setSelectedEco(null); }}
           className={`flex flex-col items-center gap-1 cursor-pointer transition-all ${
-            activeTab === "descoberta" ? "text-[#1C1916]" : "text-[#BDAB9C] hover:text-[#1C1916]"
+            activeTab === "descoberta" ? "text-[#C8854A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
           }`}
         >
           <Compass className="w-5 h-5" />
@@ -2261,7 +2367,7 @@ export default function App() {
         <button
           onClick={() => { setActiveTab("ecos"); setSelectedEco(null); }}
           className={`flex flex-col items-center gap-1 cursor-pointer transition-all ${
-            activeTab === "ecos" ? "text-[#1C1916]" : "text-[#BDAB9C] hover:text-[#1C1916]"
+            activeTab === "ecos" ? "text-[#C8854A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
           }`}
         >
           <Feather className="w-5 h-5" />
@@ -2271,17 +2377,17 @@ export default function App() {
         <button
           onClick={() => { setActiveTab("companheira"); setSelectedEco(null); }}
           className={`flex flex-col items-center gap-1 cursor-pointer transition-all ${
-            activeTab === "companheira" ? "text-[#1C1916]" : "text-[#BDAB9C] hover:text-[#1C1916]"
+            activeTab === "companheira" ? "text-[#C8854A]" : "text-[#BDAB9C] hover:text-[#C8854A]"
           }`}
         >
-          <Sparkles className="w-5 h-5 text-indigo-500" />
+          <Sparkles className={`w-5 h-5 ${activeTab === "companheira" ? "text-[#C8854A]" : "text-[#BDAB9C]"}`} />
           <span className="text-[9px] font-sans font-medium">Companheira</span>
         </button>
 
         <button
           onClick={() => { setActiveTab("perfil"); setSelectedEco(null); }}
           className={`flex flex-col items-center gap-1 cursor-pointer transition-all ${
-            activeTab === "perfil" ? "text-[#1C1916]" : "text-[#BDAB9C] hover:text-[#1C1916]"
+            activeTab === "perfil" ? "text-[#C8854A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
           }`}
         >
           <User className="w-5 h-5" />

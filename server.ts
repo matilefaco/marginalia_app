@@ -43,7 +43,16 @@ app.post("/api/ai/onboarding", async (req, res) => {
   const { genres = [], books = "", authors = "", habits = "", spoilerTolerance = "moderate", originBooks = [] } = req.body;
   const apiKey = process.env.GEMINI_API_KEY;
 
+  console.log("[Server Onboarding] Nova requisição recebida.");
+  console.log("[Server Onboarding] Gêneros:", genres);
+  console.log("[Server Onboarding] Livros:", books);
+  console.log("[Server Onboarding] Autores:", authors);
+  console.log("[Server Onboarding] Hábitos:", habits);
+  console.log("[Server Onboarding] Livros de Origem count:", originBooks.length);
+  console.log("[Server Onboarding] GEMINI_API_KEY configurada?", apiKey ? "SIM" : "NÃO");
+
   if (!apiKey) {
+    console.log("[Server Onboarding] GEMINI_API_KEY não encontrada. Usando gerador mock offline...");
     // Elegant fallback if no key is supplied
     const fallbackProfiles = [
       {
@@ -224,14 +233,19 @@ Retorne os dados em formato JSON estrito de acordo com o esquema solicitado.`;
       }
     });
 
+    console.log("[Server Onboarding] Resposta recebida da API do Gemini. Texto retornado:", response.text);
+
     const data = JSON.parse(response.text || "{}");
+    console.log("[Server Onboarding] JSON parseado com sucesso:", data);
+
     // Ensure originBooks are kept inside literaryDNA
     if (data.literaryDNA) {
       data.literaryDNA.originBooks = originBooks;
     }
+    console.log("[Server Onboarding] Retornando perfil gerado com sucesso!");
     res.json({ profile: data, mocked: false });
   } catch (err: any) {
-    console.error("Error generating onboarding profile:", err);
+    console.error("[Server Onboarding] Erro fatal ao gerar o perfil no onboarding:", err);
     res.status(500).json({ error: err.message });
   }
 });

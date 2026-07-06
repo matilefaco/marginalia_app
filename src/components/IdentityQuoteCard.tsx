@@ -15,10 +15,11 @@ export const IdentityQuoteCard: React.FC<IdentityQuoteCardProps> = ({ userProfil
   const [copied, setCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
 
-  const activeQuote = generateIdentityQuote(userProfile, margens, variation);
+  const safeProfile = userProfile || {} as UserProfile;
+  const activeQuote = generateIdentityQuote(safeProfile, margens, variation);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(`"${activeQuote}" — @${userProfile.username || "marginalia"}`);
+    navigator.clipboard.writeText(`"${activeQuote}" — @${safeProfile.username || "marginalia"}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -30,7 +31,7 @@ export const IdentityQuoteCard: React.FC<IdentityQuoteCardProps> = ({ userProfil
     try {
       await exportNodeAsPng(
         cardRef.current,
-        `marginalia-frase-${userProfile.username || "usuario"}`
+        `marginalia-frase-${safeProfile.username || "usuario"}`
       );
     } catch (err) {
       console.error("Erro ao exportar card de frase:", err);
@@ -44,7 +45,7 @@ export const IdentityQuoteCard: React.FC<IdentityQuoteCardProps> = ({ userProfil
   };
 
   return (
-    <div className="bg-[#FAF8F3] border border-[#BDAB9C] rounded-xl p-5 journal-shadow space-y-4">
+    <div className="elevation-2 p-5 rounded-2xl space-y-4">
       {/* Visual Exportable area */}
       <div 
         ref={cardRef} 
@@ -59,27 +60,27 @@ export const IdentityQuoteCard: React.FC<IdentityQuoteCardProps> = ({ userProfil
         <div className="absolute inset-3 border border-[#BDAB9C]/20 pointer-events-none rounded-lg" />
 
         {/* Top Header */}
-        <div className="z-10 flex flex-col items-center gap-1">
-          <span className="text-[9px] font-mono tracking-widest text-[#BDAB9C] uppercase">
-            A FRASE QUE DEFINE SUA ALMA
+        <div className="z-10 flex flex-col items-center gap-1.5">
+          <span className="text-[11px] font-mono tracking-wide text-[#BDAB9C] uppercase font-bold">
+            INSCRIÇÃO DE ALMA LITERÁRIA
           </span>
-          <div className="w-6 h-[1px] bg-[#BDAB9C]/40" />
+          <div className="w-8 h-[1px] bg-[#BDAB9C]/40" />
         </div>
 
         {/* Center Quote */}
         <div className="z-10 px-4 md:px-8 my-auto">
-          <p className="font-serif italic text-base md:text-xl leading-relaxed text-[#1C1916] font-medium font-semibold">
-            "{activeQuote}"
+          <p className="font-serif italic text-[17px] md:text-[21px] leading-relaxed text-[#1C1916] font-medium">
+            “{activeQuote}”
           </p>
         </div>
 
         {/* Bottom Signature */}
         <div className="z-10 flex flex-col items-center gap-1">
-          <span className="font-sans text-xs font-semibold text-[#1C1916]">
-            @{userProfile.username || "leitor_marginalia"}
+          <span className="font-sans text-[13px] font-bold text-[#1C1916]">
+            @{safeProfile.username || "leitor_marginalia"}
           </span>
-          <span className="text-[8px] font-mono tracking-wide text-[#BDAB9C] uppercase">
-            {userProfile.dominantArchetype || userProfile.title || "Membro Contemplativo"}
+          <span className="text-[10px] font-mono tracking-wide text-[#BDAB9C] uppercase">
+            {safeProfile.dominantArchetype || safeProfile.title || "Membro Contemplativo"}
           </span>
         </div>
       </div>
@@ -88,28 +89,28 @@ export const IdentityQuoteCard: React.FC<IdentityQuoteCardProps> = ({ userProfil
       <div className="no-export flex flex-wrap justify-between items-center gap-2 pt-1">
         <button 
           onClick={handleRegenerate}
-          className="text-[10px] font-sans font-semibold text-stone-800 hover:text-[#1C1916] flex items-center gap-1.5 bg-[#BDAB9C]/10 px-3 py-1.5 rounded-lg border border-[#BDAB9C]/20 cursor-pointer transition-colors"
+          className="text-xs font-sans font-semibold text-stone-850 hover:text-[#1C1916] flex items-center gap-1.5 bg-[#BDAB9C]/10 px-3 py-2 rounded-xl border border-[#BDAB9C]/20 cursor-pointer transition-colors"
         >
           <RefreshCw className="w-3.5 h-3.5" />
-          <span>Outro Caminho</span>
+          <span>Reescrever Caminho</span>
         </button>
 
         <div className="flex gap-2">
           <button 
             onClick={handleCopy}
-            className="text-[10px] font-sans font-semibold text-stone-800 hover:text-[#1C1916] flex items-center gap-1.5 bg-[#BDAB9C]/10 px-3 py-1.5 rounded-lg border border-[#BDAB9C]/20 cursor-pointer transition-colors"
+            className="text-xs font-sans font-semibold text-stone-850 hover:text-[#1C1916] flex items-center gap-1.5 bg-[#BDAB9C]/10 px-3 py-2 rounded-xl border border-[#BDAB9C]/20 cursor-pointer transition-colors"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-green-700" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copied ? "Copiado!" : "Copiar"}</span>
+            {copied ? <Check className="w-3.5 h-3.5 text-green-750 font-bold" /> : <Copy className="w-3.5 h-3.5" />}
+            <span>{copied ? "Guardado!" : "Guardar"}</span>
           </button>
           
           <button 
             onClick={handleExport}
             disabled={exporting}
-            className="text-[10px] font-sans font-semibold bg-[#1C1916] text-[#FAF8F3] hover:bg-stone-800 flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg shadow-xs cursor-pointer disabled:opacity-50 transition-all"
+            className="text-xs font-sans font-semibold bg-[#1C1916] text-[#FAF8F3] hover:bg-stone-800 flex items-center gap-1.5 px-4 py-2 rounded-xl shadow-xs cursor-pointer disabled:opacity-50 transition-all"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>{exporting ? "Criando..." : "Exportar PNG"}</span>
+            <span>{exporting ? "Invocando..." : "Revelar Cartão"}</span>
           </button>
         </div>
       </div>

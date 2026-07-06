@@ -6,15 +6,19 @@ import { UserProfile, Margem, SoulMapNode } from "../types";
 interface SoulMapProps {
   userProfile: UserProfile;
   margens: Margem[];
+  onOpenAddMargem?: () => void;
 }
 
-export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens }) => {
+export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens, onOpenAddMargem }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [selectedNode, setSelectedNode] = useState<SoulMapNode | null>(null);
   const [exporting, setExporting] = useState(false);
 
-  const userMargins = margens.filter(
-    (m) => m.authorAvatar === userProfile.avatarSeed || m.authorName === userProfile.name
+  const safeUserProfile = userProfile || {} as UserProfile;
+  const safeMargins = Array.isArray(margens) ? margens : [];
+
+  const userMargins = safeMargins.filter(
+    (m) => m && (m.authorAvatar === safeUserProfile.avatarSeed || m.authorName === safeUserProfile.name)
   );
 
   // Generate constellation nodes based on user's real margins or beautiful defaults
@@ -26,7 +30,7 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens }) => {
       id: "core-archetype",
       x: 50,
       y: 50,
-      label: userProfile.dominantArchetype || userProfile.title || "Leitor Contemplativo",
+      label: safeUserProfile.dominantArchetype || safeUserProfile.title || "Leitor Contemplativo",
       type: "emotion",
       details: `O núcleo de sua alma leitora, orbitando sentimentos que transcendem as páginas.`
     });
@@ -34,6 +38,7 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens }) => {
     if (userMargins.length > 0) {
       // Create node for each margin, distributing them circular-like or random-ish but pleasing
       userMargins.slice(0, 7).forEach((m, idx) => {
+        if (!m) return;
         const angle = (idx * 2 * Math.PI) / Math.min(userMargins.length, 7);
         const radius = 30 + Math.sin(idx) * 10; // offset radius
         const x = Math.round(50 + Math.cos(angle) * radius);
@@ -43,14 +48,14 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens }) => {
           id: `margin-node-${m.id}`,
           x,
           y,
-          label: m.bookTitle,
+          label: m.bookTitle || "Livro",
           type: "book",
-          details: `"${m.quote}" — Sua anotação de margem: "${m.thought}"`
+          details: `"${m.quote || ""}" — Sua anotação de margem: "${m.thought || ""}"`
         });
       });
 
       // Add a couple of emotion orbits
-      const emotions: string[] = Array.from(new Set(userMargins.map(m => m.spoilerLevel === "heavy" ? "Revelação" : "Sintonia")));
+      const emotions: string[] = Array.from(new Set(userMargins.map(m => m && m.spoilerLevel === "heavy" ? "Revelação" : "Sintonia")));
       emotions.slice(0, 2).forEach((emo, idx) => {
         const angle = ((idx + 0.5) * 2 * Math.PI) / 3;
         const x = Math.round(50 + Math.cos(angle) * 18);
@@ -59,7 +64,7 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens }) => {
           id: `emotion-node-${idx}`,
           x,
           y,
-          label: emo,
+          label: emo || "Sintonia",
           type: "emotion",
           details: `Emoção sintonizada fortemente através das suas anotações.`
         });
@@ -88,7 +93,7 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens }) => {
     try {
       await exportNodeAsPng(
         mapContainerRef.current,
-        `marginalia-mapa-alma-${userProfile.username || "usuario"}`
+        `marginalia-mapa-alma-${safeUserProfile.username || "usuario"}`
       );
     } catch (err) {
       console.error("Erro ao exportar Mapa da Alma:", err);
@@ -147,7 +152,7 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens }) => {
             Mapa da Alma Leitora
           </h4>
           <span className="text-[8px] font-mono tracking-wider text-[#BDAB9C]/60 uppercase block">
-            @{userProfile.username || "leitor_marginalia"}
+            @{safeUserProfile.username || "leitor_marginalia"}
           </span>
         </div>
 
@@ -204,6 +209,23 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens }) => {
                 {selectedNode.details}
               </p>
             </>
+          ) : userMargins.length === 0 ? (
+            <div className="my-auto text-center py-1.5 space-y-1">
+              <p className="text-[10px] font-sans text-amber-100/90 italic font-semibold">
+                Seu Mapa da Alma ainda está nascendo.
+              </p>
+              <p className="text-[9px] font-sans text-[#BDAB9C]">
+                Escreva algumas margens para que suas constelações comecem a aparecer.
+              </p>
+              {onOpenAddMargem && (
+                <button
+                  onClick={onOpenAddMargem}
+                  className="mt-1 text-[8.5px] font-sans bg-[#C5A880] text-[#121110] hover:bg-[#b0936b] px-2.5 py-0.5 rounded-full font-bold cursor-pointer transition-colors mx-auto block"
+                >
+                  Abrir a margem
+                </button>
+              )}
+            </div>
           ) : (
             <div className="my-auto text-center py-2">
               <p className="text-[10px] font-sans text-[#BDAB9C] italic">

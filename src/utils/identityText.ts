@@ -41,8 +41,9 @@ export const generateIdentityQuote = (
 
   // Select key based on profile character
   let key = "default";
-  const lowerTitle = archetype.toLowerCase();
-  const lowerDesc = userProfile.description.toLowerCase();
+  const safeProfile = userProfile || {} as UserProfile;
+  const lowerTitle = (archetype || "").toLowerCase();
+  const lowerDesc = (safeProfile.description || "").toLowerCase();
   
   if (lowerTitle.includes("melancól") || lowerDesc.includes("saudade") || lowerDesc.includes("melancol")) {
     key = "melancolia";
@@ -53,7 +54,7 @@ export const generateIdentityQuote = (
   }
 
   const list = templates[key] || templates.default;
-  const index = Math.abs(variationIndex + archetype.length + userMargins.length) % list.length;
+  const index = Math.abs(variationIndex + (archetype || "").length + (userMargins || []).length) % list.length;
   
   return list[index];
 };
