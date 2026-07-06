@@ -29,15 +29,20 @@ import {
   Eye,
   LogOut,
   AlertCircle,
-  Clock
+  Clock,
+  Download
 } from "lucide-react";
-import { UserProfile, Margem, Eco, BookHighlight, Challenge, SpoilerLevel } from "./types";
+import { UserProfile, Margem, Eco, BookHighlight, Challenge, SpoilerLevel, OriginBook, BookSearchResult } from "./types";
 import { INITIAL_ECOS, INITIAL_MARGENS, PRESET_HIGHLIGHTS, INITIAL_CHALLENGES, AESTHETIC_THEMES } from "./data";
+import { exportNodeAsPng } from "./lib/exportImage";
+import { searchBooks } from "./lib/booksApi";
 import ShareModal from "./components/ShareModal";
 import ReaderProfile from "./components/ReaderProfile";
 import WrappedView from "./components/WrappedView";
 import JardimDescobertas from "./components/JardimDescobertas";
 import ReadingCompanion from "./components/ReadingCompanion";
+import QuoteCapture from "./components/QuoteCapture";
+import PostMargemMoment from "./components/PostMargemMoment";
 import { DailyOpeningMoment } from "./components/DailyOpeningMoment";
 import { FutureLetter } from "./components/FutureLetter";
 import { LiteraryCoincidence } from "./components/LiteraryCoincidence";
@@ -77,6 +82,21 @@ export default function App() {
   });
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [generatedProfile, setGeneratedProfile] = useState<UserProfile | null>(null);
+  
+  // Onboarding card reference & download state for shareable aura
+  const onboardingCardRef = useRef<HTMLDivElement>(null);
+  const [downloadingAura, setDownloadingAura] = useState(false);
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
+
+  // Origin Books onboarding states
+  const [originBooks, setOriginBooks] = useState<OriginBook[]>([]);
+  const [bookQuery, setBookQuery] = useState("");
+  const [bookSearchResults, setBookSearchResults] = useState<BookSearchResult[]>([]);
+  const [isSearchingBooks, setIsSearchingBooks] = useState(false);
+  const [selectedSearchBook, setSelectedSearchBook] = useState<BookSearchResult | null>(null);
+  const [emotionalResidue, setEmotionalResidue] = useState("");
+  const [manualTitle, setManualTitle] = useState("");
+  const [manualAuthor, setManualAuthor] = useState("");
 
   // Core App State
   const [activeTab, setActiveTab] = useState<"diario" | "descoberta" | "ecos" | "companheira" | "perfil">("diario");
@@ -89,6 +109,7 @@ export default function App() {
   
   // Custom Margem Editor
   const [showAddMargem, setShowAddMargem] = useState(false);
+  const [captureState, setCaptureState] = useState<"choose" | "form">("choose");
   const [showFutureLetter, setShowFutureLetter] = useState(false);
   const [newMargem, setNewMargem] = useState({
     quote: "",
@@ -100,6 +121,7 @@ export default function App() {
     ecoId: ""
   });
   const [generatingReflection, setGeneratingReflection] = useState(false);
+  const [postMargemMomentData, setPostMargemMomentData] = useState<Margem | null>(null);
 
   // Interactive Challenges
   const [challenges, setChallenges] = useState<Challenge[]>(() => {
@@ -224,7 +246,7 @@ export default function App() {
       return;
     }
     setLoadingProfile(true);
-    setOnboardingStep(4); // Advance to preview generation step
+    setOnboardingStep(5); // Advance to step 5 (generation and reveal step)
 
     try {
       const res = await fetch("/api/ai/onboarding", {
@@ -235,7 +257,8 @@ export default function App() {
           books: onboardingForm.favoriteBooks,
           authors: onboardingForm.favoriteAuthors,
           habits: onboardingForm.habits,
-          spoilerTolerance: onboardingForm.spoilerTolerance
+          spoilerTolerance: onboardingForm.spoilerTolerance,
+          originBooks: originBooks
         })
       });
       const data = await res.json();
@@ -250,10 +273,39 @@ export default function App() {
           booksReadCount: 4,
           savedCount: 12
         };
+        // Explicitly preserve originBooks inside literaryDNA if present
+        if (fullProfile.literaryDNA) {
+          fullProfile.literaryDNA.originBooks = originBooks;
+        }
         setGeneratedProfile(fullProfile);
       }
     } catch (err) {
       console.error(err);
+      
+      const fallbackDNA = {
+        originBooks: originBooks,
+        shapingAuthors: [
+          ...new Set([
+            ...(originBooks.map(b => b.author).filter(a => a && a !== "Autor Desconhecido")),
+            ...(onboardingForm.favoriteAuthors ? onboardingForm.favoriteAuthors.split(",").map(a => a.trim()) : [])
+          ])
+        ].slice(0, 3),
+        dominantEmotions: {
+          "Melancolia Elegante": 35,
+          "Desejo Impossível": 25,
+          "Inquietação Filosófica": 25,
+          "Esperança Atenta": 15
+        },
+        identityFormula: "35% melancolia elegante · 25% desejo impossível · 25% inquietação filosófica · 15% esperança atenta",
+        sharePhrase: originBooks.length > 0
+          ? `Você lê como quem busca abrigo nos rastros de "${originBooks[0].title}".`
+          : "Você lê como quem procura uma casa dentro das frases."
+      };
+
+      if (fallbackDNA.shapingAuthors.length === 0) {
+        fallbackDNA.shapingAuthors.push("Clarice Lispector", "Gabriel García Márquez");
+      }
+
       // Fallback
       setGeneratedProfile({
         title: "O Filósofo Silencioso",
@@ -268,7 +320,8 @@ export default function App() {
         bio: "Explorador literário das margens do pensamento.",
         streakDays: 3,
         booksReadCount: 4,
-        savedCount: 12
+        savedCount: 12,
+        literaryDNA: fallbackDNA
       });
     } finally {
       setLoadingProfile(false);
@@ -321,6 +374,7 @@ export default function App() {
     };
 
     setMargens(prev => [created, ...prev]);
+    setPostMargemMomentData(created);
     setShowAddMargem(false);
     // Reset form
     setNewMargem({
@@ -509,6 +563,23 @@ export default function App() {
 
   // If there's NO user profile in localStorage, show the immersive paper-vintage onboarding questionnaire
   if (!userProfile) {
+    const handleDownloadAura = async () => {
+      if (!generatedProfile || !onboardingCardRef.current) return;
+      setDownloadingAura(true);
+      setDownloadSuccess(false);
+      try {
+        await exportNodeAsPng(
+          onboardingCardRef.current,
+          `marginalia-aura-${generatedProfile.username}`
+        );
+        setDownloadSuccess(true);
+      } catch (err) {
+        console.error("Erro ao baixar a aura:", err);
+      } finally {
+        setDownloadingAura(false);
+      }
+    };
+
     return (
       <div className="min-h-screen paper-grain flex items-center justify-center p-4 md:p-8 selection:bg-[#BDAB9C]/30 selection:text-[#1C1916]">
         {/* Subtle vintage vignette framing */}
@@ -521,9 +592,9 @@ export default function App() {
           {/* Onboarding Header */}
           <div className="text-center mb-8 relative">
             <span className="text-[11px] font-sans font-semibold tracking-widest text-[#BDAB9C] uppercase block mb-1">
-              Bem-vindo ao Marginalia
+              {onboardingStep === 4 ? "Sua Alma Revelada" : "Iniciação ao Marginalia"}
             </span>
-            <h1 className="font-display text-3xl font-semibold text-[#1C1916] tracking-tight">
+            <h1 className="font-display text-3xl font-semibold text-[#1C1916] tracking-tight font-serif">
               Marginalia
             </h1>
             <div className="w-16 h-[1px] bg-[#BDAB9C] mx-auto mt-3" />
@@ -532,17 +603,19 @@ export default function App() {
           {/* STEP 1: Identification */}
           {onboardingStep === 1 && (
             <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <p className="font-serif italic text-sm text-[#3D3D3D]">
-                  "Os livros mudam à medida que nós mudamos. Cada anotação na margem é um autorretrato do leitor que fomos ontem."
+              <div className="text-center space-y-4">
+                <p className="font-serif italic text-base text-[#1C1916] leading-relaxed max-w-md mx-auto">
+                  "Não é sobre o que você leu. É sobre o que ficou em você."
                 </p>
-                <p className="text-xs font-sans text-[#BDAB9C]">— Um diário literário vivo</p>
+                <p className="text-xs font-mono text-[#BDAB9C] uppercase tracking-widest leading-relaxed">
+                  Descubra a forma da sua alma leitora e encontre sintonias invisíveis.
+                </p>
               </div>
 
               <div className="space-y-4 pt-4">
                 <div>
                   <label className="block text-xs font-sans font-semibold text-[#1C1916] uppercase tracking-wider mb-2">
-                    Como deseja ser chamado no diário?
+                    Como deseja ser chamado nesta jornada?
                   </label>
                   <input
                     type="text"
@@ -577,7 +650,7 @@ export default function App() {
                 disabled={!onboardingForm.name || !onboardingForm.username}
                 className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-3 rounded-lg font-sans text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                <span>Avançar para a Alma Literária</span>
+                <span>Avançar para Afinidades Literárias</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -586,9 +659,11 @@ export default function App() {
           {/* STEP 2: Literary Soul / Genres */}
           {onboardingStep === 2 && (
             <div className="space-y-6">
-              <div className="space-y-1">
-                <h3 className="font-display text-lg text-[#1C1916] font-semibold">Sua Afinidade das Palavras</h3>
-                <p className="text-xs font-sans text-[#3D3D3D] opacity-80">Quais gêneros e atmosferas literárias fazem sua mente se perder por horas?</p>
+              <div className="space-y-2 text-center md:text-left">
+                <h3 className="font-display text-lg text-[#1C1916] font-semibold font-serif">Sua Afinidade das Palavras</h3>
+                <p className="text-xs font-mono text-[#BDAB9C] uppercase tracking-wider leading-relaxed">
+                  Selecione as atmosferas e obsessões literárias que fazem sua mente se perder por horas.
+                </p>
               </div>
 
               {/* Genre Chips */}
@@ -604,7 +679,7 @@ export default function App() {
                       key={g}
                       type="button"
                       onClick={() => handleGenreToggle(g)}
-                      className={`p-3 rounded-xl border text-left transition-all ${
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                         isSelected 
                           ? "bg-[#1C1916] border-[#1C1916] text-[#FAF8F3]" 
                           : "border-[#BDAB9C]/40 text-[#3D3D3D] hover:bg-[#BDAB9C]/10"
@@ -619,7 +694,7 @@ export default function App() {
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={() => setOnboardingStep(1)}
-                  className="flex-1 border border-[#BDAB9C] hover:bg-[#1C1916]/5 text-[#3D3D3D] py-3 rounded-lg font-sans text-sm font-medium transition-all"
+                  className="flex-1 border border-[#BDAB9C] hover:bg-[#1C1916]/5 text-[#3D3D3D] py-3 rounded-lg font-sans text-sm font-medium transition-all cursor-pointer"
                 >
                   Voltar
                 </button>
@@ -628,25 +703,266 @@ export default function App() {
                   disabled={onboardingForm.genres.length === 0}
                   className="flex-[2] bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-3 rounded-lg font-sans text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
                 >
-                  <span>Mapear Hábitos</span>
+                  <span>Livros de Origem</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
           )}
 
-          {/* STEP 3: Reading habits & books */}
+          {/* STEP 3: Origin Books */}
           {onboardingStep === 3 && (
+            <div className="space-y-6">
+              <div className="space-y-2 text-center md:text-left">
+                <h3 className="font-display text-lg text-[#1C1916] font-semibold font-serif">Quais livros ficaram morando em você?</h3>
+                <p className="text-xs font-mono text-[#BDAB9C] uppercase tracking-wider leading-relaxed">
+                  Não escolha os melhores. Escolha os que deixaram vestígios. (Até 5 livros)
+                </p>
+              </div>
+
+              {/* Added books list */}
+              {originBooks.length > 0 && (
+                <div className="space-y-2 p-3 bg-[#1C1916]/5 rounded-xl border border-[#BDAB9C]/20">
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-[#BDAB9C]">Seus Livros de Origem ({originBooks.length}/5)</p>
+                  <div className="space-y-2">
+                    {originBooks.map((book) => (
+                      <div key={book.id} className="flex gap-3 bg-[#FAF8F3] p-2.5 rounded-lg border border-[#BDAB9C]/30 items-start justify-between relative">
+                        <div className="flex gap-2 items-start">
+                          {book.coverUrl ? (
+                            <img src={book.coverUrl} referrerPolicy="no-referrer" className="w-9 h-12 object-cover rounded shadow-sm" alt={book.title} />
+                          ) : (
+                            <div className="w-9 h-12 bg-[#1C1916]/10 rounded flex items-center justify-center text-[#BDAB9C]">
+                              <BookOpen className="w-4 h-4" />
+                            </div>
+                          )}
+                          <div className="space-y-0.5">
+                            <h4 className="font-serif font-bold text-xs text-[#1C1916]">{book.title}</h4>
+                            <p className="text-[10px] font-sans text-[#3D3D3D]/85">por {book.author}</p>
+                            <p className="font-serif italic text-[11px] text-[#3D3D3D]/70 mt-1">"{book.emotionalResidue}"</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setOriginBooks(prev => prev.filter(b => b.id !== book.id))}
+                          className="text-[#BDAB9C] hover:text-[#1C1916] p-1 transition-colors cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {originBooks.length < 5 && (
+                <div className="space-y-4 p-4 rounded-xl border border-dashed border-[#BDAB9C]/60 bg-[#FAF8F3]">
+                  <p className="text-xs font-sans font-semibold text-[#1C1916] uppercase tracking-wider">Adicionar Livro de Origem</p>
+                  
+                  {/* Open Library Search */}
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider">
+                      Busca opcional via Open Library
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Busque por título ou autor..."
+                        value={bookQuery}
+                        onChange={(e) => setBookQuery(e.target.value)}
+                        onKeyDown={async (e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            setIsSearchingBooks(true);
+                            const res = await searchBooks(bookQuery);
+                            setBookSearchResults(res);
+                            setIsSearchingBooks(false);
+                          }
+                        }}
+                        className="flex-1 bg-white border border-[#BDAB9C]/50 focus:border-[#1C1916] rounded px-3 py-1.5 text-xs text-[#1C1916] focus:outline-none transition-colors"
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setIsSearchingBooks(true);
+                          const res = await searchBooks(bookQuery);
+                          setBookSearchResults(res);
+                          setIsSearchingBooks(false);
+                        }}
+                        className="bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] px-3 py-1.5 rounded text-xs font-sans font-medium transition-colors cursor-pointer"
+                      >
+                        {isSearchingBooks ? "Buscando..." : "Buscar"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Search Results */}
+                  {bookSearchResults.length > 0 && (
+                    <div className="bg-white border border-[#BDAB9C]/30 rounded-lg p-2 max-h-48 overflow-y-auto space-y-1">
+                      <p className="text-[9px] font-mono text-[#BDAB9C] uppercase tracking-wider mb-1 px-1">Resultados encontrados:</p>
+                      {bookSearchResults.map((res, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setSelectedSearchBook(res);
+                            setManualTitle(res.title);
+                            setManualAuthor(res.author);
+                            setBookSearchResults([]);
+                            setBookQuery("");
+                          }}
+                          className="w-full text-left p-1.5 hover:bg-[#1C1916]/5 rounded flex items-center gap-2 transition-all cursor-pointer"
+                        >
+                          {res.coverUrl ? (
+                            <img src={res.coverUrl} referrerPolicy="no-referrer" className="w-6 h-8 object-cover rounded shadow-xs" alt="" />
+                          ) : (
+                            <div className="w-6 h-8 bg-[#1C1916]/10 rounded flex items-center justify-center text-[#BDAB9C]">
+                              <BookOpen className="w-3 h-3" />
+                            </div>
+                          )}
+                          <div className="leading-tight">
+                            <p className="text-xs font-serif font-bold text-[#1C1916]">{res.title}</p>
+                            <p className="text-[10px] font-sans text-[#3D3D3D]/75">{res.author}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Selected / Manual Fields */}
+                  <div className="space-y-3 pt-2 border-t border-[#BDAB9C]/20">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">Título do Livro</label>
+                        <input
+                          type="text"
+                          placeholder="Digite ou selecione..."
+                          value={manualTitle}
+                          onChange={(e) => {
+                            setManualTitle(e.target.value);
+                            if (selectedSearchBook && selectedSearchBook.title !== e.target.value) {
+                              setSelectedSearchBook(null);
+                            }
+                          }}
+                          className="w-full bg-white border border-[#BDAB9C]/50 focus:border-[#1C1916] rounded p-2 text-xs font-serif text-[#1C1916] focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">Autor</label>
+                        <input
+                          type="text"
+                          placeholder="Nome do autor..."
+                          value={manualAuthor}
+                          onChange={(e) => {
+                            setManualAuthor(e.target.value);
+                            if (selectedSearchBook && selectedSearchBook.author !== e.target.value) {
+                              setSelectedSearchBook(null);
+                            }
+                          }}
+                          className="w-full bg-white border border-[#BDAB9C]/50 focus:border-[#1C1916] rounded p-2 text-xs font-serif text-[#1C1916] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">
+                        O que ficou em você depois desse livro?
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="Uma memória sutil, uma angústia doce, um modo diferente de amar..."
+                        value={emotionalResidue}
+                        onChange={(e) => setEmotionalResidue(e.target.value)}
+                        className="w-full bg-white border border-[#BDAB9C]/50 focus:border-[#1C1916] rounded p-2 text-xs font-serif text-[#1C1916] placeholder-[#BDAB9C]/80 focus:outline-none transition-colors"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        let title = "";
+                        let author = "";
+                        let coverUrl = undefined;
+                        let openLibraryKey = undefined;
+
+                        if (selectedSearchBook) {
+                          title = selectedSearchBook.title;
+                          author = selectedSearchBook.author;
+                          coverUrl = selectedSearchBook.coverUrl;
+                          openLibraryKey = selectedSearchBook.openLibraryKey;
+                        } else {
+                          if (!manualTitle.trim()) {
+                            alert("Por favor, informe o título do livro.");
+                            return;
+                          }
+                          title = manualTitle.trim();
+                          author = manualAuthor.trim() || "Autor Desconhecido";
+                        }
+
+                        if (!emotionalResidue.trim()) {
+                          alert("Por favor, nos conte o que ficou em você depois desse livro.");
+                          return;
+                        }
+
+                        const newBook: OriginBook = {
+                          id: "origin_" + Date.now(),
+                          title,
+                          author,
+                          coverUrl,
+                          openLibraryKey,
+                          emotionalResidue: emotionalResidue.trim()
+                        };
+
+                        setOriginBooks(prev => [...prev, newBook]);
+                        
+                        // Reset add states
+                        setBookQuery("");
+                        setBookSearchResults([]);
+                        setSelectedSearchBook(null);
+                        setManualTitle("");
+                        setManualAuthor("");
+                        setEmotionalResidue("");
+                      }}
+                      className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-2 rounded text-xs font-sans font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Adicionar à minha origem</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setOnboardingStep(2)}
+                  className="flex-1 border border-[#BDAB9C] hover:bg-[#1C1916]/5 text-[#3D3D3D] py-3 rounded-lg font-sans text-sm font-medium transition-all cursor-pointer"
+                >
+                  Voltar
+                </button>
+                <button
+                  onClick={() => setOnboardingStep(4)}
+                  className="flex-[2] bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-3 rounded-lg font-sans text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>{originBooks.length === 0 ? "Pular e Mapear Rituais" : "Avançar para Rituais"}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 4: Reading habits & books */}
+          {onboardingStep === 4 && (
             <form onSubmit={handleStartOnboardingAI} className="space-y-6">
-              <div className="space-y-1">
+              <div className="space-y-2 text-center md:text-left">
                 <h3 className="font-display text-lg text-[#1C1916] font-semibold font-serif">Seus Rituais das Margens</h3>
-                <p className="text-xs font-sans text-[#3D3D3D] opacity-80">Como se dá sua intimidade com os livros no dia a dia?</p>
+                <p className="text-xs font-mono text-[#BDAB9C] uppercase tracking-wider leading-relaxed">
+                  Sua proximidade com as páginas. Deixe rastros da sua sensibilidade.
+                </p>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-sans font-semibold text-[#1C1916] uppercase tracking-wider mb-1">
-                    Livros de cabeceira (Amados)
+                    Livros de cabeceira (Que moldaram sua sensibilidade)
                   </label>
                   <input
                     type="text"
@@ -659,7 +975,7 @@ export default function App() {
 
                 <div>
                   <label className="block text-xs font-sans font-semibold text-[#1C1916] uppercase tracking-wider mb-1">
-                    Autores que moldaram sua mente
+                    Autores prediletos (Mentes que sussurram em seus pensamentos)
                   </label>
                   <input
                     type="text"
@@ -672,7 +988,7 @@ export default function App() {
 
                 <div>
                   <label className="block text-xs font-sans font-semibold text-[#1C1916] uppercase tracking-wider mb-2">
-                    Quando você costuma ler?
+                    Qual atmosfera ideal para desfolhar páginas?
                   </label>
                   <select
                     value={onboardingForm.habits}
@@ -699,7 +1015,7 @@ export default function App() {
                         type="button"
                         key={tol.key}
                         onClick={() => setOnboardingForm(prev => ({ ...prev, spoilerTolerance: tol.key as SpoilerLevel }))}
-                        className={`p-2 rounded-lg border text-left transition-all ${
+                        className={`p-2 rounded-lg border text-left transition-all cursor-pointer ${
                           onboardingForm.spoilerTolerance === tol.key 
                             ? "bg-[#1C1916]/10 border-[#1C1916] font-semibold" 
                             : "border-[#BDAB9C]/30 opacity-70"
@@ -716,97 +1032,173 @@ export default function App() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setOnboardingStep(2)}
-                  className="flex-1 border border-[#BDAB9C] hover:bg-[#1C1916]/5 text-[#3D3D3D] py-3 rounded-lg font-sans text-sm font-medium transition-all"
+                  onClick={() => setOnboardingStep(3)}
+                  className="flex-1 border border-[#BDAB9C] hover:bg-[#1C1916]/5 text-[#3D3D3D] py-3 rounded-lg font-sans text-sm font-medium transition-all cursor-pointer"
                 >
                   Voltar
                 </button>
                 <button
                   type="submit"
-                  className="flex-[2] bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-3 rounded-lg font-sans text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex-[2] bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-3 rounded-lg font-sans text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer animate-pulse"
                 >
-                  <span>Revelar Arquétipo Literário</span>
+                  <span>Revelar Aura Literária</span>
                   <Sparkles className="w-4 h-4" />
                 </button>
               </div>
             </form>
           )}
 
-          {/* STEP 4: AI Profile Result / Generation screen */}
-          {onboardingStep === 4 && (
+          {/* STEP 5: AI Profile Result / Generation screen */}
+          {onboardingStep === 5 && (
             <div className="space-y-6">
               {loadingProfile ? (
-                <div className="py-16 text-center space-y-4">
-                  <div className="w-10 h-10 border-2 border-[#1C1916] border-t-transparent rounded-full animate-spin mx-auto" />
-                  <p className="font-serif italic text-sm text-[#3D3D3D]">
-                    Analisando a tinta dos seus autores e a geometria dos seus sentimentos...
-                  </p>
-                  <p className="text-[10px] font-mono text-[#BDAB9C] uppercase tracking-wider">
-                    Sua Companheira de Leitura interpretando os rastros da sua biblioteca
-                  </p>
+                <div className="py-16 text-center space-y-6">
+                  <div className="relative w-16 h-16 mx-auto">
+                    <div className="absolute inset-0 border-2 border-[#1C1916]/10 rounded-full" />
+                    <div className="absolute inset-0 border-2 border-[#1C1916] border-t-transparent rounded-full animate-spin" />
+                    <Hourglass className="absolute inset-0 m-auto w-6 h-6 text-[#1C1916]/60 animate-pulse" />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="font-serif italic text-base text-[#1C1916] font-semibold">
+                      "Sua Aura Literária está sendo escrita..."
+                    </p>
+                    <p className="text-xs font-sans text-[#3D3D3D] max-w-xs mx-auto leading-relaxed">
+                      Tecendo os silêncios, obsessões e deuses das suas leituras prediletas...
+                    </p>
+                    <p className="text-[9px] font-mono text-[#BDAB9C] uppercase tracking-widest mt-2">
+                      Interpretando a tinta dos seus autores favoritos
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-6 animate-page-turn">
-                  {/* Generated Badge Graphic */}
+                  {/* Generated Card Graphic - Styled for Story Sharing */}
                   <div 
-                    className="p-6 md:p-8 rounded-xl text-center border relative overflow-hidden journal-shadow"
-                    style={{ backgroundColor: generatedProfile?.aestheticColor + "15" || "#FAF8F3", borderColor: generatedProfile?.aestheticColor || "#BDAB9C" }}
+                    ref={onboardingCardRef}
+                    className="p-8 md:p-10 rounded-2xl text-center border relative overflow-hidden journal-shadow bg-[#1C1916] border-[#1C1916] text-[#FAF8F3] flex flex-col items-center justify-center"
+                    style={{ 
+                      boxShadow: `0 20px 40px -15px ${generatedProfile?.aestheticColor || "#BDAB9C"}35`
+                    }}
                   >
-                    <div className="absolute top-2 right-2 flex items-center gap-1 font-mono text-[9px] opacity-60">
-                      <Sparkle className="w-3 h-3 text-[#BDAB9C]" />
-                      <span>CONEXÃO LITERÁRIA</span>
-                    </div>
+                    {/* Corner Borders */}
+                    <div className="absolute top-4 left-4 w-4 h-4 border-t border-l border-[#FAF8F3]/30" />
+                    <div className="absolute top-4 right-4 w-4 h-4 border-t border-r border-[#FAF8F3]/30" />
+                    <div className="absolute bottom-4 left-4 w-4 h-4 border-b border-l border-[#FAF8F3]/30" />
+                    <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-[#FAF8F3]/30" />
 
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 border" style={{ borderColor: generatedProfile?.aestheticColor, color: generatedProfile?.aestheticColor }}>
-                      <Feather className="w-5 h-5" />
-                    </div>
+                    {/* Subtle aesthetic radial gradient */}
+                    <div 
+                      className="absolute inset-0 opacity-20 pointer-events-none mix-blend-screen"
+                      style={{
+                        background: `radial-gradient(circle at center, ${generatedProfile?.aestheticColor || "#BDAB9C"} 0%, transparent 70%)`
+                      }}
+                    />
 
-                    <span className="text-[10px] font-mono tracking-widest text-[#BDAB9C] uppercase">
-                      Perfil Literário de @{generatedProfile?.username}
-                    </span>
-                    
-                    <h4 className="font-display text-2xl font-semibold text-[#1C1916] mt-1 mb-3">
-                      {generatedProfile?.title}
-                    </h4>
-
-                    <p className="font-serif text-sm leading-relaxed text-[#3D3D3D] max-w-sm mx-auto mb-4 italic">
-                      "{generatedProfile?.description}"
-                    </p>
-
-                    <div className="flex justify-center mb-4">
-                      <div className="w-16 h-[1px]" style={{ backgroundColor: generatedProfile?.aestheticColor }} />
-                    </div>
-
-                    <div className="space-y-2">
-                      <p className="text-[11px] font-mono text-[#BDAB9C] uppercase tracking-wider">Assinatura Literária</p>
-                      <p className="font-serif italic text-sm text-[#1C1916] font-semibold">
-                        {generatedProfile?.signatureQuote}
-                      </p>
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap justify-center gap-2">
-                      {generatedProfile?.recommendedEcos.map((eco) => (
-                        <span 
-                          key={eco}
-                          className="px-2.5 py-1 rounded-full bg-[#FAF8F3] border border-[#BDAB9C]/40 text-[11px] font-sans text-[#3D3D3D] shadow-xs"
-                        >
-                          🍃 Eco: {eco}
+                    <div className="relative z-10 space-y-5 w-full">
+                      <div className="flex flex-col items-center justify-center space-y-1">
+                        <span className="text-[9px] font-mono tracking-[0.25em] text-[#FAF8F3]/50 uppercase">
+                          M A R G I N A L I A
                         </span>
-                      ))}
+                        <span className="text-[10px] font-mono tracking-widest text-[#BDAB9C] uppercase font-semibold">
+                          AURA LITERÁRIA • @{generatedProfile?.username}
+                        </span>
+                      </div>
+
+                      <div 
+                        className="w-16 h-16 rounded-full flex items-center justify-center mx-auto border-2 transition-transform duration-500 hover:scale-105" 
+                        style={{ 
+                          borderColor: generatedProfile?.aestheticColor || "#BDAB9C",
+                          boxShadow: `0 0 15px ${(generatedProfile?.aestheticColor || "#BDAB9C")}30`
+                        }}
+                      >
+                        {generatedProfile?.aestheticSymbol?.toLowerCase().includes("flor") ? (
+                          <Sparkle className="w-8 h-8" style={{ color: generatedProfile?.aestheticColor }} />
+                        ) : generatedProfile?.aestheticSymbol?.toLowerCase().includes("lamp") ? (
+                          <Flame className="w-8 h-8 animate-pulse" style={{ color: generatedProfile?.aestheticColor }} />
+                        ) : generatedProfile?.aestheticSymbol?.toLowerCase().includes("ampulheta") ? (
+                          <Hourglass className="w-8 h-8" style={{ color: generatedProfile?.aestheticColor }} />
+                        ) : (
+                          <Feather className="w-8 h-8" style={{ color: generatedProfile?.aestheticColor }} />
+                        )}
+                      </div>
+
+                      <div className="space-y-1">
+                        <h4 className="font-serif italic text-3xl font-semibold text-[#FAF8F3] tracking-tight">
+                          {generatedProfile?.title}
+                        </h4>
+                        <p className="text-[10px] font-mono text-[#BDAB9C] uppercase tracking-widest">
+                          Símbolo: {generatedProfile?.aestheticSymbol || "Pena de Ganso"}
+                        </p>
+                      </div>
+
+                      <div className="py-2">
+                        <p className="font-serif text-sm leading-relaxed text-[#FAF8F3]/90 max-w-sm mx-auto italic">
+                          "{generatedProfile?.description}"
+                        </p>
+                      </div>
+
+                      <div className="flex justify-center items-center gap-3">
+                        <div className="w-12 h-[1px] bg-[#FAF8F3]/20" />
+                        <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-[#FAF8F3]/40">ASSINATURA</span>
+                        <div className="w-12 h-[1px] bg-[#FAF8F3]/20" />
+                      </div>
+
+                      <div className="space-y-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
+                        <p className="font-serif italic text-base text-[#FAF8F3] font-medium leading-relaxed">
+                          {generatedProfile?.signatureQuote}
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-[9px] font-mono text-[#BDAB9C] uppercase tracking-wider">ECOS SINTONIZADOS</p>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {generatedProfile?.recommendedEcos.map((eco) => (
+                            <span 
+                              key={eco}
+                              className="px-3 py-1 rounded-full text-[10px] font-sans font-medium bg-[#FAF8F3]/10 border border-[#FAF8F3]/20 text-[#FAF8F3]"
+                            >
+                              🍃 {eco}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="pt-3 text-[9px] font-mono tracking-widest text-[#FAF8F3]/30 uppercase">
+                        marginalia.app • o que fica em você
+                      </div>
                     </div>
                   </div>
 
-                  <p className="text-center text-xs font-sans text-[#3D3D3D] opacity-80 max-w-sm mx-auto">
-                    Esse arquétipo ditará o estilo das suas análises e as comunidades em que suas margens reverberarão com mais força.
-                  </p>
+                  {downloadSuccess && (
+                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center text-xs font-sans text-emerald-700 animate-pulse">
+                      ✨ Aura Literária exportada! Poste nos stories do Instagram com <strong>#Marginalia</strong> para encontrar seus pares.
+                    </div>
+                  )}
 
-                  <button
-                    onClick={handleConfirmProfile}
-                    className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-3 rounded-lg font-sans text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <span>Entrar na Comunidade das Margens</span>
-                    <Check className="w-4 h-4" />
-                  </button>
+                  <div className="space-y-2 pt-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <button
+                        onClick={handleDownloadAura}
+                        disabled={downloadingAura}
+                        className="w-full border-2 border-[#1C1916] hover:bg-[#1C1916]/5 text-[#1C1916] py-3 rounded-lg font-sans text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>{downloadingAura ? "Exportando..." : "Compartilhar como Story"}</span>
+                      </button>
+
+                      <button
+                        onClick={handleConfirmProfile}
+                        className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-3 rounded-lg font-sans text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl"
+                      >
+                        <span>Salvar Aura & Entrar</span>
+                        <Check className="w-4 h-4" />
+                      </button>
+                    </div>
+                    
+                    <p className="text-center text-[10px] font-mono text-[#BDAB9C] uppercase tracking-wider">
+                      Esse arquétipo ditará o estilo das suas análises e reverberará nos seus Ecos
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -875,6 +1267,7 @@ export default function App() {
             <button
               onClick={() => {
                 setNewMargem(prev => ({ ...prev, ecoId: selectedEco ? selectedEco.id : "" }));
+                setCaptureState("choose");
                 setShowAddMargem(true);
               }}
               className="bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] p-1.5 md:px-4 md:py-1.5 rounded-lg flex items-center gap-1.5 transition-colors text-xs font-sans font-medium cursor-pointer journal-shadow"
@@ -903,160 +1296,193 @@ export default function App() {
             
             <button
               onClick={() => setShowAddMargem(false)}
-              className="absolute top-4 right-4 p-1 rounded hover:bg-[#BDAB9C]/10 text-[#3D3D3D]"
+              className="absolute top-4 right-4 p-1 rounded hover:bg-[#BDAB9C]/10 text-[#3D3D3D] z-10 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h3 className="font-display text-xl text-[#1C1916] font-semibold mb-4 flex items-center gap-2">
-              <Feather className="w-5 h-5 text-[#BDAB9C]" />
-              Anotar na Margem
-            </h3>
-
-            <form onSubmit={handleCreateMargem} className="space-y-4">
-              
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">
-                    Livro
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Nome do livro"
-                    value={newMargem.bookTitle}
-                    onChange={(e) => setNewMargem(prev => ({ ...prev, bookTitle: e.target.value }))}
-                    className="w-full bg-[#1C1916]/5 border border-[#BDAB9C]/40 rounded p-2 text-xs font-serif text-[#1C1916]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">
-                    Autor
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Nome do autor"
-                    value={newMargem.author}
-                    onChange={(e) => setNewMargem(prev => ({ ...prev, author: e.target.value }))}
-                    className="w-full bg-[#1C1916]/5 border border-[#BDAB9C]/40 rounded p-2 text-xs font-serif text-[#1C1916]"
-                  />
-                </div>
-              </div>
-
-              {/* Eco community selection */}
-              <div>
-                <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">
-                  Publicar em um Eco (Comunidade)
-                </label>
-                <select
-                  value={newMargem.ecoId}
-                  onChange={(e) => setNewMargem(prev => ({ ...prev, ecoId: e.target.value }))}
-                  className="w-full bg-[#FAF8F3] border border-[#BDAB9C]/40 rounded p-2 text-xs font-sans text-[#1C1916]"
-                >
-                  <option value="">Nenhum - Publicar no feed geral</option>
-                  {ecos.map(e => (
-                    <option key={e.id} value={e.id}>🍃 Eco: {e.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Quote from Book */}
-              <div>
-                <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">
-                  Trecho Destacado do Livro (Citação)
-                </label>
-                <textarea
-                  required
-                  rows={2}
-                  placeholder="Insira as palavras exatas do autor..."
-                  value={newMargem.quote}
-                  onChange={(e) => setNewMargem(prev => ({ ...prev, quote: e.target.value }))}
-                  className="w-full bg-[#1C1916]/5 border border-[#BDAB9C]/40 rounded p-2 text-xs font-serif text-[#1C1916]"
-                />
-              </div>
-
-              {/* Reader Margem (thought) */}
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider">
-                    Sua Margem (Reflexão, Emoção ou Descoberta)
-                  </label>
-                  
-                  {/* AI reflection trigger */}
+            {captureState === "choose" ? (
+              <QuoteCapture
+                onCaptureComplete={(quoteText) => {
+                  setNewMargem(prev => ({ ...prev, quote: quoteText }));
+                  setCaptureState("form");
+                }}
+                onSelectManual={() => {
+                  setCaptureState("form");
+                }}
+                onCancel={() => {
+                  setShowAddMargem(false);
+                }}
+              />
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
                   <button
                     type="button"
-                    onClick={handleGenerateAIEcoReflection}
-                    disabled={generatingReflection || !newMargem.quote || !newMargem.bookTitle}
-                    className="text-[10px] font-sans text-[#BDAB9C] hover:text-[#1C1916] flex items-center gap-1 disabled:opacity-50 transition-colors"
-                    title="Gere uma reflexão poética automática inspirada neste trecho com a Companheira de Leitura"
+                    onClick={() => setCaptureState("choose")}
+                    className="p-1 rounded hover:bg-[#1C1916]/5 text-[#BDAB9C] hover:text-[#1C1916] transition-colors cursor-pointer"
+                    title="Voltar para opções de captura"
                   >
-                    {generatingReflection ? (
-                      <>
-                        <RefreshCw className="w-3 h-3 animate-spin" />
-                        <span>Sussurrando com a IA...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-3 h-3 text-[#BDAB9C]" />
-                        <span>Inspirar-se com IA</span>
-                      </>
-                    )}
+                    ← Alterar método
                   </button>
+                  <div className="h-4 w-[1px] bg-[#BDAB9C]/30" />
+                  <h3 className="font-display text-base text-[#1C1916] font-semibold flex items-center gap-1.5">
+                    <Feather className="w-4 h-4 text-[#BDAB9C]" />
+                    Anotar na Margem
+                  </h3>
                 </div>
-                <textarea
-                  required
-                  rows={3}
-                  placeholder="O que esse livro despertou em você? O que essa frase sugere nas entrelinhas da sua própria vida?"
-                  value={newMargem.thought}
-                  onChange={(e) => setNewMargem(prev => ({ ...prev, thought: e.target.value }))}
-                  className="w-full bg-[#1C1916]/5 border border-[#BDAB9C]/40 rounded p-2 text-xs font-serif text-[#1C1916]"
-                />
-              </div>
 
-              <div className="grid grid-cols-2 gap-3 pt-1">
-                {/* Spoil level selection */}
-                <div>
-                  <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">
-                    Isso contém Spoilers?
-                  </label>
-                  <select
-                    value={newMargem.spoilerLevel}
-                    onChange={(e) => setNewMargem(prev => ({ ...prev, spoilerLevel: e.target.value as SpoilerLevel }))}
-                    className="w-full bg-[#FAF8F3] border border-[#BDAB9C]/40 rounded p-2 text-xs font-sans text-[#1C1916]"
+                <form onSubmit={handleCreateMargem} className="space-y-4">
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">
+                        Livro
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Nome do livro"
+                        value={newMargem.bookTitle}
+                        onChange={(e) => setNewMargem(prev => ({ ...prev, bookTitle: e.target.value }))}
+                        className="w-full bg-[#1C1916]/5 border border-[#BDAB9C]/40 rounded p-2 text-xs font-serif text-[#1C1916]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">
+                        Autor
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Nome do autor"
+                        value={newMargem.author}
+                        onChange={(e) => setNewMargem(prev => ({ ...prev, author: e.target.value }))}
+                        className="w-full bg-[#1C1916]/5 border border-[#BDAB9C]/40 rounded p-2 text-xs font-serif text-[#1C1916]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Eco community selection */}
+                  <div>
+                    <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">
+                      Publicar em um Eco (Comunidade)
+                    </label>
+                    <select
+                      value={newMargem.ecoId}
+                      onChange={(e) => setNewMargem(prev => ({ ...prev, ecoId: e.target.value }))}
+                      className="w-full bg-[#FAF8F3] border border-[#BDAB9C]/40 rounded p-2 text-xs font-sans text-[#1C1916]"
+                    >
+                      <option value="">Nenhum - Publicar no feed geral</option>
+                      {ecos.map(e => (
+                        <option key={e.id} value={e.id}>🍃 Eco: {e.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Quote from Book */}
+                  <div>
+                    <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">
+                      Trecho Destacado do Livro (Citação)
+                    </label>
+                    <textarea
+                      required
+                      rows={2}
+                      placeholder="Insira as palavras exatas do autor..."
+                      value={newMargem.quote}
+                      onChange={(e) => setNewMargem(prev => ({ ...prev, quote: e.target.value }))}
+                      className="w-full bg-[#1C1916]/5 border border-[#BDAB9C]/40 rounded p-2 text-xs font-serif text-[#1C1916]"
+                    />
+                  </div>
+
+                  {/* Reader Margem (thought) */}
+                  <div>
+                    <div className="flex justify-between items-start mb-1 flex-col sm:flex-row gap-2 sm:gap-0">
+                      <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider">
+                        Sua Margem (Reflexão, Emoção ou Descoberta)
+                      </label>
+                      
+                      {/* AI reflection trigger */}
+                      <div className="flex flex-col items-end">
+                        <button
+                          type="button"
+                          onClick={handleGenerateAIEcoReflection}
+                          disabled={generatingReflection || !newMargem.quote}
+                          className="text-[10px] font-sans text-stone-800 hover:text-[#1C1916] flex items-center gap-1 disabled:opacity-40 transition-colors bg-[#BDAB9C]/15 hover:bg-[#BDAB9C]/25 px-2 py-0.5 rounded border border-[#BDAB9C]/30 cursor-pointer"
+                          title="Gere uma reflexão poética baseada nesse trecho"
+                        >
+                          {generatingReflection ? (
+                            <>
+                              <RefreshCw className="w-3 h-3 animate-spin" />
+                              <span>Lendo as entrelinhas...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-3 h-3 text-amber-700 animate-pulse" />
+                              <span className="font-semibold">Inspirar minha margem</span>
+                            </>
+                          )}
+                        </button>
+                        <span className="text-[8px] font-serif italic text-[#BDAB9C] mt-0.5">
+                          “Use como faísca, não como resposta final.”
+                        </span>
+                      </div>
+                    </div>
+                    <textarea
+                      required
+                      rows={3}
+                      placeholder="O que esse livro despertou em você? O que essa frase sugere nas entrelinhas da sua própria vida?"
+                      value={newMargem.thought}
+                      onChange={(e) => setNewMargem(prev => ({ ...prev, thought: e.target.value }))}
+                      className="w-full bg-[#1C1916]/5 border border-[#BDAB9C]/40 rounded p-2 text-xs font-serif text-[#1C1916]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    {/* Spoil level selection */}
+                    <div>
+                      <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">
+                        Isso contém Spoilers?
+                      </label>
+                      <select
+                        value={newMargem.spoilerLevel}
+                        onChange={(e) => setNewMargem(prev => ({ ...prev, spoilerLevel: e.target.value as SpoilerLevel }))}
+                        className="w-full bg-[#FAF8F3] border border-[#BDAB9C]/40 rounded p-2 text-xs font-sans text-[#1C1916]"
+                      >
+                        <option value="none">Livre de Spoilers</option>
+                        <option value="light">Spoiler Leve (Atmosfera)</option>
+                        <option value="moderate">Spoiler Moderado (Reviravolta)</option>
+                        <option value="heavy">Spoiler Pesado (Finais e Segredos)</option>
+                      </select>
+                    </div>
+
+                    {/* Aesthetic design palette */}
+                    <div>
+                      <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">
+                        Visual do Cartão
+                      </label>
+                      <select
+                        value={newMargem.themeKey}
+                        onChange={(e) => setNewMargem(prev => ({ ...prev, themeKey: e.target.value }))}
+                        className="w-full bg-[#FAF8F3] border border-[#BDAB9C]/40 rounded p-2 text-xs font-sans text-[#1C1916]"
+                      >
+                        {AESTHETIC_THEMES.map(t => (
+                          <option key={t.key} value={t.key}>{t.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-2.5 rounded-lg font-sans text-xs font-semibold tracking-wide uppercase transition-colors mt-2 cursor-pointer"
                   >
-                    <option value="none">Livre de Spoilers</option>
-                    <option value="light">Spoiler Leve (Atmosfera)</option>
-                    <option value="moderate">Spoiler Moderado (Reviravolta)</option>
-                    <option value="heavy">Spoiler Pesado (Finais e Segredos)</option>
-                  </select>
-                </div>
+                    Publicar Margem
+                  </button>
 
-                {/* Aesthetic design palette */}
-                <div>
-                  <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">
-                    Visual do Cartão
-                  </label>
-                  <select
-                    value={newMargem.themeKey}
-                    onChange={(e) => setNewMargem(prev => ({ ...prev, themeKey: e.target.value }))}
-                    className="w-full bg-[#FAF8F3] border border-[#BDAB9C]/40 rounded p-2 text-xs font-sans text-[#1C1916]"
-                  >
-                    {AESTHETIC_THEMES.map(t => (
-                      <option key={t.key} value={t.key}>{t.name}</option>
-                    ))}
-                  </select>
-                </div>
+                </form>
               </div>
-
-              <button
-                type="submit"
-                className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-2.5 rounded-lg font-sans text-xs font-semibold tracking-wide uppercase transition-colors mt-2 cursor-pointer"
-              >
-                Publicar Margem
-              </button>
-
-            </form>
+            )}
           </div>
         </div>
       )}
@@ -1404,6 +1830,7 @@ export default function App() {
                     themeKey: "classic",
                     ecoId: ""
                   });
+                  setCaptureState("form");
                   setShowAddMargem(true);
                 }}
                 margens={margens}
@@ -1898,6 +2325,44 @@ export default function App() {
         <ShareModal 
           margem={sharingMargem}
           onClose={() => setSharingMargem(null)}
+        />
+      )}
+
+      {/* POST-MARGEM MOMENT MODAL */}
+      {postMargemMomentData && (
+        <PostMargemMoment
+          margem={postMargemMomentData}
+          onShareStory={() => {
+            setSharingMargem(postMargemMomentData);
+            setPostMargemMomentData(null);
+          }}
+          onAddToDNA={() => {
+            setMargens(prev => 
+              prev.map(m => 
+                m.id === postMargemMomentData.id 
+                  ? { ...m, influential: true, contributesToIdentity: true } 
+                  : m
+              )
+            );
+          }}
+          onFindEcos={() => {
+            setActiveTab("ecos");
+            const eco = ecos.find(e => e.id === postMargemMomentData.ecoId);
+            if (eco) {
+              setSelectedEco(eco);
+            } else {
+              const matchingEco = ecos.find(e => 
+                e.name.toLowerCase().includes(postMargemMomentData.bookTitle.toLowerCase()) ||
+                e.description.toLowerCase().includes(postMargemMomentData.bookTitle.toLowerCase()) ||
+                e.category.toLowerCase().includes(postMargemMomentData.bookTitle.toLowerCase())
+              );
+              if (matchingEco) {
+                setSelectedEco(matchingEco);
+              }
+            }
+            setPostMargemMomentData(null);
+          }}
+          onClose={() => setPostMargemMomentData(null)}
         />
       )}
 

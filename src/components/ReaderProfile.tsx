@@ -267,17 +267,38 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
                 </ul>
               </div>
 
-              {/* Livros que moldaram a alma */}
+              {/* Livros de Origem / que moldaram a alma */}
               <div className="bg-[#FAF8F3] border border-[#BDAB9C]/40 rounded-xl p-5 journal-shadow space-y-3">
-                <h4 className="font-sans font-bold text-xs uppercase text-[#1C1916] tracking-wider">Livros que Moldaram a Alma</h4>
-                <ul className="space-y-2">
-                  {shapingBooks.map((bk, idx) => (
-                    <li key={idx} className="text-xs font-serif font-semibold text-[#1C1916] flex items-center gap-2">
-                      <span className="text-[10px] opacity-40">📖</span>
-                      <span>{bk}</span>
-                    </li>
-                  ))}
-                </ul>
+                <h4 className="font-sans font-bold text-xs uppercase text-[#1C1916] tracking-wider">Livros de Origem</h4>
+                {userProfile.literaryDNA?.originBooks && userProfile.literaryDNA.originBooks.length > 0 ? (
+                  <div className="space-y-3">
+                    {userProfile.literaryDNA.originBooks.map((book, idx) => (
+                      <div key={idx} className="flex gap-2.5 items-start bg-[#1C1916]/5 p-2 rounded-lg border border-[#BDAB9C]/20">
+                        {book.coverUrl ? (
+                          <img src={book.coverUrl} referrerPolicy="no-referrer" className="w-8 h-11 object-cover rounded shadow-xs" alt="" />
+                        ) : (
+                          <div className="w-8 h-11 bg-[#1C1916]/10 rounded flex items-center justify-center text-[#BDAB9C]">
+                            <span className="text-[10px] opacity-40">📖</span>
+                          </div>
+                        )}
+                        <div className="space-y-0.5 min-w-0 flex-1">
+                          <h5 className="font-serif font-bold text-[11px] text-[#1C1916] truncate">{book.title}</h5>
+                          <p className="text-[9px] font-sans text-[#3D3D3D]/80 truncate">por {book.author}</p>
+                          <p className="font-serif italic text-[10px] text-[#3D3D3D]/70 leading-normal line-clamp-2">"{book.emotionalResidue}"</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <ul className="space-y-2">
+                    {shapingBooks.map((bk, idx) => (
+                      <li key={idx} className="text-xs font-serif font-semibold text-[#1C1916] flex items-center gap-2">
+                        <span className="text-[10px] opacity-40">📖</span>
+                        <span>{bk}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
             </div>

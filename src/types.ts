@@ -1,3 +1,27 @@
+export interface OriginBook {
+  id: string;
+  title: string;
+  author: string;
+  coverUrl?: string;
+  openLibraryKey?: string;
+  emotionalResidue: string;
+}
+
+export interface BookSearchResult {
+  title: string;
+  author: string;
+  coverUrl?: string;
+  openLibraryKey?: string;
+}
+
+export interface LiteraryDNA {
+  originBooks: OriginBook[];
+  shapingAuthors: string[];
+  dominantEmotions: Record<string, number>;
+  identityFormula: string;
+  sharePhrase: string;
+}
+
 export type SpoilerLevel = "none" | "light" | "moderate" | "heavy";
 
 export interface UserProfile {
@@ -21,6 +45,7 @@ export interface UserProfile {
   shapingBooks?: string[]; // e.g. ["Cem Anos de Solidão", "O Mito de Sísifo"]
   literaryTimeline?: { date: string; event: string; book?: string }[];
   wrappedGenerated?: boolean;
+  literaryDNA?: LiteraryDNA;
 }
 
 export interface OnboardingData {
@@ -31,6 +56,7 @@ export interface OnboardingData {
   spoilerTolerance: SpoilerLevel;
   name: string;
   username: string;
+  originBooks?: OriginBook[];
 }
 
 export interface Comment {
@@ -58,6 +84,8 @@ export interface Margem {
   comments: Comment[];
   themeKey?: string; // Aesthetic theme for card generation (e.g. "classic", "night", "tea", "sunset")
   ecoId?: string; // Optional reference to an Eco
+  influential?: boolean; // Post-Margem Choice: Marked as major influence
+  contributesToIdentity?: boolean; // Post-Margem Choice: Contributes to literary identity
 }
 
 export interface Eco {

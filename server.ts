@@ -40,7 +40,7 @@ app.get("/api/health", (req, res) => {
 
 // 1. Generate literary profile from onboarding
 app.post("/api/ai/onboarding", async (req, res) => {
-  const { genres = [], books = "", authors = "", habits = "", spoilerTolerance = "moderate" } = req.body;
+  const { genres = [], books = "", authors = "", habits = "", spoilerTolerance = "moderate", originBooks = [] } = req.body;
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
@@ -73,16 +73,93 @@ app.post("/api/ai/onboarding", async (req, res) => {
     ];
     // Return a random profile from the fallbacks
     const index = Math.floor(Math.random() * fallbackProfiles.length);
-    return res.json({ profile: fallbackProfiles[index], mocked: true });
+    const profileBase = fallbackProfiles[index];
+
+    // Compute robust, authentic DNA fallback using genres & originBooks
+    const selectedEmotions: Record<string, number> = {};
+    const emotionsPool = [
+      { name: "Melancolia Elegante", matches: ["Clássicos Russos", "Poesia e Lírica"] },
+      { name: "Solidão Bonita", matches: ["Poesia e Lírica", "Romance Histórico"] },
+      { name: "Inquietação Filosófica", matches: ["Filosofia Existencialista", "Clássicos Russos"] },
+      { name: "Desejo Impossível", matches: ["Romance Histórico"] },
+      { name: "Fascínio pelo Abismo", matches: ["Fantasia Sombria"] },
+      { name: "Esperança Atenta", matches: ["Desenvolvimento Pessoal"] }
+    ];
+
+    let allocated = 0;
+    emotionsPool.forEach((emo) => {
+      const hasMatch = emo.matches.some(m => genres.includes(m));
+      if (hasMatch && allocated < 100) {
+        selectedEmotions[emo.name] = 30;
+        allocated += 30;
+      }
+    });
+
+    if (allocated === 0) {
+      selectedEmotions["Melancolia Elegante"] = 40;
+      selectedEmotions["Inquietação Filosófica"] = 30;
+      selectedEmotions["Solidão Bonita"] = 30;
+    } else {
+      const keys = Object.keys(selectedEmotions);
+      const diff = 100 - allocated;
+      if (keys.length > 0) {
+        selectedEmotions[keys[0]] += diff;
+      } else {
+        selectedEmotions["Esperança Atenta"] = 100;
+      }
+    }
+
+    const identityFormula = Object.entries(selectedEmotions)
+      .map(([name, pct]) => `${pct}% ${name.toLowerCase()}`)
+      .join(" · ");
+
+    const sharePhrases = [
+      "Você lê como quem procura uma fresta de luz nas palavras silenciosas.",
+      "Você habita o silêncio que se esconde na margem das páginas.",
+      "Para você, ler é uma forma de reescrever seu próprio autorretrato nas sombras.",
+      "Você lê como quem costura sentimentos antigos com as linhas do presente.",
+      "Você descobre nas entrelinhas uma conversa particular sobre o sentido das coisas."
+    ];
+    const sharePhrase = originBooks.length > 0
+      ? `Você lê como quem busca abrigo nos rastros de "${originBooks[0].title}".`
+      : sharePhrases[Math.floor(Math.random() * sharePhrases.length)];
+
+    const shapingAuthors = [
+      ...new Set([
+        ...(originBooks.map((b: any) => b.author).filter((a: string) => a && a !== "Autor Desconhecido" && a !== "Desconhecido")),
+        ...(authors ? authors.split(",").map((a: string) => a.trim()) : [])
+      ])
+    ].slice(0, 3);
+
+    if (shapingAuthors.length === 0) {
+      shapingAuthors.push("Clarice Lispector", "Gabriel García Márquez");
+    }
+
+    const profile = {
+      ...profileBase,
+      literaryDNA: {
+        originBooks: originBooks,
+        shapingAuthors: shapingAuthors,
+        dominantEmotions: selectedEmotions,
+        identityFormula,
+        sharePhrase
+      }
+    };
+
+    return res.json({ profile, mocked: true });
   }
 
   try {
     const ai = getGenAI();
+    const originBooksText = originBooks.map((b: any) => `- "${b.title}" por ${b.author || "Desconhecido"}. O que ficou nele: "${b.emotionalResidue}"`).join("\n");
+    
     const prompt = `Analise os seguintes dados literários de um leitor e gere um "Perfil Literário" poético, íntimo, charmoso e altamente compartilhável. 
 
 Dados do leitor:
 - Gêneros favoritos: ${genres.join(", ")}
-- Livros que ama: ${books}
+- Livros de Origem (livros que formaram ou marcaram o leitor):
+${originBooksText || "Nenhum informado"}
+- Livros adicionais que ama: ${books}
 - Autores prediletos: ${authors}
 - Hábitos de leitura: ${habits}
 - Tolerância a Spoilers: ${spoilerTolerance}
@@ -90,6 +167,12 @@ Dados do leitor:
 Crie um título arquetípico (ex: "O Filósofo Silencioso", "A Romântica Melancólica", "O Alquimista do Cotidiano", "A Tecelã de Universos") que condense a alma literária dessa pessoa.
 Escreva uma descrição poética, profunda e sofisticada de 3 sentenças que soe extremamente acolhedora e inteligente (como um caderno de anotações antigo).
 Gere também uma "assinatura literária" (mote ou frase curta de efeito), uma lista de 2 Ecos (comunidades) recomendados dentre: ["Romance Histórico", "Fantasia Sombria", "Desenvolvimento Pessoal", "Filosofia Existencialista", "Clássicos Russos", "Poesia e Lírica"], uma cor estética sóbria e elegante em formato hexadecimal e um símbolo poético (ex: "Lamparina", "Pena de Ganso", "Flor Prensada", "Ampulheta", "Café Fumegante", "Chave Antiga").
+
+Gere também a seção "literaryDNA" (DNA Literário):
+- de 2 a 3 autores que moldaram o leitor (misturando os autores informados com autores dos livros de origem).
+- 3 a 4 sentimentos/emoções literárias e filosóficas dominantes em porcentagens que somam 100% (ex: Melancolia Elegante, Inquietação Filosófica, Desejo Impossível, Nostalgia, Solidão Bonita, Esperança Atenta, Fascínio pelo Abismo)
+- Uma fórmula de identidade em formato string descrevendo as porcentagens separadas por pontos de meia altura (·). Ex: "40% melancolia elegante · 30% inquietação filosófica · 20% desejo impossível · 10% esperança atenta"
+- Uma frase compartilhável marcante, reflexiva e profunda sobre o modo de ler desse usuário. Ex: "Você lê como quem procura uma casa dentro das frases."
 
 Retorne os dados em formato JSON estrito de acordo com o esquema solicitado.`;
 
@@ -110,14 +193,42 @@ Retorne os dados em formato JSON estrito de acordo com o esquema solicitado.`;
               description: "Lista de exatamente 2 nomes de ecos recomendados"
             },
             aestheticColor: { type: Type.STRING, description: "Cor hexadecimal elegante que combine com o perfil" },
-            aestheticSymbol: { type: Type.STRING, description: "Símbolo poético do perfil" }
+            aestheticSymbol: { type: Type.STRING, description: "Símbolo poético do perfil" },
+            literaryDNA: {
+              type: Type.OBJECT,
+              description: "O DNA Literário contendo os sentimentos predominantes, autores e fórmula de identidade.",
+              properties: {
+                shapingAuthors: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING },
+                  description: "Lista de 2 a 3 autores principais baseados nas preferências do usuário."
+                },
+                dominantEmotions: {
+                  type: Type.OBJECT,
+                  description: "Dicionário de sentimentos/emoções literárias e suas porcentagens (devem somar 100)"
+                },
+                identityFormula: {
+                  type: Type.STRING,
+                  description: "Uma fórmula poética descrevendo as porcentagens. Ex: '40% melancolia elegante · 30% inquietação filosófica · 20% desejo impossível · 10% esperança atenta'"
+                },
+                sharePhrase: {
+                  type: Type.STRING,
+                  description: "Uma frase marcante, poética e intimista sobre a forma como o usuário lê."
+                }
+              },
+              required: ["shapingAuthors", "dominantEmotions", "identityFormula", "sharePhrase"]
+            }
           },
-          required: ["title", "description", "signatureQuote", "recommendedEcos", "aestheticColor", "aestheticSymbol"]
+          required: ["title", "description", "signatureQuote", "recommendedEcos", "aestheticColor", "aestheticSymbol", "literaryDNA"]
         }
       }
     });
 
     const data = JSON.parse(response.text || "{}");
+    // Ensure originBooks are kept inside literaryDNA
+    if (data.literaryDNA) {
+      data.literaryDNA.originBooks = originBooks;
+    }
     res.json({ profile: data, mocked: false });
   } catch (err: any) {
     console.error("Error generating onboarding profile:", err);
