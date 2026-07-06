@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { BookOpen, Star, MessageSquare, Heart, Bookmark, Share2 } from "lucide-react";
+import { 
+  HeartIcon, 
+  SaveIcon, 
+  ShareIcon,
+  EcoMelancoliaEleganteIcon,
+  FutureLetterIcon,
+  EcoSolidaoBonitaIcon,
+  EcoEsperancaAtentaIcon
+} from "./icons/MarginaliaIcons";
 import { Margem, Comment } from "../types";
 
 interface MuseuDasMargensProps {
@@ -20,12 +28,20 @@ export const MuseuDasMargens: React.FC<MuseuDasMargensProps> = ({
   const [activeCategory, setActiveCategory] = useState<CuratedCategory>("melancolia");
 
   const categories = [
-    { key: "melancolia", label: "💔 Mais Melancólicas" },
-    { key: "amadas", label: "❤️ Mais Amadas" },
-    { key: "carta", label: "✉️ Substituiriam uma Carta" },
-    { key: "noturna", label: "🌙 Mais Noturnas" },
-    { key: "esperanca", label: "✨ Mais Esperançosas" }
+    { key: "melancolia", label: "Mais Melancólicas" },
+    { key: "amadas", label: "Mais Amadas" },
+    { key: "carta", label: "Substituiriam uma Carta" },
+    { key: "noturna", label: "Mais Noturnas" },
+    { key: "esperanca", label: "Mais Esperançosas" }
   ];
+
+  const CATEGORY_ICON_MAP: Record<string, React.FC<any>> = {
+    melancolia: EcoMelancoliaEleganteIcon,
+    amadas: HeartIcon,
+    carta: FutureLetterIcon,
+    noturna: EcoSolidaoBonitaIcon,
+    esperanca: EcoEsperancaAtentaIcon,
+  };
 
   const getFilteredMargens = (): Margem[] => {
     let result: Margem[] = [];
@@ -95,19 +111,24 @@ export const MuseuDasMargens: React.FC<MuseuDasMargensProps> = ({
     <div className="space-y-5">
       {/* Categories Horizontal Rail */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none no-export">
-        {categories.map((cat) => (
-          <button
-            key={cat.key}
-            onClick={() => setActiveCategory(cat.key as CuratedCategory)}
-            className={`px-3 py-1.5 rounded-full text-xs font-sans font-semibold whitespace-nowrap transition-all cursor-pointer ${
-              activeCategory === cat.key
-                ? "bg-[#1C1916] text-[#FAF8F3] shadow-xs"
-                : "bg-[#BDAB9C]/10 text-stone-700 hover:bg-[#BDAB9C]/20 border border-[#BDAB9C]/20"
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
+        {categories.map((cat) => {
+          const IconComp = CATEGORY_ICON_MAP[cat.key];
+          const isSelected = activeCategory === cat.key;
+          return (
+            <button
+              key={cat.key}
+              onClick={() => setActiveCategory(cat.key as CuratedCategory)}
+              className={`px-3 py-1.5 rounded-full text-xs font-sans font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                isSelected
+                  ? "bg-[#1C1916] text-[#FAF8F3] shadow-xs"
+                  : "bg-[#BDAB9C]/10 text-stone-700 hover:bg-[#BDAB9C]/20 border border-[#BDAB9C]/20"
+              }`}
+            >
+              {IconComp && <IconComp size={12} className={isSelected ? "text-[#C5A880]" : "text-stone-500"} />}
+              <span>{cat.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Grid of Curated Entries */}
@@ -124,7 +145,7 @@ export const MuseuDasMargens: React.FC<MuseuDasMargensProps> = ({
                     {m.bookTitle}
                   </span>
                   <div className="flex items-center gap-1.5 text-xs text-stone-600">
-                    <Heart className="w-3.5 h-3.5 text-rose-600" fill="currentColor" />
+                    <HeartIcon size={14} className="text-rose-600 fill-rose-600" />
                     <span className="font-mono text-[10px]">{m.lovesCount}</span>
                   </div>
                 </div>
@@ -155,7 +176,7 @@ export const MuseuDasMargens: React.FC<MuseuDasMargensProps> = ({
                       className="text-stone-700 hover:text-rose-600 p-1 cursor-pointer"
                       title="Sintonizar"
                     >
-                      <Heart className="w-3.5 h-3.5" />
+                      <HeartIcon size={14} />
                     </button>
                   )}
                   {onSaveMargem && (
@@ -164,7 +185,7 @@ export const MuseuDasMargens: React.FC<MuseuDasMargensProps> = ({
                       className="text-stone-700 hover:text-[#C5A880] p-1 cursor-pointer"
                       title="Salvar"
                     >
-                      <Bookmark className="w-3.5 h-3.5" />
+                      <SaveIcon size={14} />
                     </button>
                   )}
                   {onOpenShareModal && (
@@ -173,7 +194,7 @@ export const MuseuDasMargens: React.FC<MuseuDasMargensProps> = ({
                       className="text-stone-700 hover:text-[#1C1916] p-1 cursor-pointer"
                       title="Compartilhar Arte"
                     >
-                      <Share2 className="w-3.5 h-3.5" />
+                      <ShareIcon size={14} />
                     </button>
                   )}
                 </div>

@@ -111,62 +111,62 @@ export const INITIAL_ECOS: Eco[] = [
   // --- Ecos Emocionais ---
   {
     id: "amor-impossivel",
-    name: "❤️ Amor Impossível",
+    name: "Amor Impossível",
     description: "Para os corações que suspiram por encontros desencontrados, distâncias insuperáveis e promessas escritas na areia.",
     category: "Eco Emocional",
     memberCount: 1890,
     marginsCount: 512,
-    icon: "Heart",
+    icon: "EcoAmorImpossivelIcon",
     imageBg: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&q=80&w=400"
   },
   {
     id: "solidao-bonita",
-    name: "🌙 Solidão Bonita",
+    name: "Solidão Bonita",
     description: "O silêncio doce do retiro literário. A solitude que não dói, mas transborda em autorreflexão e paz crepuscular.",
     category: "Eco Emocional",
     memberCount: 2430,
     marginsCount: 689,
-    icon: "Moon",
+    icon: "EcoSolidaoBonitaIcon",
     imageBg: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80&w=400"
   },
   {
     id: "nostalgia",
-    name: "☕ Nostalgia do Tempo",
+    name: "Nostalgia do Tempo",
     description: "Lembranças de infância, cheiro de chuva na terra molhada, e a doçura melancólica de épocas que nunca vivemos.",
     category: "Eco Emocional",
     memberCount: 1670,
     marginsCount: 420,
-    icon: "Coffee",
+    icon: "EcoNostalgiaIcon",
     imageBg: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&q=80&w=400"
   },
   {
     id: "crises-existenciais",
-    name: "🧠 Crises Existenciais",
+    name: "Crises Existenciais",
     description: "Para quando o peso do mundo e o mistério do ser parecem grandes demais. Perguntas difíceis em páginas eternas.",
     category: "Eco Emocional",
     memberCount: 3120,
     marginsCount: 940,
-    icon: "Brain",
+    icon: "EcoCrisesExistenciaisIcon",
     imageBg: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&q=80&w=400"
   },
   {
     id: "esperanca-amanha",
-    name: "✨ Esperança Atenta",
+    name: "Esperança Atenta",
     description: "Trechos que iluminam a escuridão. O recomeço silencioso que floresce entre as frestas do desespero.",
     category: "Eco Emocional",
     memberCount: 1450,
     marginsCount: 310,
-    icon: "Sparkles",
+    icon: "EcoEsperancaAtentaIcon",
     imageBg: "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&q=80&w=400"
   },
   {
     id: "melancolia-elegante",
-    name: "🕯️ Melancolia Elegante",
+    name: "Melancolia Elegante",
     description: "A beleza secreta da tristeza. Um recolhimento poético em tons de cinza e luz de velas.",
     category: "Eco Emocional",
     memberCount: 2210,
     marginsCount: 575,
-    icon: "Flame",
+    icon: "EcoMelancoliaEleganteIcon",
     imageBg: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=400"
   }
 ];

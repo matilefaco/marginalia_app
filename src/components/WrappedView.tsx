@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
-import { X, ChevronLeft, ChevronRight, Share2, Sparkles, Flame, RefreshCw, Download } from "lucide-react";
+import { CloseIcon, AuraIcon, ExportIcon, ShareIcon } from "./icons/MarginaliaIcons";
 
 interface WrappedViewProps {
   wrappedData: {
@@ -71,7 +71,7 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
           className="p-1.5 rounded-full bg-[#FAF8F3]/10 hover:bg-[#FAF8F3]/20 transition-colors"
           title="Fechar Retrospectiva"
         >
-          <X className="w-4 h-4 text-[#FAF8F3]" />
+          <CloseIcon className="w-4 h-4 text-[#FAF8F3]" />
         </button>
       </div>
 
@@ -102,7 +102,7 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
             <span className="text-[12px] font-mono tracking-wide text-amber-500 uppercase block">Retrospectiva Marginalia</span>
             
             <div className="w-16 h-16 rounded-full border-2 border-dashed border-amber-500/50 flex items-center justify-center mx-auto mb-2 animate-spin-slow">
-              <Sparkles className="w-6 h-6 text-amber-500" />
+              <AuraIcon className="w-6 h-6 text-amber-500" />
             </div>
 
             <h2 className="font-serif text-3xl font-medium tracking-wide text-amber-50/90 leading-tight">
@@ -255,7 +255,7 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
             disabled={currentSlide === 0}
             className="p-2.5 rounded-full bg-[#FAF8F3]/10 hover:bg-[#FAF8F3]/15 border border-[#FAF8F3]/10 text-[#FAF8F3] disabled:opacity-30 transition-all cursor-pointer"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
           </button>
           
           <button 
@@ -263,7 +263,7 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
             disabled={currentSlide === totalSlides - 1}
             className="p-2.5 rounded-full bg-[#FAF8F3]/10 hover:bg-[#FAF8F3]/15 border border-[#FAF8F3]/10 text-[#FAF8F3] disabled:opacity-30 transition-all cursor-pointer"
           >
-            <ChevronRight className="w-4 h-4" />
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
           </button>
         </div>
 
@@ -274,14 +274,14 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
               disabled={downloading}
               className="px-4.5 py-2.5 rounded-xl bg-stone-850 hover:bg-stone-750 text-[#FAF8F3] font-sans text-xs font-bold tracking-wide flex items-center gap-1.5 cursor-pointer disabled:opacity-50 border border-[#BDAB9C]/20 transition-all"
             >
-              <Download className="w-4 h-4" />
+              <ExportIcon className="w-4 h-4" />
               <span>{downloading ? "Consagrando..." : "Consagrar Retrospectiva"}</span>
             </button>
             <button
               onClick={onShare}
               className="px-4.5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:opacity-90 text-white font-sans text-xs font-bold tracking-wide flex items-center gap-1.5 cursor-pointer shadow-md transition-all"
             >
-              <Share2 className="w-4 h-4" />
+              <ShareIcon className="w-4 h-4" />
               <span>Guardar Escrita</span>
             </button>
           </div>

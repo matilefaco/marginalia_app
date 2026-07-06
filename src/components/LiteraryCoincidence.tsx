@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Sparkles, ArrowRight, Star, Moon } from "lucide-react";
+import { RituaisIcon } from "./icons/MarginaliaIcons";
 
 interface LiteraryCoincidenceProps {
   onExploreEco?: (ecoName: string) => void;
@@ -56,7 +56,7 @@ export const LiteraryCoincidence: React.FC<LiteraryCoincidenceProps> = ({ onExpl
 
       <div className="flex items-center gap-2">
         <div className="w-6 h-6 rounded-full bg-[#C5A880]/15 border border-[#C5A880]/20 flex items-center justify-center">
-          <Moon className="w-3.5 h-3.5 text-[#C5A880]" />
+          <RituaisIcon className="w-3.5 h-3.5 text-[#C5A880]" />
         </div>
         <span className="text-[10px] font-mono tracking-widest text-[#C5A880] uppercase font-semibold">
           {coincidence.title}
@@ -73,7 +73,7 @@ export const LiteraryCoincidence: React.FC<LiteraryCoincidenceProps> = ({ onExpl
           className="text-[10px] font-sans font-semibold text-amber-100 hover:text-white flex items-center gap-1.5 pt-1.5 cursor-pointer transition-colors"
         >
           <span>{coincidence.cta}</span>
-          <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </button>
       )}
     </div>

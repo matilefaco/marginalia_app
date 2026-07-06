@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
-import { Download, Mail, Star, Sparkles, Send, Check } from "lucide-react";
+import { FutureLetterIcon, ExportIcon } from "./icons/MarginaliaIcons";
 import { UserProfile, Margem } from "../types";
 
 interface FutureLetterProps {
@@ -16,8 +16,8 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
   const [selectedPastMargin, setSelectedPastMargin] = useState<Margem | null>(null);
 
   // Filter margins belonging to the user
-  const userMargins = margens.filter(
-    (m) => m.authorAvatar === userProfile.avatarSeed || m.authorName === userProfile.name
+  const userMargins = (margens || []).filter(
+    (m) => m && (m.authorAvatar === userProfile.avatarSeed || m.authorName === userProfile.name)
   );
 
   useEffect(() => {
@@ -70,7 +70,7 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
       >
         <div className="absolute inset-0 tactile-overlay opacity-30 pointer-events-none" />
         <div className="absolute top-3 right-4 flex items-center gap-1 opacity-40">
-          <Mail className="w-3.5 h-3.5 text-[#1C1916]" />
+          <FutureLetterIcon className="w-3.5 h-3.5 text-[#1C1916]" />
           <span className="text-[8px] font-mono tracking-widest uppercase">CORRESPONDÊNCIA ÍNTIMA</span>
         </div>
 
@@ -107,7 +107,7 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
         ) : (
           <div className="space-y-4 my-auto text-center py-4">
             <div className="w-10 h-10 rounded-full bg-[#BDAB9C]/10 flex items-center justify-center mx-auto mb-2 border border-[#BDAB9C]/30">
-              <Mail className="w-5 h-5 text-[#C5A880]" />
+              <FutureLetterIcon className="w-5 h-5 text-[#C5A880]" />
             </div>
             <h4 className="font-serif italic text-base text-[#1C1916] font-semibold">
               Escreva hoje uma margem para o futuro
@@ -145,7 +145,7 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
               className="bg-[#1C1916] text-[#FAF8F3] hover:bg-stone-800 p-2 rounded-lg cursor-pointer flex items-center justify-center transition-colors shadow-xs"
               title="Salvar resposta"
             >
-              <Send className="w-3.5 h-3.5" />
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
             </button>
           </div>
         </div>
@@ -153,7 +153,7 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
 
       {submitted && (
         <div className="no-export bg-green-50/50 border border-green-200 rounded-lg p-2.5 flex items-center gap-2 text-xs text-green-800 font-sans font-medium">
-          <Check className="w-4 h-4 text-green-700 flex-shrink-0" />
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-700 flex-shrink-0"><path d="M20 6 9 17l-5-5"/></svg>
           <span>Sua resposta foi selada e guardada na sua cápsula do tempo local.</span>
         </div>
       )}
@@ -164,7 +164,7 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
           disabled={exporting}
           className="text-[10px] font-sans font-semibold text-stone-800 hover:text-[#1C1916] flex items-center gap-1 bg-[#BDAB9C]/15 px-3 py-1.5 rounded-lg border border-[#BDAB9C]/30 cursor-pointer transition-colors"
         >
-          <Download className="w-3.5 h-3.5" />
+          <ExportIcon className="w-3.5 h-3.5" />
           <span>{exporting ? "Compilando..." : "Exportar Carta"}</span>
         </button>
       </div>

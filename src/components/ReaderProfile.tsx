@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
 import { UserProfile, Margem } from "../types";
-import { Sliders, Flame, Heart, BookOpen, Clock, Calendar, Sparkles, Trophy, Plus, HelpCircle, Download } from "lucide-react";
+import { ExportIcon, WrappedIcon, LinesDiaryIcon, FlameIcon, ClockIcon, BookOpenIcon, TrophyIcon } from "./icons/MarginaliaIcons";
 
 import { LiteraryAura } from "./LiteraryAura";
 import { SoulMap } from "./SoulMap";
@@ -38,7 +38,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
   };
 
   // Filter margins created by user
-  const userMargins = margens.filter(m => m.authorAvatar === userProfile.avatarSeed || m.authorName === userProfile.name);
+  const userMargins = (margens || []).filter(m => m && (m.authorAvatar === userProfile.avatarSeed || m.authorName === userProfile.name));
 
   // Dynamic emotional map based on user's active margins if exists, otherwise preset
   const emotionalMap = userProfile.emotionalMap || {
@@ -69,25 +69,25 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
   // Literary Honors (Recompensas Não Infantis)
   const honors = [
     {
-      title: "🕯️ Guardião da Melancolia",
+      title: "Guardião da Melancolia",
       description: "Concedido a leitores cujas anotações capturam a doçura sutil do recolhimento poético.",
       requirement: "Registrar 3 margens com sentimentos melancólicos",
       unlocked: userMargins.length >= 1
     },
     {
-      title: "✍️ Colecionador de Silêncios",
+      title: "Colecionador de Silêncios",
       description: "Concedido para mentes que buscam registrar o invisível entre as linhas de livros eternos.",
       requirement: "Escrever pelo menos 5 margens no diário",
       unlocked: userMargins.length >= 3
     },
     {
-      title: "🧭 Cartógrafo das Emoções",
+      title: "Cartógrafo das Emoções",
       description: "Para quem cruza diferentes sentimentos sem medo de se perder no labirinto da alma.",
       requirement: "Explorar mais de 3 categorias emocionais de Ecos",
       unlocked: true
     },
     {
-      title: "🌌 Observador de Estrelas",
+      title: "Observador de Estrelas",
       description: "Leitores que convidam a Companheira IA para debater mistérios poéticos na escuridão.",
       requirement: "Completar uma conversa profunda sobre subtextos",
       unlocked: true
@@ -102,7 +102,8 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
         <div className="h-28 bg-[#BDAB9C]/15 relative overflow-hidden">
           <div className="absolute inset-0 tactile-overlay" />
           <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF8F3] text-[10px] font-sans font-semibold text-[#1C1916] border border-[#BDAB9C]">
-            🔥 {userProfile.streakDays} Dias Seguidos
+            <FlameIcon size={12} className="text-amber-600" />
+            <span>{userProfile.streakDays} Dias Seguidos</span>
           </div>
         </div>
 
@@ -132,14 +133,14 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
                   disabled={exportingCard}
                   className="px-3.5 py-1 bg-stone-800 hover:bg-stone-700 text-[#FAF8F3] rounded-full text-xs font-sans font-semibold border border-[#BDAB9C]/20 transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
                 >
-                  <Download className="w-3 h-3" />
+                  <ExportIcon className="w-3 h-3" />
                   <span>{exportingCard ? "Gerando..." : "Exportar Cartão"}</span>
                 </button>
                 <button
                   onClick={onTriggerWrapped}
                   className="px-3.5 py-1 bg-gradient-to-r from-orange-600 to-amber-700 text-white rounded-full text-xs font-sans font-bold shadow-xs hover:opacity-90 transition-opacity flex items-center gap-1 cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <WrappedIcon className="w-3.5 h-3.5" />
                   <span>Sua Retrospectiva</span>
                 </button>
               </div>
@@ -174,7 +175,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
             activeSubTab === "aura" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
           }`}
         >
-          ✨ Aura Poética
+          Aura Poética
         </button>
         <button
           onClick={() => setActiveSubTab("mapa")}
@@ -182,7 +183,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
             activeSubTab === "mapa" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
           }`}
         >
-          🌌 Mapa da Alma
+          Mapa da Alma
         </button>
         <button
           onClick={() => setActiveSubTab("compatibilidade")}
@@ -190,7 +191,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
             activeSubTab === "compatibilidade" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
           }`}
         >
-          👥 Sintonia de Leitores
+          Sintonia de Leitores
         </button>
         <button
           onClick={() => setActiveSubTab("historico")}
@@ -262,7 +263,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
                 <ul className="space-y-2.5">
                   {atmospheres.map((atm, idx) => (
                     <li key={idx} className="text-sm font-serif italic text-stone-850 flex items-center gap-2">
-                      <span className="text-[10px] opacity-50">☕</span>
+                      <ClockIcon size={12} className="opacity-50 text-stone-500" />
                       <span>{atm}</span>
                     </li>
                   ))}
@@ -280,7 +281,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
                           <img src={book.coverUrl} referrerPolicy="no-referrer" className="w-8 h-11 object-cover rounded shadow-xs" alt="" />
                         ) : (
                           <div className="w-8 h-11 bg-[#1C1916]/10 rounded flex items-center justify-center text-[#BDAB9C]">
-                            <span className="text-[10px] opacity-40">📖</span>
+                            <BookOpenIcon size={12} className="opacity-45 text-[#BDAB9C]" />
                           </div>
                         )}
                         <div className="space-y-0.5 min-w-0 flex-1">
@@ -295,7 +296,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
                   <ul className="space-y-2">
                     {shapingBooks.map((bk, idx) => (
                       <li key={idx} className="text-xs font-serif font-semibold text-[#1C1916] flex items-center gap-2">
-                        <span className="text-[10px] opacity-40">📖</span>
+                        <BookOpenIcon size={12} className="opacity-45 text-[#BDAB9C]" />
                         <span>{bk}</span>
                       </li>
                     ))}
@@ -365,7 +366,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
       {/* TAB SUB-CONTENT: SINTONIA DE LEITORES */}
       {activeSubTab === "compatibilidade" && (
         <div className="space-y-6 animate-page-turn">
-          <LiteraryCompatibility userProfile={userProfile} />
+          <LiteraryCompatibility userProfile={userProfile} margens={margens} />
         </div>
       )}
 
@@ -394,7 +395,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
             </div>
           ) : (
             <div className="text-center py-10 border border-dashed border-[#BDAB9C]/40 rounded-xl bg-[#FAF8F3]">
-              <BookOpen className="w-8 h-8 text-[#BDAB9C] mx-auto mb-2 opacity-50" />
+              <LinesDiaryIcon className="w-8 h-8 text-[#BDAB9C] mx-auto mb-2 opacity-50" />
               <p className="text-xs font-serif italic text-[#BDAB9C]">
                 Nenhuma dobra de página por aqui. Suas anotações à margem aparecerão neste diário íntimo.
               </p>
@@ -417,7 +418,10 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
             >
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <h4 className="font-serif font-bold text-xs text-[#1C1916]">{h.title}</h4>
+                  <h4 className="font-serif font-bold text-xs text-[#1C1916] flex items-center gap-1.5">
+                    <TrophyIcon size={14} className={h.unlocked ? "text-amber-600" : "text-stone-400"} />
+                    <span>{h.title}</span>
+                  </h4>
                   {h.unlocked ? (
                     <span className="text-[8.5px] font-mono font-bold bg-[#C5A880]/15 text-amber-800 px-2 py-0.5 rounded uppercase tracking-wider">
                       CONCEDIDO

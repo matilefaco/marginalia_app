@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Camera, Clipboard, Keyboard, Sparkles, RefreshCw, X, ArrowRight, BookOpen, AlertCircle } from "lucide-react";
+import { RefreshIcon } from "./icons/MarginaliaIcons";
 import Tesseract from "tesseract.js";
 
 interface QuoteCaptureProps {
@@ -109,7 +109,7 @@ export default function QuoteCapture({ onCaptureComplete, onSelectManual, onCanc
               className="w-full text-left p-4 rounded-xl border border-[#BDAB9C]/40 bg-[#FAF8F3] hover:bg-[#1C1916]/5 transition-all flex gap-4 items-center group cursor-pointer"
             >
               <div className="w-10 h-10 rounded-lg bg-[#1C1916]/5 flex items-center justify-center text-[#1C1916] group-hover:bg-[#1C1916] group-hover:text-[#FAF8F3] transition-colors">
-                <Camera className="w-5 h-5" />
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="font-sans font-semibold text-sm text-[#1C1916]">Fotografar página</h4>
@@ -117,7 +117,7 @@ export default function QuoteCapture({ onCaptureComplete, onSelectManual, onCanc
                   Para livros físicos, páginas marcadas e frases encontradas no papel.
                 </p>
               </div>
-              <ArrowRight className="w-4 h-4 text-[#BDAB9C] group-hover:translate-x-1 transition-transform" />
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#BDAB9C] group-hover:translate-x-1 transition-transform"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
 
             {/* Option: Paste */}
@@ -126,7 +126,7 @@ export default function QuoteCapture({ onCaptureComplete, onSelectManual, onCanc
               className="w-full text-left p-4 rounded-xl border border-[#BDAB9C]/40 bg-[#FAF8F3] hover:bg-[#1C1916]/5 transition-all flex gap-4 items-center group cursor-pointer"
             >
               <div className="w-10 h-10 rounded-lg bg-[#1C1916]/5 flex items-center justify-center text-[#1C1916] group-hover:bg-[#1C1916] group-hover:text-[#FAF8F3] transition-colors">
-                <Clipboard className="w-5 h-5" />
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="font-sans font-semibold text-sm text-[#1C1916]">Colar trecho</h4>
@@ -134,7 +134,7 @@ export default function QuoteCapture({ onCaptureComplete, onSelectManual, onCanc
                   Para Kindle, PDFs, apps de leitura ou notas já copiadas.
                 </p>
               </div>
-              <ArrowRight className="w-4 h-4 text-[#BDAB9C] group-hover:translate-x-1 transition-transform" />
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#BDAB9C] group-hover:translate-x-1 transition-transform"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
 
             {/* Option: Manual */}
@@ -143,7 +143,7 @@ export default function QuoteCapture({ onCaptureComplete, onSelectManual, onCanc
               className="w-full text-left p-4 rounded-xl border border-[#BDAB9C]/40 bg-[#FAF8F3] hover:bg-[#1C1916]/5 transition-all flex gap-4 items-center group cursor-pointer"
             >
               <div className="w-10 h-10 rounded-lg bg-[#1C1916]/5 flex items-center justify-center text-[#1C1916] group-hover:bg-[#1C1916] group-hover:text-[#FAF8F3] transition-colors">
-                <Keyboard className="w-5 h-5" />
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><line x1="6" y1="8" x2="6" y2="8"/><line x1="10" y1="8" x2="10" y2="8"/><line x1="14" y1="8" x2="14" y2="8"/><line x1="18" y1="8" x2="18" y2="8"/><line x1="6" y1="12" x2="6" y2="12"/><line x1="10" y1="12" x2="10" y2="12"/><line x1="14" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="18" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg>
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="font-sans font-semibold text-sm text-[#1C1916]">Digitar manualmente</h4>
@@ -151,7 +151,7 @@ export default function QuoteCapture({ onCaptureComplete, onSelectManual, onCanc
                   Para quando a frase já vive decorada em você.
                 </p>
               </div>
-              <ArrowRight className="w-4 h-4 text-[#BDAB9C] group-hover:translate-x-1 transition-transform" />
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#BDAB9C] group-hover:translate-x-1 transition-transform"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
           </div>
 
@@ -186,7 +186,7 @@ export default function QuoteCapture({ onCaptureComplete, onSelectManual, onCanc
               className="border-2 border-dashed border-[#BDAB9C]/50 hover:border-[#1C1916] rounded-xl p-8 text-center bg-[#1C1916]/5 cursor-pointer transition-all space-y-3 group"
             >
               <div className="w-12 h-12 rounded-full bg-[#1C1916]/5 flex items-center justify-center text-[#BDAB9C] group-hover:text-[#1C1916] mx-auto transition-colors">
-                <Camera className="w-6 h-6" />
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
               </div>
               <div className="space-y-1">
                 <p className="font-sans font-semibold text-xs text-[#1C1916]">Clique para carregar ou tirar uma foto</p>
@@ -226,7 +226,7 @@ export default function QuoteCapture({ onCaptureComplete, onSelectManual, onCanc
               {/* Processing State */}
               {isProcessing && (
                 <div className="p-6 border border-[#BDAB9C]/40 rounded-xl bg-white space-y-4 text-center">
-                  <RefreshCw className="w-6 h-6 text-[#1C1916] animate-spin mx-auto" />
+                  <RefreshIcon className="w-6 h-6 text-[#1C1916] animate-spin mx-auto" />
                   <div className="space-y-1.5">
                     <p className="font-serif italic text-sm text-[#1C1916]">“Lendo a página em silêncio…”</p>
                     <p className="text-[10px] font-mono text-[#BDAB9C] uppercase tracking-widest">{progressStatus}</p>
@@ -265,7 +265,7 @@ export default function QuoteCapture({ onCaptureComplete, onSelectManual, onCanc
               {ocrError && (
                 <div className="p-4 border border-red-200 bg-red-500/5 rounded-xl space-y-3">
                   <div className="flex gap-2 items-center text-red-800">
-                    <AlertCircle className="w-4 h-4" />
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-800"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                     <p className="text-xs font-sans font-semibold">Tivemos um contratempo</p>
                   </div>
                   <p className="text-xs font-serif text-[#3D3D3D]/80 leading-relaxed">{ocrError}</p>

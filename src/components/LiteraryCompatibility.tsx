@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
-import { Download, Heart, Compass, Sparkles, MessageCircle, RefreshCw, UserCheck } from "lucide-react";
+import { HeartIcon, ExportIcon } from "./icons/MarginaliaIcons";
 import { UserProfile, Margem } from "../types";
 import { calculateCompatibility, MOCK_COMPATIBLE_READERS } from "../utils/compatibility";
 
@@ -104,7 +104,7 @@ export const LiteraryCompatibility: React.FC<LiteraryCompatibilityProps> = ({ us
         <div className="z-10 space-y-2 px-2 md:px-8 max-w-lg mx-auto">
           {compatibility.motifs.map((motif, i) => (
             <div key={i} className="flex items-center gap-2 justify-center text-[11px] md:text-xs text-stone-800">
-              <Heart className="w-3 h-3 text-[#C5A880] flex-shrink-0" fill="#C5A880" />
+              <HeartIcon size={12} className="text-[#C5A880] fill-[#C5A880] flex-shrink-0" />
               <p className="font-sans italic leading-relaxed text-center">{motif}</p>
             </div>
           ))}
@@ -135,7 +135,7 @@ export const LiteraryCompatibility: React.FC<LiteraryCompatibilityProps> = ({ us
           disabled={exporting}
           className="text-[10px] font-sans font-semibold bg-[#1C1916] text-[#FAF8F3] hover:bg-stone-800 flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg shadow-xs cursor-pointer disabled:opacity-50 transition-all"
         >
-          <Download className="w-3.5 h-3.5" />
+          <ExportIcon size={14} />
           <span>{exporting ? "Criando..." : "Exportar Cartão de Afinidade"}</span>
         </button>
       </div>

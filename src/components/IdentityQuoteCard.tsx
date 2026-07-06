@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
-import { Copy, Download, RefreshCw, Check, Sparkles } from "lucide-react";
+import { RefreshIcon, ExportIcon } from "./icons/MarginaliaIcons";
 import { UserProfile, Margem } from "../types";
 import { generateIdentityQuote } from "../utils/identityText";
 
@@ -91,7 +91,7 @@ export const IdentityQuoteCard: React.FC<IdentityQuoteCardProps> = ({ userProfil
           onClick={handleRegenerate}
           className="text-xs font-sans font-semibold text-stone-850 hover:text-[#1C1916] flex items-center gap-1.5 bg-[#BDAB9C]/10 px-3 py-2 rounded-xl border border-[#BDAB9C]/20 cursor-pointer transition-colors"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
+          <RefreshIcon className="w-3.5 h-3.5" />
           <span>Reescrever Caminho</span>
         </button>
 
@@ -100,7 +100,11 @@ export const IdentityQuoteCard: React.FC<IdentityQuoteCardProps> = ({ userProfil
             onClick={handleCopy}
             className="text-xs font-sans font-semibold text-stone-850 hover:text-[#1C1916] flex items-center gap-1.5 bg-[#BDAB9C]/10 px-3 py-2 rounded-xl border border-[#BDAB9C]/20 cursor-pointer transition-colors"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-green-750 font-bold" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? (
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-700 font-bold"><path d="M20 6 9 17l-5-5"/></svg>
+            ) : (
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            )}
             <span>{copied ? "Guardado!" : "Guardar"}</span>
           </button>
           
@@ -109,7 +113,7 @@ export const IdentityQuoteCard: React.FC<IdentityQuoteCardProps> = ({ userProfil
             disabled={exporting}
             className="text-xs font-sans font-semibold bg-[#1C1916] text-[#FAF8F3] hover:bg-stone-800 flex items-center gap-1.5 px-4 py-2 rounded-xl shadow-xs cursor-pointer disabled:opacity-50 transition-all"
           >
-            <Download className="w-3.5 h-3.5" />
+            <ExportIcon className="w-3.5 h-3.5" />
             <span>{exporting ? "Invocando..." : "Revelar Cartão"}</span>
           </button>
         </div>

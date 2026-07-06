@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
@@ -36,6 +37,19 @@ function getGenAI(): GoogleGenAI {
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", time: new Date().toISOString() });
+});
+
+// Log client-side errors
+app.post("/api/log-error", (req, res) => {
+  console.error("[BROWSER ERROR RECEIVED]:", req.body);
+  try {
+    const logPath = path.join(process.cwd(), "client-errors.log");
+    const errorMsg = `[${new Date().toISOString()}] ${JSON.stringify(req.body)}\n`;
+    fs.appendFileSync(logPath, errorMsg, "utf8");
+  } catch (e) {
+    console.error("Failed to write client error log:", e);
+  }
+  res.sendStatus(200);
 });
 
 // 1. Generate literary profile from onboarding

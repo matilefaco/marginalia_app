@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
-import { Sparkles, Share2, Compass, Check, BookOpen, Feather } from "lucide-react";
+import { LinesDiaryIcon, AuraIcon, ShareIcon, DescobertasIcon } from "./icons/MarginaliaIcons";
 import { Margem } from "../types";
 
 interface PostMargemMomentProps {
@@ -125,7 +125,7 @@ export default function PostMargemMoment({
             </div>
             
             <div className="flex gap-2 items-center text-xs font-sans text-stone-800 font-medium">
-              <BookOpen className="w-3.5 h-3.5 text-[#BDAB9C]" />
+              <LinesDiaryIcon size={14} className="text-[#BDAB9C]" />
               <span className="font-semibold">{margem.bookTitle}</span>
               <span className="opacity-40">•</span>
               <span className="italic">por {margem.author}</span>
@@ -148,7 +148,7 @@ export default function PostMargemMoment({
           className="p-4 bg-[#BDAB9C]/10 border border-[#BDAB9C]/25 rounded-xl space-y-1.5 text-center relative"
         >
           <div className="absolute top-2 right-3 text-[#C5A880] animate-pulse">
-            <Sparkles className="w-3.5 h-3.5" />
+            <AuraIcon size={14} />
           </div>
           <p className="text-[10px] font-mono uppercase tracking-wide text-[#BDAB9C] font-bold">
             Reflexo de Alma Leitora
@@ -168,7 +168,7 @@ export default function PostMargemMoment({
             onClick={onShareStory}
             className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-3 px-4 rounded-xl font-sans text-sm font-bold tracking-wide transition-all flex items-center justify-center gap-2 journal-shadow cursor-pointer border border-[#1C1916]"
           >
-            <Share2 className="w-4 h-4 text-[#BDAB9C]" />
+            <ShareIcon size={16} className="text-[#BDAB9C]" />
             <span>Modelar para Partilha</span>
           </motion.button>
           
@@ -186,12 +186,12 @@ export default function PostMargemMoment({
             >
               {addedToDNA ? (
                 <>
-                  <Check className="w-4 h-4 text-[#C5A880]" />
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#C5A880]"><path d="M20 6 9 17l-5-5"/></svg>
                   <span>Incorporado ao DNA</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 text-[#BDAB9C]" />
+                  <AuraIcon size={16} className="text-[#BDAB9C]" />
                   <span>Entrelaçar ao DNA Literário</span>
                 </>
               )}
@@ -204,7 +204,7 @@ export default function PostMargemMoment({
               onClick={onFindEcos}
               className="py-3 px-3 rounded-xl bg-[#FAF8F3] border border-[#BDAB9C]/60 hover:border-[#1C1916] text-stone-850 hover:bg-[#1C1916]/5 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Compass className="w-4 h-4 text-[#BDAB9C]" />
+              <DescobertasIcon size={16} className="text-[#BDAB9C]" />
               <span>Escutar Ecos do Jardim</span>
             </motion.button>
           </div>

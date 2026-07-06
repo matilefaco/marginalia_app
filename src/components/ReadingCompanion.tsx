@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Margem, UserProfile } from "../types";
-import { Send, Feather, Sparkles, RefreshCw, Sparkle, Brain, Moon, HelpCircle } from "lucide-react";
+import { IdentityIcon, RefreshIcon, AuraIcon } from "./icons/MarginaliaIcons";
 
 interface ReadingCompanionProps {
   userProfile: UserProfile;
@@ -42,9 +42,9 @@ export default function ReadingCompanion({
 
   // Quick prompt suggestions
   const suggestions = [
-    { label: "📚 Sugira leituras existencialistas", text: "Gostaria de sugestões de livros para debater o absurdo e as crises existenciais." },
-    { label: "✍️ Me ajude a refinar minha Margem", text: "Estou lendo e quero escrever uma anotação poética e profunda à margem. Pode me guiar?" },
-    { label: "🌧️ Sugira obras de melancolia elegante", text: "Quais autores traduzem com mais beleza e delicadeza a solidão e a nostalgia?" }
+    { label: "Sugira leituras existencialistas", text: "Gostaria de sugestões de livros para debater o absurdo e as crises existenciais." },
+    { label: "Me ajude a refinar minha Margem", text: "Estou lendo e quero escrever uma anotação poética e profunda à margem. Pode me guiar?" },
+    { label: "Sugira obras de melancolia elegante", text: "Quais autores traduzem com mais beleza e delicadeza a solidão e a nostalgia?" }
   ];
 
   // Deep Emotional Pattern Analysis (Fase 9 - Companheira de Leitura)
@@ -107,7 +107,7 @@ Sua Companheira de Leitura.`);
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <h4 className="font-sans font-bold text-xs uppercase text-[#1C1916] flex items-center gap-1.5">
-              <Brain className="w-4 h-4 text-amber-700" />
+              <IdentityIcon size={16} className="text-amber-700" />
               Mapear Meus Padrões Emocionais
             </h4>
             <p className="text-[10.5px] text-[#3D3D3D] opacity-85">
@@ -122,12 +122,12 @@ Sua Companheira de Leitura.`);
           >
             {mappingPsyche ? (
               <>
-                <RefreshCw className="w-3 h-3 animate-spin" />
+                <RefreshIcon className="w-3 h-3 animate-spin" />
                 <span>Mapeando...</span>
               </>
             ) : (
               <>
-                <Sparkles className="w-3.5 h-3.5" />
+                <AuraIcon size={14} />
                 <span>Mapear</span>
               </>
             )}
@@ -159,7 +159,7 @@ Sua Companheira de Leitura.`);
         <div className="px-5 py-3.5 border-b border-[#BDAB9C]/25 bg-[#FAF8F3] flex justify-between items-center">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full border border-[#BDAB9C]/40 bg-[#FAF8F3] flex items-center justify-center">
-              <Sparkle className="w-4 h-4 text-amber-700 animate-pulse" />
+              <AuraIcon size={16} className="text-amber-700 animate-pulse" />
             </div>
             <div>
               <p className="text-xs font-sans font-bold text-[#1C1916]">Companheira de Leitura</p>
@@ -255,7 +255,7 @@ Sua Companheira de Leitura.`);
             disabled={companionLoading || !inputText.trim()}
             className="bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] p-3 rounded-xl disabled:opacity-40 transition-all cursor-pointer shadow-xs"
           >
-            <Send className="w-4 h-4" />
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </form>
 

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
-import { X, Download, Share2, AlignLeft, AlignCenter, Sliders, Check, Eye, Minimize2, Sparkles } from "lucide-react";
+
+import { CloseIcon, ExportIcon, ShareIcon } from "./icons/MarginaliaIcons";
 import { Margem } from "../types";
 
 interface ShareModalProps {
@@ -36,7 +37,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
   const artStyles: ArtStyle[] = [
     {
       key: "story_etereo",
-      name: "✨ Story Etéreo",
+      name: "Story Etéreo",
       bgClass: "bg-gradient-to-tr from-[#FFFDF9] via-[#FAF6EE] to-[#F1ECE1] text-[#2C2720]",
       quoteClass: "text-[#1C1814] font-serif italic tracking-wide",
       fontClass: "font-serif",
@@ -47,7 +48,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
     },
     {
       key: "wallpaper_noturno",
-      name: "🌌 Wallpaper Noturno",
+      name: "Wallpaper Noturno",
       bgClass: "bg-gradient-to-b from-[#121110] via-[#1A1816] to-[#0A0909] text-[#EBE6DF]",
       quoteClass: "text-[#FAF8F5] font-serif italic",
       fontClass: "font-serif",
@@ -58,7 +59,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
     },
     {
       key: "carta_dobrada",
-      name: "✉️ Carta Dobrada",
+      name: "Carta Dobrada",
       bgClass: "bg-[#F4EFE6] text-[#3A2D25]",
       quoteClass: "text-[#2D1B13] font-serif italic",
       fontClass: "font-serif",
@@ -69,7 +70,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
     },
     {
       key: "typewriter",
-      name: "⌨️ Máquina de Escrever",
+      name: "Máquina de Escrever",
       bgClass: "bg-[#F1F2F6] text-[#2F3542]",
       quoteClass: "text-[#1E272E] font-mono",
       fontClass: "font-mono",
@@ -80,7 +81,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
     },
     {
       key: "poster_editorial",
-      name: "📰 Pôster Editorial",
+      name: "Pôster Editorial",
       bgClass: "bg-[#1C1916] text-[#FAF8F3]",
       quoteClass: "text-white font-sans font-extrabold tracking-tight leading-snug",
       fontClass: "font-sans",
@@ -91,7 +92,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
     },
     {
       key: "diario",
-      name: "📖 Página de Diário",
+      name: "Página de Diário",
       bgClass: "bg-[#FCF6EC] text-[#5D4037]",
       quoteClass: "text-[#3E2723] font-serif italic",
       fontClass: "font-serif",
@@ -102,7 +103,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
     },
     {
       key: "bio_quote",
-      name: "✒️ Bio Quote",
+      name: "Assinatura Literária",
       bgClass: "bg-[#090909] text-[#FAF8F3]",
       quoteClass: "text-white font-sans tracking-tight leading-relaxed",
       fontClass: "font-sans",
@@ -118,7 +119,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
   const handleCopyLink = () => {
     setCopied(true);
     navigator.clipboard.writeText(
-      `📖 "${margem.quote}"\n\n— Minha Margem: "${margem.thought}"\n(${margem.bookTitle}, por ${margem.author} | Criado no Marginalia.app)`
+      `"${margem.quote}"\n\n— Minha Margem: "${margem.thought}"\n(${margem.bookTitle}, por ${margem.author} | Criado no Marginalia.app)`
     );
     setTimeout(() => setCopied(false), 2000);
   };
@@ -240,7 +241,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
                 onClick={onClose}
                 className="p-1 rounded-full hover:bg-[#BDAB9C]/20 text-[#3D3D3D] transition-colors"
               >
-                <X className="w-5 h-5" />
+                <CloseIcon className="w-5 h-5" />
               </button>
             </div>
 
@@ -314,14 +315,14 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
                     className={`p-1 rounded ${alignment === "left" ? "bg-[#1C1916] text-[#FAF8F3]" : "hover:bg-[#BDAB9C]/10 text-[#3D3D3D]"}`}
                     title="Alinhar à Esquerda"
                   >
-                    <AlignLeft className="w-4 h-4" />
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
                   </button>
                   <button
                     onClick={() => setAlignment("center")}
                     className={`p-1 rounded ${alignment === "center" ? "bg-[#1C1916] text-[#FAF8F3]" : "hover:bg-[#BDAB9C]/10 text-[#3D3D3D]"}`}
                     title="Alinhar ao Centro"
                   >
-                    <AlignCenter className="w-4 h-4" />
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg>
                   </button>
                 </div>
               </div>
@@ -346,7 +347,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
             {/* Retro Grain Toggle */}
             <div className="flex items-center justify-between mb-4 p-3 bg-[#1C1916]/5 rounded-xl">
               <div className="flex items-center gap-2">
-                <Sliders className="w-3.5 h-3.5 text-[#BDAB9C]" />
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#BDAB9C]"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
                 <span className="text-xs font-sans text-[#3D3D3D] font-medium">Textura de Algodão</span>
               </div>
               <input
@@ -372,7 +373,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
                 </>
               ) : (
                 <>
-                  <Download className="w-4 h-4" />
+                  <ExportIcon className="w-4 h-4" />
                   <span>Gravar e Baixar Cartão</span>
                 </>
               )}
@@ -390,12 +391,12 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4 text-[#C5A880]" />
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#C5A880]"><path d="M20 6 9 17l-5-5"/></svg>
                   <span className="text-[#C5A880] font-bold">Inscrição copiada!</span>
                 </>
               ) : (
                 <>
-                  <Share2 className="w-4 h-4" />
+                  <ShareIcon className="w-4 h-4" />
                   <span>Estender Citação às Margens</span>
                 </>
               )}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Sparkles, Moon, X, Compass, Star, Feather } from "lucide-react";
+import { CreateMarginIcon, CloseIcon, AuraIcon } from "./icons/MarginaliaIcons";
 import { getDailyDismissed, setDailyDismissed } from "../lib/storage";
 
 interface DailyOpeningMomentProps {
@@ -77,7 +77,7 @@ export const DailyOpeningMoment: React.FC<DailyOpeningMomentProps> = ({ onTrigge
       <div className="flex-1 space-y-2.5 pl-2.5">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-1.5 text-[11px] font-mono tracking-wide text-[#BDAB9C] uppercase font-bold">
-            <Feather className="w-3.5 h-3.5 text-[#C5A880]" />
+            <CreateMarginIcon className="w-3.5 h-3.5 text-[#C5A880]" />
             <span>DESPERTAR DIÁRIO</span>
           </div>
           <button 
@@ -85,7 +85,7 @@ export const DailyOpeningMoment: React.FC<DailyOpeningMomentProps> = ({ onTrigge
             className="text-stone-400 hover:text-stone-700 p-0.5 cursor-pointer"
             title="Fechar por hoje"
           >
-            <X className="w-4 h-4" />
+            <CloseIcon className="w-4 h-4" />
           </button>
         </div>
 
@@ -106,7 +106,7 @@ export const DailyOpeningMoment: React.FC<DailyOpeningMomentProps> = ({ onTrigge
           className="text-xs font-sans font-bold text-[#1C1916] hover:text-[#C5A880] flex items-center gap-1 cursor-pointer underline decoration-[#C5A880] underline-offset-4"
         >
           <span>{content.cta}</span>
-          <Star className="w-3 h-3 text-[#C5A880]" />
+          <AuraIcon className="w-3 h-3 text-[#C5A880]" />
         </button>
       </div>
     </div>

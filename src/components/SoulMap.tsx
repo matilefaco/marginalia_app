@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
-import { Download, Compass, Sparkles, BookOpen, Star, Sparkle, Tag } from "lucide-react";
+import { SoulMapIcon, AuraIcon, MarginIcon, ExportIcon } from "./icons/MarginaliaIcons";
 import { UserProfile, Margem, SoulMapNode } from "../types";
 
 interface SoulMapProps {
@@ -110,7 +110,7 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens, onOpenAd
             GEOMETRIA POÉTICA
           </span>
           <h3 className="font-display font-semibold text-sm text-[#1C1916] flex items-center gap-1.5">
-            <Compass className="w-4 h-4 text-[#BDAB9C]" />
+            <SoulMapIcon className="w-4 h-4 text-[#BDAB9C]" />
             Mapa da Alma Leitora
           </h3>
         </div>
@@ -177,7 +177,7 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens, onOpenAd
                       : "w-3 h-3 bg-[#1C1916] border-2 border-[#C5A880] group-hover:bg-[#C5A880]"
                   }`}
                 >
-                  {isCore && <Sparkle className="w-3 h-3" />}
+                  {isCore && <AuraIcon className="w-3 h-3" />}
                 </div>
 
                 {/* Micro Label */}
@@ -195,7 +195,7 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens, onOpenAd
             <>
               <div className="flex justify-between items-center">
                 <span className="text-[9px] font-mono text-[#C5A880] uppercase tracking-wider flex items-center gap-1">
-                  <Tag className="w-2.5 h-2.5" />
+                  <MarginIcon className="w-2.5 h-2.5" />
                   {selectedNode.type}
                 </span>
                 <button 
@@ -250,7 +250,7 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens, onOpenAd
           disabled={exporting}
           className="text-[10px] font-sans font-semibold bg-[#1C1916] text-[#FAF8F3] hover:bg-stone-800 flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg shadow-xs cursor-pointer disabled:opacity-50 transition-all"
         >
-          <Download className="w-3.5 h-3.5" />
+          <ExportIcon className="w-3.5 h-3.5" />
           <span>{exporting ? "Compilando..." : "Exportar Mapa (PNG)"}</span>
         </button>
       </div>

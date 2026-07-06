@@ -33,6 +33,40 @@ import {
   Download
 } from "lucide-react";
 import { UserProfile, Margem, Eco, BookHighlight, Challenge, SpoilerLevel, OriginBook, BookSearchResult } from "./types";
+import {
+  MarginIcon,
+  AuraIcon,
+  SoulMapIcon,
+  EchoIcon,
+  SintoniaIcon,
+  OriginBooksIcon,
+  CompanionIcon,
+  WrappedIcon,
+  ShareIcon,
+  StoryIcon,
+  CompatibilityIcon,
+  IdentityIcon,
+  DnaIcon,
+  LinesDiaryIcon,
+  RituaisIcon,
+  DescobertasIcon,
+  MuseuIcon,
+  CoincidenceIcon,
+  DefineYouIcon,
+  FutureLetterIcon,
+  ProfileIcon,
+  SearchIcon,
+  SettingsIcon,
+  SaveIcon,
+  ExportIcon,
+  CreateMarginIcon,
+  FeedIcon,
+  AnnotationIcon,
+  HeartIcon,
+  CloseIcon,
+  RefreshIcon
+} from "./components/icons/MarginaliaIcons";
+import IconShowcase from "./components/IconShowcase";
 import { INITIAL_ECOS, INITIAL_MARGENS, PRESET_HIGHLIGHTS, INITIAL_CHALLENGES, AESTHETIC_THEMES } from "./data";
 import { exportNodeAsPng } from "./lib/exportImage";
 import { searchBooks } from "./lib/booksApi";
@@ -103,7 +137,10 @@ export default function App() {
   const [manualAuthor, setManualAuthor] = useState("");
 
   // Core App State
-  const [activeTab, setActiveTab] = useState<"diario" | "descoberta" | "ecos" | "companheira" | "perfil">("diario");
+  const [activeTab, setActiveTab] = useState<"diario" | "descoberta" | "ecos" | "companheira" | "perfil" | "simbolos">("diario");
+  const [showIconSystem, setShowIconSystem] = useState(() => {
+    return window.location.pathname === "/icon-system" || window.location.hash === "#icon-system";
+  });
   const [feedMode, setFeedMode] = useState<"descoberta" | "recentes">("descoberta");
   const [margens, setMargens] = useState<Margem[]>(() => {
     return getStoredMargens(INITIAL_MARGENS);
@@ -1269,13 +1306,13 @@ export default function App() {
 
                     {downloadSuccess && (
                       <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center text-xs font-sans text-emerald-700 animate-pulse">
-                        ✨ Aura Literária exportada! Poste nos stories do Instagram com <strong>#Marginalia</strong> para encontrar seus pares.
+                        Aura Literária exportada! Poste nos stories do Instagram com <strong>#Marginalia</strong> para encontrar seus pares.
                       </div>
                     )}
 
                     {downloadAuraError && (
                       <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-center text-xs font-sans text-red-700">
-                        😞 {downloadAuraError}
+                        Ocorreu um erro: {downloadAuraError}
                       </div>
                     )}
 
@@ -1337,6 +1374,24 @@ export default function App() {
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // --- MAIN APP RENDER ---
+  if (showIconSystem) {
+    return (
+      <div className="min-h-screen bg-[#FAF8F3] relative">
+        <button
+          onClick={() => {
+            setShowIconSystem(false);
+            window.location.hash = "";
+            window.history.pushState({}, "", "/");
+          }}
+          className="fixed bottom-6 right-6 bg-[#1C1916] text-[#FAF8F3] hover:bg-[#2A2724] px-5 py-3 rounded-full text-xs font-sans font-bold tracking-wider uppercase transition-all journal-shadow z-50 cursor-pointer flex items-center gap-2 border border-[#BDAB9C]/20 hover:scale-105 active:scale-95"
+        >
+          <FeedIcon size={16} /> Voltar ao Marginalia
+        </button>
+        <IconShowcase />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen paper-grain flex flex-col selection:bg-[#BDAB9C]/30 selection:text-[#1C1916]">
       
@@ -1480,7 +1535,7 @@ export default function App() {
                     >
                       <option value="">Nenhum - Publicar no feed geral</option>
                       {ecos.map(e => (
-                        <option key={e.id} value={e.id}>🍃 Eco: {e.name}</option>
+                        <option key={e.id} value={e.id}>Eco: {e.name}</option>
                       ))}
                     </select>
                   </div>
@@ -2350,7 +2405,7 @@ export default function App() {
             activeTab === "diario" ? "text-[#C8854A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
           }`}
         >
-          <Library className="w-5 h-5" />
+          <LinesDiaryIcon size={20} />
           <span className="text-[9px] font-sans font-medium">Diário</span>
         </button>
 
@@ -2360,7 +2415,7 @@ export default function App() {
             activeTab === "descoberta" ? "text-[#C8854A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
           }`}
         >
-          <Compass className="w-5 h-5" />
+          <DescobertasIcon size={20} />
           <span className="text-[9px] font-sans font-medium">Descobrir</span>
         </button>
 
@@ -2370,7 +2425,7 @@ export default function App() {
             activeTab === "ecos" ? "text-[#C8854A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
           }`}
         >
-          <Feather className="w-5 h-5" />
+          <EchoIcon size={20} />
           <span className="text-[9px] font-sans font-medium">Ecos</span>
         </button>
 
@@ -2380,8 +2435,16 @@ export default function App() {
             activeTab === "companheira" ? "text-[#C8854A]" : "text-[#BDAB9C] hover:text-[#C8854A]"
           }`}
         >
-          <Sparkles className={`w-5 h-5 ${activeTab === "companheira" ? "text-[#C8854A]" : "text-[#BDAB9C]"}`} />
+          <CompanionIcon size={20} className={activeTab === "companheira" ? "text-[#C8854A]" : "text-[#BDAB9C]"} />
           <span className="text-[9px] font-sans font-medium">Companheira</span>
+        </button>
+
+        <button
+          onClick={() => { setShowIconSystem(true); }}
+          className="flex flex-col items-center gap-1 cursor-pointer transition-all text-[#BDAB9C] hover:text-[#C8854A]"
+        >
+          <IdentityIcon size={20} />
+          <span className="text-[9px] font-sans font-medium text-[#BDAB9C]">Símbolos</span>
         </button>
 
         <button
@@ -2390,7 +2453,7 @@ export default function App() {
             activeTab === "perfil" ? "text-[#C8854A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
           }`}
         >
-          <User className="w-5 h-5" />
+          <ProfileIcon size={20} />
           <span className="text-[9px] font-sans font-medium">Perfil</span>
         </button>
 
@@ -2399,25 +2462,36 @@ export default function App() {
       {/* DESKTOP SIDE BAR QUICK NAVIGATION RAILS */}
       <div className="hidden md:flex fixed top-1/3 left-4 flex-col gap-4 bg-[#FAF8F3]/80 backdrop-blur-md p-2 rounded-xl border border-[#BDAB9C]/30 journal-shadow z-20">
         {[
-          { tab: "diario" as const, label: "Diário", icon: Library },
-          { tab: "descoberta" as const, label: "Descoberta", icon: Compass },
-          { tab: "ecos" as const, label: "Ecos Literários", icon: Feather },
-          { tab: "companheira" as const, label: "Companheira IA", icon: Sparkles },
-          { tab: "perfil" as const, label: "Meu Perfil", icon: User },
+          { tab: "diario" as const, label: "Diário", icon: LinesDiaryIcon },
+          { tab: "descoberta" as const, label: "Descoberta", icon: DescobertasIcon },
+          { tab: "ecos" as const, label: "Ecos Literários", icon: EchoIcon },
+          { tab: "companheira" as const, label: "Companheira IA", icon: CompanionIcon },
+          { tab: "simbolos" as const, label: "Símbolos Proprietários", icon: IdentityIcon },
+          { tab: "perfil" as const, label: "Meu Perfil", icon: ProfileIcon },
         ].map((item) => {
           const IconComponent = item.icon;
+          const isSimbolos = item.tab === "simbolos";
+          const isActive = isSimbolos ? false : activeTab === item.tab;
+          
           return (
             <button
               key={item.tab}
-              onClick={() => { setActiveTab(item.tab); setSelectedEco(null); }}
+              onClick={() => {
+                if (isSimbolos) {
+                  setShowIconSystem(true);
+                } else {
+                  setActiveTab(item.tab);
+                  setSelectedEco(null);
+                }
+              }}
               className={`p-2.5 rounded-lg transition-all flex items-center justify-center gap-2 group cursor-pointer relative ${
-                activeTab === item.tab 
+                isActive 
                   ? "bg-[#1C1916] text-[#FAF8F3] shadow-md" 
                   : "text-[#BDAB9C] hover:text-[#1C1916] hover:bg-[#BDAB9C]/10"
               }`}
               title={item.label}
             >
-              <IconComponent className="w-5 h-5" />
+              <IconComponent size={20} />
               <span className="absolute left-full ml-2 px-2 py-1 bg-[#1C1916] text-[#FAF8F3] text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none journal-shadow">
                 {item.label}
               </span>
@@ -2478,7 +2552,7 @@ export default function App() {
           wrappedData={wrappedData}
           onClose={() => setShowWrapped(false)}
           onShare={() => {
-            navigator.clipboard.writeText(`📖 Minha Alma Literária na Marginalia: "${wrappedData.fraseWrapped}"\nSímbolo Poético: ${wrappedData.simboloPoetico}\nDescubra seu arquétipo na Marginalia.`);
+            navigator.clipboard.writeText(`Minha Alma Literária na Marginalia: "${wrappedData.fraseWrapped}"\nSímbolo Poético: ${wrappedData.simboloPoetico}\nDescubra seu arquétipo na Marginalia.`);
             alert("Sua Alma Literária foi copiada para a área de transferência! Compartilhe com o mundo.");
           }}
         />

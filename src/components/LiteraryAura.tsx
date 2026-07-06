@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
-import { Sparkles, Download, Copy, Check, Star, Moon, Compass, Library } from "lucide-react";
+import { ExportIcon, RituaisIcon, DescobertasIcon, LinesDiaryIcon, AuraIcon } from "./icons/MarginaliaIcons";
 import { UserProfile, Margem, AuraData } from "../types";
 import { generateIdentityQuote } from "../utils/identityText";
 
@@ -15,8 +15,8 @@ export const LiteraryAura: React.FC<LiteraryAuraProps> = ({ userProfile, margens
   const [copied, setCopied] = useState(false);
 
   // Filter margins written by user
-  const userMargins = margens.filter(
-    (m) => m.authorAvatar === userProfile.avatarSeed || m.authorName === userProfile.name
+  const userMargins = (margens || []).filter(
+    (m) => m && (m.authorAvatar === userProfile.avatarSeed || m.authorName === userProfile.name)
   );
 
   // Compute or fallback aura attributes
@@ -164,9 +164,9 @@ export const LiteraryAura: React.FC<LiteraryAuraProps> = ({ userProfile, margens
             />
             {/* Center Symbol */}
             <div className="z-20 text-[#FAF8F3]/90 transform -rotate-180">
-              {aura.symbol === "Lamparina" || aura.symbol === "Lamparina de Prata" ? <Moon className="w-8 h-8 text-amber-100" /> : 
-               aura.symbol === "Ampulheta" ? <Compass className="w-8 h-8 text-amber-100" /> :
-               <Library className="w-8 h-8 text-amber-100" />}
+              {aura.symbol === "Lamparina" || aura.symbol === "Lamparina de Prata" ? <RituaisIcon className="w-8 h-8 text-amber-100" /> : 
+               aura.symbol === "Ampulheta" ? <DescobertasIcon className="w-8 h-8 text-amber-100" /> :
+               <LinesDiaryIcon className="w-8 h-8 text-amber-100" />}
             </div>
           </div>
           <span className="text-[12px] font-mono text-[#BDAB9C] tracking-wider uppercase mt-4 block">
@@ -180,7 +180,7 @@ export const LiteraryAura: React.FC<LiteraryAuraProps> = ({ userProfile, margens
             <div key={emotion} className="space-y-1.5">
               <div className="flex justify-between items-end text-[13px] md:text-sm">
                 <span className="font-sans font-medium text-[#FAF8F3]/90 flex items-center gap-1.5">
-                  <Star className="w-3 h-3 text-[#C5A880]/90" />
+                  <AuraIcon className="w-3 h-3 text-[#C5A880]/90" />
                   {emotion}
                 </span>
                 <span className="font-mono text-[11px] text-[#BDAB9C]">{val}%</span>
@@ -218,7 +218,11 @@ export const LiteraryAura: React.FC<LiteraryAuraProps> = ({ userProfile, margens
           onClick={handleCopyPhrase}
           className="text-xs font-sans font-semibold text-stone-800 hover:text-[#1C1916] flex items-center gap-1.5 bg-[#FAF8F3] hover:bg-stone-50 px-4 py-2.5 rounded-xl border border-[#BDAB9C]/30 shadow-xs cursor-pointer transition-all"
         >
-          {copied ? <Check className="w-4 h-4 text-green-700" /> : <Copy className="w-4 h-4" />}
+          {copied ? (
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-700"><path d="M20 6 9 17l-5-5"/></svg>
+          ) : (
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          )}
           <span>{copied ? "Selo Copiado!" : "Copiar Selo Signature"}</span>
         </button>
 
@@ -227,7 +231,7 @@ export const LiteraryAura: React.FC<LiteraryAuraProps> = ({ userProfile, margens
           disabled={exporting}
           className="text-xs font-sans font-semibold bg-[#1C1916] text-[#FAF8F3] hover:bg-stone-800 flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl shadow-md cursor-pointer disabled:opacity-50 transition-all"
         >
-          <Download className="w-4 h-4" />
+          <ExportIcon className="w-4 h-4" />
           <span>{exporting ? "Invocando Aura..." : "Guardar Aura no Rolo de Fotos"}</span>
         </button>
       </div>

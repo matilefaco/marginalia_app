@@ -1,7 +1,27 @@
 import React, { useState } from "react";
 import { BookHighlight, Margem } from "../types";
 import { PRESET_HIGHLIGHTS } from "../data";
-import { Compass, Sparkles, RefreshCw, Heart, Eye, ArrowRight, MessageSquare, Feather } from "lucide-react";
+import { 
+  AuraIcon, 
+  RefreshIcon, 
+  CreateMarginIcon, 
+  HeartIcon,
+  EcoSolidaoBonitaIcon,
+  EcoCrisesExistenciaisIcon,
+  EcoNostalgiaIcon,
+  EcoAmorImpossivelIcon,
+  EcoDesejoOcultoIcon,
+  EcoMelancoliaEleganteIcon
+} from "./icons/MarginaliaIcons";
+
+const EMOTION_ICON_MAP: Record<string, React.FC<any>> = {
+  "Solidão": EcoSolidaoBonitaIcon,
+  "Existencial": EcoCrisesExistenciaisIcon,
+  "Nostalgia": EcoNostalgiaIcon,
+  "Amor": EcoAmorImpossivelIcon,
+  "Desejo": EcoDesejoOcultoIcon,
+  "Melancolia": EcoMelancoliaEleganteIcon,
+};
 
 interface JardimDescobertasProps {
   onSelectHighlight: (h: BookHighlight) => void;
@@ -17,12 +37,12 @@ export default function JardimDescobertas({ onSelectHighlight, margens }: Jardim
 
   // Emotional curated categories
   const emotionalCategories = [
-    { label: "🌙 Solidão Bonita", emotionKey: "Solidão", desc: "A doçura do silêncio e o retiro contemplativo." },
-    { label: "🧠 Crises Existenciais", emotionKey: "Existencial", desc: "Perguntas deitadas sobre o mistério do ser." },
-    { label: "☕ Nostalgia do Tempo", emotionKey: "Nostalgia", desc: "Lembranças doces de épocas não vividas." },
-    { label: "❤️ Amor Impossível", emotionKey: "Amor", desc: "Tragédias românticas desenhadas nas páginas." },
-    { label: "😳 Desejo Oculto", emotionKey: "Desejo", desc: "A virtude enfraquecida e o sussurro da paixão." },
-    { label: "🕯️ Melancolia", emotionKey: "Melancolia", desc: "A fina beleza de uma tristeza elegante." }
+    { label: "Solidão Bonita", emotionKey: "Solidão", desc: "A doçura do silêncio e o retiro contemplativo." },
+    { label: "Crises Existenciais", emotionKey: "Existencial", desc: "Perguntas deitadas sobre o mistério do ser." },
+    { label: "Nostalgia do Tempo", emotionKey: "Nostalgia", desc: "Lembranças doces de épocas não vividas." },
+    { label: "Amor Impossível", emotionKey: "Amor", desc: "Tragédias românticas desenhadas nas páginas." },
+    { label: "Desejo Oculto", emotionKey: "Desejo", desc: "A virtude enfraquecida e o sussurro da paixão." },
+    { label: "Melancolia Elegante", emotionKey: "Melancolia", desc: "A fina beleza de uma tristeza elegante." }
   ];
 
   // Serendipity trigger
@@ -99,7 +119,7 @@ export default function JardimDescobertas({ onSelectHighlight, margens }: Jardim
             placeholder="ex: 'frases sobre solidão', 'términos', 'propósito da vida'"
             className="w-full bg-[#1C1916]/5 border border-[#BDAB9C]/50 rounded-xl px-4 py-2.5 text-xs font-serif text-[#1C1916] placeholder-[#BDAB9C] focus:outline-none focus:border-[#1C1916]"
           />
-          <Sparkles className="absolute right-3.5 top-3 w-4 h-4 text-[#BDAB9C]" />
+          <AuraIcon size={16} className="absolute right-3.5 top-3 text-[#BDAB9C]" />
         </div>
         
         {/* Quick thematic paths */}
@@ -115,7 +135,7 @@ export default function JardimDescobertas({ onSelectHighlight, margens }: Jardim
               onClick={() => setSearchTerm(t.value)}
               className="text-[10px] font-sans bg-[#1C1916]/5 hover:bg-[#1C1916]/10 text-[#3D3D3D] px-2.5 py-1 rounded-full border border-[#BDAB9C]/30"
             >
-              🌱 {t.label}
+              • {t.label}
             </button>
           ))}
           {searchTerm && (
@@ -141,13 +161,19 @@ export default function JardimDescobertas({ onSelectHighlight, margens }: Jardim
               <button
                 key={cat.emotionKey}
                 onClick={() => setSelectedEmotion(isSelected ? null : cat.emotionKey)}
-                className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all ${
+                className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all min-h-[96px] ${
                   isSelected 
                     ? "bg-[#1C1916] border-[#1C1916] text-[#FAF8F3] shadow-sm" 
                     : "bg-[#FAF8F3] border-[#BDAB9C]/40 hover:border-[#BDAB9C]"
                 }`}
               >
-                <span className="text-xs font-semibold font-serif block">{cat.label}</span>
+                <div className="flex justify-between items-start w-full gap-1">
+                  <span className="text-xs font-semibold font-serif block">{cat.label}</span>
+                  {(() => {
+                    const IconComp = EMOTION_ICON_MAP[cat.emotionKey];
+                    return IconComp ? <IconComp size={16} className={isSelected ? "text-[#C5A880]" : "text-[#BDAB9C]"} /> : null;
+                  })()}
+                </div>
                 <span className={`text-[9px] font-sans block mt-1 leading-snug ${isSelected ? "text-[#FAF8F3]/70" : "text-[#BDAB9C]"}`}>
                   {cat.desc}
                 </span>
@@ -161,7 +187,7 @@ export default function JardimDescobertas({ onSelectHighlight, margens }: Jardim
       {serendipityQuote && (
         <div className="bg-[#FAF8F3] border-2 border-dashed border-[#C5A880] rounded-xl p-5 journal-shadow relative overflow-hidden">
           <div className="absolute top-2 right-3 font-mono text-[8.5px] text-amber-800 uppercase tracking-widest flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-amber-700" />
+            <AuraIcon size={12} className="text-amber-700" />
             <span>Coincidência Literária</span>
           </div>
 
@@ -182,14 +208,14 @@ export default function JardimDescobertas({ onSelectHighlight, margens }: Jardim
                   className="p-1.5 rounded bg-[#1C1916]/5 hover:bg-[#1C1916]/10 text-[#3D3D3D]"
                   title="Girar outra coincidência"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
+                  <RefreshIcon size={14} />
                 </button>
 
                 <button
                   onClick={() => onSelectHighlight(serendipityQuote)}
                   className="bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-1 px-3 rounded-lg text-[10px] font-sans font-semibold flex items-center gap-1.5"
                 >
-                  <Feather className="w-3 h-3" />
+                  <CreateMarginIcon size={12} />
                   <span>Anotar nela</span>
                 </button>
               </div>
@@ -271,9 +297,12 @@ export default function JardimDescobertas({ onSelectHighlight, margens }: Jardim
 
                 <div className="flex justify-between items-center border-t border-[#BDAB9C]/10 pt-3 mt-4 text-[9px] font-mono text-[#BDAB9C]">
                   <span>{new Date(m.date).toLocaleDateString("pt-BR")}</span>
-                  <div className="flex items-center gap-2">
-                    <span>❤️ {m.lovesCount || 0}</span>
-                    <span>💬 {m.comments?.length || 0}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-0.5">
+                      <HeartIcon size={10} className="text-stone-400 fill-stone-400/10" />
+                      <span>{m.lovesCount || 0}</span>
+                    </span>
+                    <span>{m.comments?.length || 0} coment.</span>
                   </div>
                 </div>
               </div>
