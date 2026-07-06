@@ -1,0 +1,269 @@
+import React, { useState } from "react";
+import { X, ChevronLeft, ChevronRight, Share2, Sparkles, Flame, RefreshCw } from "lucide-react";
+
+interface WrappedViewProps {
+  wrappedData: {
+    jornadaEmocoes: Record<string, number>;
+    temasPrincipais: string[];
+    autoresMoldaram: string[];
+    mapaAlma: string;
+    simboloPoetico: string;
+    fraseWrapped: string;
+  };
+  onClose: () => void;
+  onShare: () => void;
+}
+
+export default function WrappedView({ wrappedData, onClose, onShare }: WrappedViewProps) {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const totalSlides = 5;
+
+  const nextSlide = () => {
+    if (currentSlide < totalSlides - 1) {
+      setCurrentSlide(prev => prev + 1);
+    }
+  };
+
+  const prevSlide = () => {
+    if (currentSlide > 0) {
+      setCurrentSlide(prev => prev - 1);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-[#1C1916] text-[#FAF8F3] flex flex-col items-center justify-center p-4 md:p-8 animate-page-turn selection:bg-orange-800/40">
+      
+      {/* Background Ambience */}
+      <div className="absolute inset-0 pointer-events-none opacity-20 bg-repeat bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400')]" style={{ mixBlendMode: "overlay" }} />
+      <div className="absolute top-0 bottom-0 left-0 right-0 bg-gradient-to-b from-amber-950/10 via-stone-950/45 to-[#1C1916]" />
+
+      {/* Header bar */}
+      <div className="w-full max-w-lg flex justify-between items-center relative z-10 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded bg-[#FAF8F3] text-[#1C1916] flex items-center justify-center font-serif text-sm font-bold">
+            M
+          </div>
+          <span className="font-display font-bold text-xs uppercase tracking-widest text-[#BDAB9C]">
+            Retrospectiva Viva
+          </span>
+        </div>
+        <button 
+          onClick={onClose}
+          className="p-1.5 rounded-full bg-[#FAF8F3]/10 hover:bg-[#FAF8F3]/20 transition-colors"
+          title="Fechar Retrospectiva"
+        >
+          <X className="w-4 h-4 text-[#FAF8F3]" />
+        </button>
+      </div>
+
+      {/* Progress indicators at top (Stories style) */}
+      <div className="w-full max-w-lg flex gap-1 relative z-10 mb-8">
+        {Array.from({ length: totalSlides }).map((_, idx) => (
+          <div 
+            key={idx}
+            className="flex-1 h-1 rounded-full overflow-hidden bg-[#FAF8F3]/15 border border-stone-850/50"
+          >
+            <div 
+              className={`h-full bg-gradient-to-r from-orange-500 to-amber-600 transition-all duration-350`}
+              style={{ width: idx < currentSlide ? "100%" : idx === currentSlide ? "100%" : "0%" }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* SLIDE CANVAS DISPLAY AREA */}
+      <div className="w-full max-w-lg aspect-[9/16] bg-[#2A2624] border border-[#BDAB9C]/30 rounded-2xl p-6 md:p-8 journal-shadow relative overflow-hidden flex flex-col justify-between z-10 animate-page-turn">
+        
+        {/* Subtle page lines inside card */}
+        <div className="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(#FAF8F3_1px,transparent_1px)] [background-size:16px_16px]" />
+
+        {/* SLIDE 0: Welcome / Slogan */}
+        {currentSlide === 0 && (
+          <div className="my-auto space-y-6 text-center animate-page-turn">
+            <span className="text-[10px] font-mono tracking-widest text-amber-500 uppercase block">Fase 10 — Retrospectiva</span>
+            
+            <div className="w-16 h-16 rounded-full border-2 border-dashed border-amber-500/55 flex items-center justify-center mx-auto mb-2 animate-spin-slow">
+              <Sparkles className="w-6 h-6 text-amber-500" />
+            </div>
+
+            <h2 className="font-serif text-3xl font-semibold tracking-tight text-[#FAF8F3] leading-tight">
+              O Mapa da Sua <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-500">Alma Leitora</span>
+            </h2>
+            
+            <p className="font-serif italic text-xs leading-relaxed text-[#DCD5CD]/90 max-w-xs mx-auto">
+              "Cada anotação é um rastro de luz que deixamos no caminho dos livros. Que marcas você gravou este ano?"
+            </p>
+
+            <div className="pt-6">
+              <div className="w-12 h-[1px] bg-amber-500/40 mx-auto mb-2" />
+              <p className="text-[10px] font-mono text-[#BDAB9C]">MARGINALIA • WRAPPED VIVO</p>
+            </div>
+          </div>
+        )}
+
+        {/* SLIDE 1: Emotional Map Breakdown */}
+        {currentSlide === 1 && (
+          <div className="my-auto space-y-6 animate-page-turn">
+            <div className="text-center space-y-1">
+              <span className="text-[9px] font-mono tracking-widest text-amber-500 uppercase">Slide 1 de 5</span>
+              <h3 className="font-serif text-xl font-bold">Sua Jornada de Sentimentos</h3>
+              <p className="text-[10px] text-[#BDAB9C] font-sans">As atmosferas onde seu coração mais habitou</p>
+            </div>
+
+            <div className="space-y-4 pt-4">
+              {Object.entries(wrappedData.jornadaEmocoes).map(([emotion, val], idx) => (
+                <div key={idx} className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-serif italic text-[#DCD5CD]">
+                    <span>{emotion}</span>
+                    <span className="font-sans font-bold text-amber-500">{val}%</span>
+                  </div>
+                  {/* Premium vintage bar chart */}
+                  <div className="w-full h-2 bg-stone-800/80 rounded-full overflow-hidden border border-amber-950/20">
+                    <div 
+                      className="h-full bg-gradient-to-r from-amber-500 to-orange-600 rounded-full transition-all duration-700"
+                      style={{ width: `${val}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-center text-[11px] font-serif italic text-[#DCD5CD]/70 pt-2">
+              Seu refúgio emocional predominante é a <span className="text-amber-400 font-semibold">Melancolia</span>.
+            </p>
+          </div>
+        )}
+
+        {/* SLIDE 2: Core Philosophy / Themes */}
+        {currentSlide === 2 && (
+          <div className="my-auto space-y-6 animate-page-turn">
+            <div className="text-center space-y-1">
+              <span className="text-[9px] font-mono tracking-widest text-amber-500 uppercase">Slide 2 de 5</span>
+              <h3 className="font-serif text-xl font-bold">Linhas de Pensamento</h3>
+              <p className="text-[10px] text-[#BDAB9C] font-sans">Os mistérios que você buscou decifrar nas margens</p>
+            </div>
+
+            <div className="space-y-4 pt-2">
+              {wrappedData.temasPrincipais.map((theme, idx) => (
+                <div 
+                  key={idx} 
+                  className="bg-[#1C1916]/40 border border-amber-950/30 p-4 rounded-xl flex gap-3 items-start hover:border-amber-500/30 transition-all"
+                >
+                  <span className="text-xs text-amber-500 font-bold mt-0.5">0{idx + 1}.</span>
+                  <p className="text-xs font-serif italic text-[#DCD5CD] leading-relaxed">
+                    "{theme}"
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* SLIDE 3: Authors Stack */}
+        {currentSlide === 3 && (
+          <div className="my-auto space-y-6 animate-page-turn">
+            <div className="text-center space-y-1">
+              <span className="text-[9px] font-mono tracking-widest text-amber-500 uppercase">Slide 3 de 5</span>
+              <h3 className="font-serif text-xl font-bold">Mentes Companheiras</h3>
+              <p className="text-[10px] text-[#BDAB9C] font-sans">Os pensadores que mais deitaram em sua cabeceira</p>
+            </div>
+
+            {/* Vintage Stack Graphic */}
+            <div className="flex flex-col items-center justify-center space-y-2 py-4 relative">
+              {wrappedData.autoresMoldaram.map((author, idx) => {
+                const shiftY = idx * 2;
+                const scale = 100 - (idx * 5);
+                return (
+                  <div 
+                    key={idx} 
+                    className="w-48 bg-stone-900 border border-amber-500/30 rounded py-2.5 px-4 text-center font-serif text-xs font-semibold text-[#F3E9DC] journal-shadow transition-all hover:border-amber-400"
+                    style={{ transform: `scale(${scale / 100})`, zIndex: 10 - idx }}
+                  >
+                    <span className="text-[8px] font-mono uppercase text-amber-500 block mb-0.5">Volume {idx + 1}</span>
+                    {author}
+                  </div>
+                );
+              })}
+            </div>
+
+            <p className="text-center text-[11px] font-serif italic text-[#DCD5CD]/70">
+              Esses nomes ditaram o compasso das suas reflexões.
+            </p>
+          </div>
+        )}
+
+        {/* SLIDE 4: Slogan & Final Psyche mapping */}
+        {currentSlide === 4 && (
+          <div className="my-auto space-y-6 text-center animate-page-turn">
+            <span className="text-[9px] font-mono tracking-widest text-amber-500 uppercase block">Slide 4 de 5</span>
+            
+            <div className="space-y-2">
+              <p className="text-[10px] font-mono uppercase text-[#BDAB9C] tracking-widest">Seu Símbolo de Alma</p>
+              <p className="text-2xl">🏮 {wrappedData.simboloPoetico}</p>
+            </div>
+
+            <div className="w-10 h-[1px] bg-amber-500/30 mx-auto" />
+
+            <div className="space-y-2.5">
+              <p className="text-xs font-serif text-[#DCD5CD] leading-relaxed max-w-sm mx-auto italic">
+                "{wrappedData.mapaAlma}"
+              </p>
+            </div>
+
+            <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl max-w-xs mx-auto">
+              <p className="text-[9px] font-mono text-amber-500 uppercase tracking-widest mb-1 font-semibold">Mote Literário</p>
+              <p className="text-xs font-serif italic font-bold text-[#FAF8F3]">
+                "{wrappedData.fraseWrapped}"
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Card Footer Branding */}
+        <div className="flex justify-between items-center pt-3 border-t border-[#FAF8F3]/10 font-mono text-[9px] text-[#BDAB9C]">
+          <span>Retrospectiva Marginalia</span>
+          <span>marginalia.app</span>
+        </div>
+
+      </div>
+
+      {/* CONTROLS AREA BELOW CANVAS */}
+      <div className="w-full max-w-lg mt-6 flex justify-between items-center relative z-10">
+        <div className="flex gap-2">
+          <button 
+            onClick={prevSlide}
+            disabled={currentSlide === 0}
+            className="p-2.5 rounded-full bg-[#FAF8F3]/10 hover:bg-[#FAF8F3]/15 border border-[#FAF8F3]/10 text-[#FAF8F3] disabled:opacity-30 transition-all cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          
+          <button 
+            onClick={nextSlide}
+            disabled={currentSlide === totalSlides - 1}
+            className="p-2.5 rounded-full bg-[#FAF8F3]/10 hover:bg-[#FAF8F3]/15 border border-[#FAF8F3]/10 text-[#FAF8F3] disabled:opacity-30 transition-all cursor-pointer"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        {currentSlide === totalSlides - 1 ? (
+          <button
+            onClick={onShare}
+            className="px-5 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:opacity-90 text-white font-sans text-xs font-bold tracking-wide flex items-center gap-1.5 cursor-pointer shadow-md"
+          >
+            <Share2 className="w-4 h-4" />
+            <span>Compartilhar Wrapped</span>
+          </button>
+        ) : (
+          <span className="text-[10px] font-mono text-[#BDAB9C] uppercase tracking-wider">
+            Slide {currentSlide + 1} de {totalSlides}
+          </span>
+        )}
+      </div>
+
+    </div>
+  );
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Marginalia",
+  "description": "O caderno de anotações digital para as suas leituras. Compartilhe trechos marcantes, pensamentos e sentimentos em um journal literário elegante.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
