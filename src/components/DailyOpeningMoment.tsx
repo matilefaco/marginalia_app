@@ -71,13 +71,13 @@ export const DailyOpeningMoment: React.FC<DailyOpeningMomentProps> = ({ onTrigge
   return (
     <div className="elevation-1 p-6 relative overflow-hidden flex gap-4 animate-fade-in no-export rounded-2xl">
       {/* Decorative side accent */}
-      <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-[#C5A880]" />
+      <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-[#C5895A]" />
 
       {/* Center content */}
       <div className="flex-1 space-y-2.5 pl-2.5">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-1.5 text-[11px] font-mono tracking-wide text-[#BDAB9C] uppercase font-bold">
-            <CreateMarginIcon className="w-3.5 h-3.5 text-[#C5A880]" />
+            <CreateMarginIcon className="w-3.5 h-3.5 text-[#C5895A]" />
             <span>DESPERTAR DIÁRIO</span>
           </div>
           <button 
@@ -103,10 +103,10 @@ export const DailyOpeningMoment: React.FC<DailyOpeningMomentProps> = ({ onTrigge
             onTriggerAction(content.actionType);
             handleDismiss(); // auto-close on navigate/action
           }}
-          className="text-xs font-sans font-bold text-[#1C1916] hover:text-[#C5A880] flex items-center gap-1 cursor-pointer underline decoration-[#C5A880] underline-offset-4"
+          className="text-xs font-sans font-bold text-[#1C1916] hover:text-[#C5895A] flex items-center gap-1 cursor-pointer underline decoration-[#C5895A] underline-offset-4"
         >
           <span>{content.cta}</span>
-          <AuraIcon className="w-3 h-3 text-[#C5A880]" />
+          <AuraIcon className="w-3 h-3 text-[#C5895A]" />
         </button>
       </div>
     </div>

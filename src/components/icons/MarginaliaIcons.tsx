@@ -47,11 +47,11 @@ export const MarginIcon: React.FC<IconProps> = (props) => (
  * Concept: A central candle/insight flame inside nested, fine concentric circles.
  */
 export const AuraIcon: React.FC<IconProps> = (props) => (
-  <svg {...getSvgProps(props)}>
+  <svg {...getSvgProps({ ...props, className: `hover-animate-aura-wrapper ${props.className || ""}` })}>
     {/* Outer orbit */}
-    <circle cx="12" cy="12" r="9" strokeDasharray="2 3" opacity="0.6" />
+    <circle cx="12" cy="12" r="9" strokeDasharray="2 3" opacity="0.6" className="aura-outer origin-center transition-all duration-700" />
     {/* Inner circle */}
-    <circle cx="12" cy="12" r="6" opacity="0.8" />
+    <circle cx="12" cy="12" r="6" opacity="0.8" className="aura-inner origin-center transition-transform duration-500" />
     {/* Contemplative inner flame/spark */}
     <path
       d="M12 9.5c-1 1-1.5 2-1.5 2.8a1.5 1.5 0 0 0 3 0c0-.8-.5-1.8-1.5-2.8z"
@@ -129,13 +129,13 @@ export const OriginBooksIcon: React.FC<IconProps> = (props) => (
  * Concept: An editorial eye enclosing a 4-pointed spark of wisdom.
  */
 export const CompanionIcon: React.FC<IconProps> = (props) => (
-  <svg {...getSvgProps(props)}>
+  <svg {...getSvgProps({ ...props, className: `hover-animate-companion-wrapper ${props.className || ""}` })}>
     {/* Editorial eye shape */}
     <path d="M2.5 12s4-6.5 9.5-6.5 9.5 6.5 9.5 6.5-4 6.5-9.5 6.5S2.5 12 2.5 12z" />
     {/* Iris circle */}
-    <circle cx="12" cy="12" r="3.5" />
+    <circle cx="12" cy="12" r="3.5" className="companion-iris origin-center transition-transform duration-350" />
     {/* Wisdom Spark */}
-    <path d="M12 10.5l.3 1.2.9.3-.9.3-.3 1.2-.3-1.2-.9-.3.9-.3z" fill="currentColor" stroke="none" />
+    <path d="M12 10.5l.3 1.2.9.3-.9.3-.3 1.2-.3-1.2-.9-.3.9-.3z" fill="currentColor" stroke="none" className="companion-spark transition-opacity duration-300" />
   </svg>
 );
 
@@ -144,12 +144,12 @@ export const CompanionIcon: React.FC<IconProps> = (props) => (
  * Concept: An elegant clock-like or timeline cycle enclosing an insight star.
  */
 export const WrappedIcon: React.FC<IconProps> = (props) => (
-  <svg {...getSvgProps(props)}>
+  <svg {...getSvgProps({ ...props, className: `hover-animate-wrapped-wrapper ${props.className || ""}` })}>
     {/* Time cycle arrow */}
-    <path d="M12 4a8 8 0 1 1-5.65 2.34" />
-    <polyline points="6.34 6.34 8 8 5 8" />
+    <path d="M12 4a8 8 0 1 1-5.65 2.34" className="wrapped-cycle origin-center transition-transform duration-500" />
+    <polyline points="6.34 6.34 8 8 5 8" className="wrapped-arrow origin-center transition-transform duration-500" />
     {/* Retrospective diamond star in the center */}
-    <path d="M12 9l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" fill="currentColor" />
+    <path d="M12 9l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" fill="currentColor" className="wrapped-star transition-transform" />
   </svg>
 );
 
@@ -375,10 +375,12 @@ export const SaveIcon: React.FC<IconProps> = (props) => (
  * Concept: A canvas with a reflection line pointing up and right.
  */
 export const ExportIcon: React.FC<IconProps> = (props) => (
-  <svg {...getSvgProps(props)}>
+  <svg {...getSvgProps({ ...props, className: `hover-animate-export-wrapper ${props.className || ""}` })}>
     <path d="M5 9V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4" />
-    <line x1="12" y1="19" x2="12" y2="9" />
-    <polyline points="9 12 12 9 15 12" />
+    <g className="export-arrow transition-all duration-300">
+      <line x1="12" y1="19" x2="12" y2="9" />
+      <polyline points="9 12 12 9 15 12" />
+    </g>
   </svg>
 );
 

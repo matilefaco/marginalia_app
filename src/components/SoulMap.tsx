@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
 import { SoulMapIcon, AuraIcon, MarginIcon, ExportIcon } from "./icons/MarginaliaIcons";
+import { MarginaliaMark } from "./branding/MarginaliaMark";
 import { UserProfile, Margem, SoulMapNode } from "../types";
 
 interface SoulMapProps {
@@ -138,7 +139,7 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens, onOpenAd
                 y1="50%"
                 x2={`${node.x}%`}
                 y2={`${node.y}%`}
-                stroke="#C5A880"
+                stroke="#C5895A"
                 strokeWidth="1"
                 strokeDasharray="2,3"
               />
@@ -148,7 +149,7 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens, onOpenAd
 
         {/* Watermark header */}
         <div className="text-center z-10 space-y-0.5 pointer-events-none">
-          <h4 className="font-serif italic text-amber-100/90 text-sm md:text-base tracking-wide">
+          <h4 className="font-serif italic text-[#FAF8F3]/90 text-sm md:text-base tracking-wide">
             Mapa da Alma Leitora
           </h4>
           <span className="text-[8px] font-mono tracking-wider text-[#BDAB9C]/60 uppercase block">
@@ -173,8 +174,8 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens, onOpenAd
                 <div 
                   className={`rounded-full flex items-center justify-center transition-all ${
                     isCore 
-                      ? "w-5 h-5 bg-[#C5A880] text-[#121110] border border-amber-200 shadow-[0_0_12px_rgba(197,168,128,0.5)] animate-pulse" 
-                      : "w-3 h-3 bg-[#1C1916] border-2 border-[#C5A880] group-hover:bg-[#C5A880]"
+                      ? "w-5 h-5 bg-[#C5895A] text-[#121110] border border-[#C5895A] shadow-[0_0_12px_rgba(197,137,90,0.4)] animate-pulse" 
+                      : "w-3 h-3 bg-[#1C1916] border-2 border-[#C5895A] group-hover:bg-[#C5895A]"
                   }`}
                 >
                   {isCore && <AuraIcon className="w-3 h-3" />}
@@ -194,7 +195,7 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens, onOpenAd
           {selectedNode ? (
             <>
               <div className="flex justify-between items-center">
-                <span className="text-[9px] font-mono text-[#C5A880] uppercase tracking-wider flex items-center gap-1">
+                <span className="text-[9px] font-mono text-[#C5895A] uppercase tracking-wider flex items-center gap-1">
                   <MarginIcon className="w-2.5 h-2.5" />
                   {selectedNode.type}
                 </span>
@@ -205,13 +206,13 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens, onOpenAd
                   Limpar
                 </button>
               </div>
-              <p className="text-xs font-serif italic text-amber-50 leading-relaxed line-clamp-3">
+              <p className="text-xs font-serif italic text-[#FAF8F3]/90 leading-relaxed line-clamp-3">
                 {selectedNode.details}
               </p>
             </>
           ) : userMargins.length === 0 ? (
             <div className="my-auto text-center py-1.5 space-y-1">
-              <p className="text-[10px] font-sans text-amber-100/90 italic font-semibold">
+              <p className="text-[10px] font-sans text-[#FAF8F3]/90 italic font-semibold">
                 Seu Mapa da Alma ainda está nascendo.
               </p>
               <p className="text-[9px] font-sans text-[#BDAB9C]">
@@ -220,7 +221,7 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens, onOpenAd
               {onOpenAddMargem && (
                 <button
                   onClick={onOpenAddMargem}
-                  className="mt-1 text-[8.5px] font-sans bg-[#C5A880] text-[#121110] hover:bg-[#b0936b] px-2.5 py-0.5 rounded-full font-bold cursor-pointer transition-colors mx-auto block"
+                  className="mt-1 text-[8.5px] font-sans bg-[#C5895A] text-[#121110] hover:bg-[#b3794d] px-2.5 py-0.5 rounded-full font-bold cursor-pointer transition-colors mx-auto block"
                 >
                   Abrir a margem
                 </button>
@@ -236,9 +237,10 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens, onOpenAd
         </div>
 
         {/* Branding Footer */}
-        <div className="text-center z-10 pt-1 pointer-events-none">
-          <span className="text-[7px] font-mono tracking-widest text-[#BDAB9C]/40 uppercase block">
-            CONEXÕES LITERÁRIAS DETECTADAS · MARGINALIA
+        <div className="text-center z-10 pt-1 pointer-events-none flex justify-center items-center gap-1.5">
+          <MarginaliaMark size={9} dotColor="#C5895A" color="#BDAB9C" strokeWidth={3.5} className="opacity-80" />
+          <span className="text-[7px] font-mono tracking-widest text-[#BDAB9C]/50 uppercase font-sans font-medium">
+            MAPA DE SINTONIZAÇÃO INTERIOR • MARGINALIA.APP
           </span>
         </div>
       </div>

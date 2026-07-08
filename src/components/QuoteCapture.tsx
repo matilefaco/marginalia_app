@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { RefreshIcon } from "./icons/MarginaliaIcons";
+import { MarginaliaMark } from "./branding/MarginaliaMark";
 import Tesseract from "tesseract.js";
 
 interface QuoteCaptureProps {
@@ -226,7 +227,7 @@ export default function QuoteCapture({ onCaptureComplete, onSelectManual, onCanc
               {/* Processing State */}
               {isProcessing && (
                 <div className="p-6 border border-[#BDAB9C]/40 rounded-xl bg-white space-y-4 text-center">
-                  <RefreshIcon className="w-6 h-6 text-[#1C1916] animate-spin mx-auto" />
+                  <MarginaliaMark size={28} dotColor="#C5895A" color="#1C1916" strokeWidth={3} className="animate-spin-slow mx-auto" />
                   <div className="space-y-1.5">
                     <p className="font-serif italic text-sm text-[#1C1916]">“Lendo a página em silêncio…”</p>
                     <p className="text-[10px] font-mono text-[#BDAB9C] uppercase tracking-widest">{progressStatus}</p>

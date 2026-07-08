@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { BookHighlight, Margem } from "../types";
+import { MarginaliaMark } from "./branding/MarginaliaMark";
 import { PRESET_HIGHLIGHTS } from "../data";
 import { 
   AuraIcon, 
@@ -171,7 +172,7 @@ export default function JardimDescobertas({ onSelectHighlight, margens }: Jardim
                   <span className="text-xs font-semibold font-serif block">{cat.label}</span>
                   {(() => {
                     const IconComp = EMOTION_ICON_MAP[cat.emotionKey];
-                    return IconComp ? <IconComp size={16} className={isSelected ? "text-[#C5A880]" : "text-[#BDAB9C]"} /> : null;
+                    return IconComp ? <IconComp size={16} className={isSelected ? "text-[#C5895A]" : "text-[#BDAB9C]"} /> : null;
                   })()}
                 </div>
                 <span className={`text-[9px] font-sans block mt-1 leading-snug ${isSelected ? "text-[#FAF8F3]/70" : "text-[#BDAB9C]"}`}>
@@ -185,9 +186,9 @@ export default function JardimDescobertas({ onSelectHighlight, margens }: Jardim
 
       {/* Coincidência Literária (Serendipity card - Phase 5) */}
       {serendipityQuote && (
-        <div className="bg-[#FAF8F3] border-2 border-dashed border-[#C5A880] rounded-xl p-5 journal-shadow relative overflow-hidden">
-          <div className="absolute top-2 right-3 font-mono text-[8.5px] text-amber-800 uppercase tracking-widest flex items-center gap-1">
-            <AuraIcon size={12} className="text-amber-700" />
+        <div className="bg-[#FAF8F3] border-2 border-dashed border-[#C5895A] rounded-xl p-5 journal-shadow relative overflow-hidden">
+          <div className="absolute top-2 right-3 font-mono text-[8.5px] text-[#C5895A] uppercase tracking-widest flex items-center gap-1">
+            <AuraIcon size={12} className="text-[#C5895A]" />
             <span>Coincidência Literária</span>
           </div>
 

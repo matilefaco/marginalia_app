@@ -76,7 +76,7 @@ export const MOCK_COMPATIBLE_READERS: UserProfile[] = [
     description: "Lê sob a chuva de fim de tarde, buscando cicatrizes bonitas na ficção antiga.",
     signatureQuote: "Escrever é guardar em conserva o instante que já se foi.",
     recommendedEcos: ["Romance Histórico", "Poesia e Lírica"],
-    aestheticColor: "#9C8A7D",
+    aestheticColor: "#BDAB9C",
     aestheticSymbol: "Flor Prensada",
     avatarSeed: "beatriz",
     streakDays: 42,

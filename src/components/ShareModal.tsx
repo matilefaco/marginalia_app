@@ -3,6 +3,8 @@ import { exportNodeAsPng } from "../lib/exportImage";
 
 import { CloseIcon, ExportIcon, ShareIcon } from "./icons/MarginaliaIcons";
 import { Margem } from "../types";
+import { MarginaliaMark } from "./branding/MarginaliaMark";
+import { MarginaliaLogo } from "./branding/MarginaliaLogo";
 
 interface ShareModalProps {
   margem: Margem;
@@ -43,7 +45,7 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
       fontClass: "font-serif",
       borderClass: "border-[#E0D8CB]",
       badgeText: "Estética Celestial",
-      extraClass: "bg-[radial-gradient(#C5A880_0.7px,transparent_0.7px)] [background-size:24px_24px]",
+      extraClass: "bg-[radial-gradient(#C5895A_0.7px,transparent_0.7px)] [background-size:24px_24px]",
       decor: <div className="absolute right-6 bottom-14 text-[9px] font-mono tracking-widest uppercase opacity-35">Ethereal Symphony</div>
     },
     {
@@ -85,10 +87,10 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
       bgClass: "bg-[#1C1916] text-[#FAF8F3]",
       quoteClass: "text-white font-sans font-extrabold tracking-tight leading-snug",
       fontClass: "font-sans",
-      borderClass: "border-[#C5A880] border-[4px]",
+      borderClass: "border-[#C5895A] border-[4px]",
       badgeText: "Brutalismo Suíço",
       extraClass: "tracking-tight uppercase",
-      decor: <div className="absolute bottom-16 left-6 text-[10px] font-mono text-[#C5A880] uppercase tracking-widest">MARGINALIA EXTRA</div>
+      decor: <div className="absolute bottom-16 left-6 text-[10px] font-mono text-[#C5895A] uppercase tracking-widest">MARGINALIA EXTRA</div>
     },
     {
       key: "diario",
@@ -196,12 +198,12 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
 
               {/* Classic Book Divider */}
               <div className="flex justify-center py-1.5">
-                <div className="w-16 h-[1.5px] bg-[#C8854A]" style={{ opacity: 0.75 }} />
+                <div className="w-16 h-[1.5px] bg-[#C5895A]" style={{ opacity: 0.75 }} />
               </div>
 
               {/* Author's Personal Reflection */}
               <div className="font-sans">
-                <p className="text-[15px] md:text-[16px] leading-relaxed italic opacity-95 pl-3.5 border-l-2 border-[#C8854A] font-normal">
+                <p className="text-[15px] md:text-[16px] leading-relaxed italic opacity-95 pl-3.5 border-l-2 border-[#C5895A] font-normal">
                   “{margem.thought}”
                 </p>
               </div>
@@ -221,7 +223,9 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
             <div className="flex justify-between items-center pt-3.5 border-t border-current border-opacity-15 font-mono text-[9px] opacity-60">
               <span className="font-sans">Reflexão de @{margem.authorAvatar || "leitor"}</span>
               <span className="tracking-wider uppercase font-sans font-medium flex items-center gap-1">
-                <span className="text-[#C8854A]">★</span> marginalia.app • o que fica em você
+                <MarginaliaMark size={11} dotColor="#C5895A" color="currentColor" strokeWidth={3.5} className="inline opacity-95" />
+                <span className="font-display tracking-[0.15em] font-semibold">Marginalia</span>
+                <span className="opacity-75">• o que fica em você</span>
               </span>
             </div>
 
@@ -391,8 +395,8 @@ export default function ShareModal({ margem, onClose }: ShareModalProps) {
             >
               {copied ? (
                 <>
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#C5A880]"><path d="M20 6 9 17l-5-5"/></svg>
-                  <span className="text-[#C5A880] font-bold">Inscrição copiada!</span>
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#C5895A]"><path d="M20 6 9 17l-5-5"/></svg>
+                  <span className="text-[#C5895A] font-bold">Inscrição copiada!</span>
                 </>
               ) : (
                 <>

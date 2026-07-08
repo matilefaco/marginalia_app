@@ -383,7 +383,7 @@ export default function IconShowcase() {
       <header className="border-b border-[#BDAB9C]/40 pb-8 mb-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <span className="text-[10px] uppercase tracking-widest font-mono text-[#C8854A]">Sistema Proprietário de Símbolos</span>
+            <span className="text-[10px] uppercase tracking-widest font-mono text-[#C5895A]">Sistema Proprietário de Símbolos</span>
             <h1 className="font-serif text-4xl mt-2 tracking-tight">A Linguagem Visual do Marginalia</h1>
             <p className="text-sm text-[#BDAB9C] max-w-2xl mt-3 font-serif italic">
               "Para capturar os silêncios íntimos e as pequenas revoluções das margens, abandonamos os emojis digitais e ícones genéricos. Criamos uma semiótica própria — traços finos, geometrias sagradas e sinais que parecem desenhados à mão na quietude do livro."
@@ -452,12 +452,12 @@ export default function IconShowcase() {
 
               {/* Action Code Copy */}
               <div className="mt-6 pt-4 border-t border-[#BDAB9C]/10 flex justify-between items-center">
-                <code className="text-[10px] font-mono text-[#C8854A] bg-[#C8854A]/5 px-2 py-1 rounded">
+                <code className="text-[10px] font-mono text-[#C5895A] bg-[#C5895A]/5 px-2 py-1 rounded">
                   {`<${item.componentName} />`}
                 </code>
                 <button
                   onClick={() => handleCopyCode(item.componentName)}
-                  className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#1C1916] hover:text-[#C8854A] cursor-pointer"
+                  className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#1C1916] hover:text-[#C5895A] cursor-pointer"
                 >
                   {copiedText === item.componentName ? "Copiado!" : "Copiar Tag"}
                 </button>

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Margem, UserProfile } from "../types";
 import { IdentityIcon, RefreshIcon, AuraIcon } from "./icons/MarginaliaIcons";
+import { MarginaliaMark } from "./branding/MarginaliaMark";
 
 interface ReadingCompanionProps {
   userProfile: UserProfile;
@@ -107,7 +108,7 @@ Sua Companheira de Leitura.`);
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <h4 className="font-sans font-bold text-xs uppercase text-[#1C1916] flex items-center gap-1.5">
-              <IdentityIcon size={16} className="text-amber-700" />
+              <IdentityIcon size={16} className="text-[#C5895A]" />
               Mapear Meus Padrões Emocionais
             </h4>
             <p className="text-[10.5px] text-[#3D3D3D] opacity-85">
@@ -122,7 +123,7 @@ Sua Companheira de Leitura.`);
           >
             {mappingPsyche ? (
               <>
-                <RefreshIcon className="w-3 h-3 animate-spin" />
+                <MarginaliaMark size={12} dotColor="#C5895A" color="#FAF8F3" strokeWidth={3} className="animate-spin-slow" />
                 <span>Mapeando...</span>
               </>
             ) : (
@@ -136,14 +137,14 @@ Sua Companheira de Leitura.`);
 
         {/* Psyche Letter Container */}
         {psycheLetter && (
-          <div className="bg-[#FAF8F3] border border-[#C5A880]/50 p-5 rounded-xl journal-shadow relative overflow-hidden animate-page-turn">
+          <div className="bg-[#FAF8F3] border border-[#C5895A]/50 p-5 rounded-xl journal-shadow relative overflow-hidden animate-page-turn">
             <button 
               onClick={() => setPsycheLetter(null)}
               className="absolute top-2 right-2 text-xs text-[#BDAB9C] hover:text-[#1C1916]"
             >
               ✕
             </button>
-            <div className="absolute top-0 left-0 right-0 h-1 bg-[#C5A880]/30" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-[#C5895A]/30" />
             <h5 className="font-serif font-bold text-[11px] text-[#BDAB9C] uppercase tracking-wider mb-3">Sua Alma Revelada Pela Companheira</h5>
             <div className="font-serif text-xs md:text-sm leading-relaxed text-[#3D3D3D] italic space-y-3 whitespace-pre-wrap">
               {psycheLetter}
@@ -159,7 +160,7 @@ Sua Companheira de Leitura.`);
         <div className="px-5 py-3.5 border-b border-[#BDAB9C]/25 bg-[#FAF8F3] flex justify-between items-center">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full border border-[#BDAB9C]/40 bg-[#FAF8F3] flex items-center justify-center">
-              <AuraIcon size={16} className="text-amber-700 animate-pulse" />
+              <AuraIcon size={16} className="text-[#C5895A]" />
             </div>
             <div>
               <p className="text-xs font-sans font-bold text-[#1C1916]">Companheira de Leitura</p>

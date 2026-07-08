@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
 import { RefreshIcon, ExportIcon } from "./icons/MarginaliaIcons";
+import { MarginaliaMark } from "./branding/MarginaliaMark";
 import { UserProfile, Margem } from "../types";
 import { generateIdentityQuote } from "../utils/identityText";
 
@@ -82,6 +83,10 @@ export const IdentityQuoteCard: React.FC<IdentityQuoteCardProps> = ({ userProfil
           <span className="text-[10px] font-mono tracking-wide text-[#BDAB9C] uppercase">
             {safeProfile.dominantArchetype || safeProfile.title || "Membro Contemplativo"}
           </span>
+          <div className="flex items-center gap-1 text-[8px] font-mono text-[#BDAB9C] mt-2 tracking-widest uppercase">
+            <MarginaliaMark size={8} dotColor="#C5895A" color="#BDAB9C" strokeWidth={3.5} />
+            <span>Marginalia</span>
+          </div>
         </div>
       </div>
 

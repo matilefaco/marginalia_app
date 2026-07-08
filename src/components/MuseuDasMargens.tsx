@@ -124,7 +124,7 @@ export const MuseuDasMargens: React.FC<MuseuDasMargensProps> = ({
                   : "bg-[#BDAB9C]/10 text-stone-700 hover:bg-[#BDAB9C]/20 border border-[#BDAB9C]/20"
               }`}
             >
-              {IconComp && <IconComp size={12} className={isSelected ? "text-[#C5A880]" : "text-stone-500"} />}
+              {IconComp && <IconComp size={12} className={isSelected ? "text-[#C5895A]" : "text-stone-500"} />}
               <span>{cat.label}</span>
             </button>
           );
@@ -182,7 +182,7 @@ export const MuseuDasMargens: React.FC<MuseuDasMargensProps> = ({
                   {onSaveMargem && (
                     <button
                       onClick={() => onSaveMargem(m)}
-                      className="text-stone-700 hover:text-[#C5A880] p-1 cursor-pointer"
+                      className="text-stone-700 hover:text-[#C5895A] p-1 cursor-pointer"
                       title="Salvar"
                     >
                       <SaveIcon size={14} />

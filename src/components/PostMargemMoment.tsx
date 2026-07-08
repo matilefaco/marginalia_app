@@ -147,7 +147,7 @@ export default function PostMargemMoment({
           transition={{ delay: 0.6 }}
           className="p-4 bg-[#BDAB9C]/10 border border-[#BDAB9C]/25 rounded-xl space-y-1.5 text-center relative"
         >
-          <div className="absolute top-2 right-3 text-[#C5A880] animate-pulse">
+          <div className="absolute top-2 right-3 text-[#C5895A] animate-pulse">
             <AuraIcon size={14} />
           </div>
           <p className="text-[10px] font-mono uppercase tracking-wide text-[#BDAB9C] font-bold">
@@ -186,7 +186,7 @@ export default function PostMargemMoment({
             >
               {addedToDNA ? (
                 <>
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#C5A880]"><path d="M20 6 9 17l-5-5"/></svg>
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#C5895A]"><path d="M20 6 9 17l-5-5"/></svg>
                   <span>Incorporado ao DNA</span>
                 </>
               ) : (

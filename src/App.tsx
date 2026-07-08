@@ -81,6 +81,8 @@ import { DailyOpeningMoment } from "./components/DailyOpeningMoment";
 import { FutureLetter } from "./components/FutureLetter";
 import { LiteraryCoincidence } from "./components/LiteraryCoincidence";
 import { MuseuDasMargens } from "./components/MuseuDasMargens";
+import { MarginaliaLogo } from "./components/branding/MarginaliaLogo";
+import { MarginaliaMark } from "./components/branding/MarginaliaMark";
 import { 
   getStoredProfile, 
   setStoredProfile, 
@@ -723,14 +725,12 @@ export default function App() {
           <div className="absolute top-0 bottom-0 left-0 w-1 bg-gradient-to-r from-[#1C1916]/10 via-transparent to-transparent" />
           
           {/* Onboarding Header */}
-          <div className="text-center mb-8 relative">
-            <span className="text-[11px] font-sans font-semibold tracking-widest text-[#BDAB9C] uppercase block mb-1">
+          <div className="text-center mb-8 relative flex flex-col items-center">
+            <span className="text-[11px] font-sans font-semibold tracking-widest text-[#BDAB9C] uppercase block mb-3">
               {onboardingStep === 4 ? "Sua Alma Revelada" : "Iniciação ao Marginalia"}
             </span>
-            <h1 className="font-display text-3xl font-semibold text-[#1C1916] tracking-tight font-serif">
-              Marginalia
-            </h1>
-            <div className="w-16 h-[1px] bg-[#BDAB9C] mx-auto mt-3" />
+            <MarginaliaLogo variant="vertical-lockup" size={28} />
+            <div className="w-16 h-[1px] bg-[#BDAB9C] mx-auto mt-4" />
           </div>
 
           {/* STEP 1: Identification */}
@@ -1188,10 +1188,10 @@ export default function App() {
               <div className="space-y-6">
                 {onboardingGenerationState === "generating" || loadingProfile ? (
                   <div className="py-16 text-center space-y-6">
-                    <div className="relative w-16 h-16 mx-auto">
-                      <div className="absolute inset-0 border-2 border-[#1C1916]/10 rounded-full" />
-                      <div className="absolute inset-0 border-2 border-[#1C1916] border-t-transparent rounded-full animate-spin" />
-                      <Hourglass className="absolute inset-0 m-auto w-6 h-6 text-[#1C1916]/60 animate-pulse" />
+                    <div className="flex flex-col items-center justify-center py-6">
+                      <div className="relative flex items-center justify-center">
+                        <MarginaliaMark size={44} dotColor="#C5895A" color="#1C1916" strokeWidth={3.5} className="animate-spin-slow" />
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <p className="font-serif italic text-base text-[#1C1916] font-semibold">
@@ -1242,8 +1242,8 @@ export default function App() {
                         <div 
                           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto border-2 transition-transform duration-500 hover:scale-105" 
                           style={{ 
-                            borderColor: "#C8854A",
-                            boxShadow: `0 0 15px #C8854A35`
+                            borderColor: "#C5895A",
+                            boxShadow: `0 0 15px #C5895A35`
                           }}
                         >
                           {safeProfile.aestheticSymbol?.toLowerCase()?.includes("flor") ? (
@@ -1290,16 +1290,16 @@ export default function App() {
                             {safeProfile.recommendedEcos?.map((eco) => (
                               <span 
                                 key={eco}
-                                className="px-3 py-1 rounded-full text-[10px] font-sans font-medium bg-[#FAF8F3]/10 border border-[#FAF8F3]/20 text-[#FAF8F3]"
+                                className="px-3 py-1 rounded-full text-[10px] font-sans font-medium bg-[#FAF8F3]/10 border border-[#FAF8F3]/20 text-[#FAF8F3] flex items-center gap-1"
                               >
-                                🍃 {eco}
+                                <EchoIcon size={10} className="text-[#FAF8F3]/70" /> {eco}
                               </span>
                             ))}
                           </div>
                         </div>
 
                         <div className="pt-3 text-[10px] font-mono tracking-widest text-[#FAF8F3]/50 uppercase flex items-center justify-center gap-1.5">
-                          <span className="text-[#C8854A]">★</span> marginalia.app • o que fica em você
+                          <span className="text-[#C5895A]">★</span> marginalia.app • o que fica em você
                         </div>
                       </div>
                     </div>
@@ -1401,17 +1401,7 @@ export default function App() {
           
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setActiveTab("diario"); setSelectedEco(null); }}>
-            <div className="w-8 h-8 rounded bg-[#1C1916] text-[#FAF8F3] flex items-center justify-center font-serif text-lg font-semibold journal-shadow">
-              M
-            </div>
-            <div>
-              <span className="font-display font-bold text-base md:text-lg text-[#1C1916] tracking-tight">
-                Marginalia
-              </span>
-              <span className="text-[9px] font-sans tracking-widest text-[#BDAB9C] uppercase block -mt-1">
-                o que fica em você
-              </span>
-            </div>
+            <MarginaliaLogo variant="lockup" tagline={true} />
           </div>
 
           {/* Top navigation stats & user menu */}
@@ -1419,7 +1409,7 @@ export default function App() {
             
             {/* Quick reading streak count */}
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#BDAB9C]/10 text-[#3D3D3D] border border-[#BDAB9C]/30" title="Dias seguidos lendo e anotando">
-              <Flame className="w-4 h-4 text-orange-600 animate-pulse fill-orange-100" />
+              <Flame className="w-4 h-4 text-[#C5895A] animate-pulse fill-[#C5895A]/10" />
               <span className="text-xs font-sans font-semibold">{userProfile.streakDays}d Streak</span>
             </div>
 
@@ -1578,7 +1568,7 @@ export default function App() {
                             </>
                           ) : (
                             <>
-                              <Sparkles className="w-3 h-3 text-amber-700 animate-pulse" />
+                              <Sparkles className="w-3 h-3 text-[#C5895A] animate-pulse" />
                               <span className="font-semibold">Inspirar minha margem</span>
                             </>
                           )}
@@ -1726,9 +1716,9 @@ export default function App() {
 
               {/* Margem do Dia Highlight Card */}
               {margemDoDia && (
-                <div className="bg-[#FAF8F3] border-2 border-[#C5A880] rounded-2xl journal-shadow overflow-hidden relative group transition-all duration-300 hover:scale-[1.005] animate-page-turn">
-                  <div className="absolute top-3 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C5A880]/15 text-[9.5px] font-sans font-semibold text-stone-800 border border-[#C5A880]/40">
-                    <Sparkles className="w-3 h-3 text-amber-700 animate-pulse" />
+                <div className="bg-[#FAF8F3] border-2 border-[#C5895A] rounded-2xl journal-shadow overflow-hidden relative group transition-all duration-300 hover:scale-[1.005] animate-page-turn">
+                  <div className="absolute top-3 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C5895A]/15 text-[9.5px] font-sans font-semibold text-stone-800 border border-[#C5895A]/40">
+                    <Sparkles className="w-3 h-3 text-[#C5895A] animate-pulse" />
                     <span>MARGEM DO DIA</span>
                   </div>
 
@@ -1737,7 +1727,7 @@ export default function App() {
                     <p className="font-serif italic text-[18px] md:text-[20px] leading-relaxed text-[#1C1916] font-semibold pr-4 break-words">
                       "{margemDoDia.quote}"
                     </p>
-                    <div className="w-10 h-[1.5px] bg-[#C8854A] my-3 opacity-80" />
+                    <div className="w-10 h-[1.5px] bg-[#C5895A] my-3 opacity-80" />
                     <p className="font-sans font-normal text-[15px] leading-relaxed italic text-[#3D3D3D] pl-3 border-l-2 border-[#BDAB9C]/30 break-words">
                       {margemDoDia.thought}
                     </p>
@@ -1791,8 +1781,8 @@ export default function App() {
 
                         <div className="flex items-center gap-2">
                           {margem.ecoId && (
-                            <span className="px-2 py-0.5 rounded-full bg-[#BDAB9C]/10 border border-[#BDAB9C]/20 text-[9px] font-sans text-[#3D3D3D] opacity-90">
-                              🍃 {ecos.find(e => e.id === margem.ecoId)?.name || "Eco"}
+                            <span className="px-2 py-0.5 rounded-full bg-[#BDAB9C]/10 border border-[#BDAB9C]/20 text-[9px] font-sans text-[#3D3D3D] opacity-90 flex items-center gap-1">
+                              <EchoIcon size={10} className="text-[#3D3D3D]/70" /> {ecos.find(e => e.id === margem.ecoId)?.name || "Eco"}
                             </span>
                           )}
                           <span className="text-[9.5px] font-mono text-[#BDAB9C]">
@@ -1836,7 +1826,7 @@ export default function App() {
                           </p>
 
                           <div className="flex justify-start my-2.5">
-                            <div className="w-10 h-[1.5px] bg-[#C8854A]" style={{ opacity: 0.7 }} />
+                            <div className="w-10 h-[1.5px] bg-[#C5895A]" style={{ opacity: 0.7 }} />
                           </div>
 
                           {/* Reader margin reflection */}
@@ -2106,7 +2096,7 @@ export default function App() {
                   </div>
 
                   {/* Curated AI Question/Vibe of the Week */}
-                  <div className="bg-[#FAF8F3] border border-orange-200/50 rounded-xl p-5 journal-shadow relative overflow-hidden">
+                  <div className="bg-[#FAF8F3] border border-[#BDAB9C]/40 rounded-xl p-5 journal-shadow relative overflow-hidden">
                     <div className="absolute top-0 bottom-0 left-0 w-1 bg-gradient-to-b from-[#BDAB9C] to-transparent" />
                     
                     <div className="flex justify-between items-center mb-2">
@@ -2173,7 +2163,10 @@ export default function App() {
                             </div>
                             <div className={`p-4 rounded-lg italic font-serif text-xs ${theme.bg} ${theme.text}`}>
                               <p className="font-semibold mb-2">"{margem.quote}"</p>
-                              <p className="font-normal border-t border-[#BDAB9C]/20 pt-2 opacity-95">👉 {margem.thought}</p>
+                              <p className="font-normal border-t border-[#BDAB9C]/20 pt-2 opacity-95 flex items-start gap-1.5">
+                                <MarginIcon size={12} className="text-stone-400 mt-0.5" />
+                                <span>{margem.thought}</span>
+                              </p>
                             </div>
                           </div>
                         );
@@ -2337,10 +2330,10 @@ export default function App() {
 
           {/* ECO DA SEMANA (Curated collection trigger) */}
           {ecoDaSemana && (
-            <div className="bg-[#FAF8F3] border border-[#C5A880]/60 rounded-xl p-5 journal-shadow space-y-4 cursor-pointer hover:border-[#1C1916] transition-all" onClick={() => { setSelectedEco(ecoDaSemana); setActiveTab("ecos"); }}>
+            <div className="bg-[#FAF8F3] border border-[#C5895A]/60 rounded-xl p-5 journal-shadow space-y-4 cursor-pointer hover:border-[#1C1916] transition-all" onClick={() => { setSelectedEco(ecoDaSemana); setActiveTab("ecos"); }}>
               
               <div className="space-y-1">
-                <span className="text-[10px] font-mono tracking-widest text-[#C5A880] uppercase block font-semibold">
+                <span className="text-[10px] font-mono tracking-widest text-[#C5895A] uppercase block font-semibold">
                   Sintonização Coletiva
                 </span>
                 <h4 className="font-display font-semibold text-xs uppercase tracking-wider text-[#1C1916]">
@@ -2353,7 +2346,7 @@ export default function App() {
                 <div className="w-16 h-20 bg-[#1C1916] text-[#FAF8F3] rounded relative shadow-md flex flex-col justify-between p-2 text-center border border-[#BDAB9C]/30 overflow-hidden flex-shrink-0">
                   <div className="absolute inset-0 tactile-overlay opacity-30" />
                   <span className="text-[8px] font-mono tracking-widest text-[#BDAB9C]/70 uppercase block">ECO</span>
-                  <span className="z-10 text-[8.5px] leading-tight font-serif italic text-amber-100 font-semibold truncate">
+                  <span className="z-10 text-[8.5px] leading-tight font-serif italic text-[#FAF8F3]/90 font-semibold truncate">
                     {ecoDaSemana.name.split(" ")[0]}
                   </span>
                 </div>
@@ -2402,7 +2395,7 @@ export default function App() {
         <button
           onClick={() => { setActiveTab("diario"); setSelectedEco(null); }}
           className={`flex flex-col items-center gap-1 cursor-pointer transition-all ${
-            activeTab === "diario" ? "text-[#C8854A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
+            activeTab === "diario" ? "text-[#C5895A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
           }`}
         >
           <LinesDiaryIcon size={20} />
@@ -2412,7 +2405,7 @@ export default function App() {
         <button
           onClick={() => { setActiveTab("descoberta"); setSelectedEco(null); }}
           className={`flex flex-col items-center gap-1 cursor-pointer transition-all ${
-            activeTab === "descoberta" ? "text-[#C8854A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
+            activeTab === "descoberta" ? "text-[#C5895A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
           }`}
         >
           <DescobertasIcon size={20} />
@@ -2422,7 +2415,7 @@ export default function App() {
         <button
           onClick={() => { setActiveTab("ecos"); setSelectedEco(null); }}
           className={`flex flex-col items-center gap-1 cursor-pointer transition-all ${
-            activeTab === "ecos" ? "text-[#C8854A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
+            activeTab === "ecos" ? "text-[#C5895A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
           }`}
         >
           <EchoIcon size={20} />
@@ -2432,25 +2425,17 @@ export default function App() {
         <button
           onClick={() => { setActiveTab("companheira"); setSelectedEco(null); }}
           className={`flex flex-col items-center gap-1 cursor-pointer transition-all ${
-            activeTab === "companheira" ? "text-[#C8854A]" : "text-[#BDAB9C] hover:text-[#C8854A]"
+            activeTab === "companheira" ? "text-[#C5895A]" : "text-[#BDAB9C] hover:text-[#C5895A]"
           }`}
         >
-          <CompanionIcon size={20} className={activeTab === "companheira" ? "text-[#C8854A]" : "text-[#BDAB9C]"} />
+          <CompanionIcon size={20} className={activeTab === "companheira" ? "text-[#C5895A]" : "text-[#BDAB9C]"} />
           <span className="text-[9px] font-sans font-medium">Companheira</span>
-        </button>
-
-        <button
-          onClick={() => { setShowIconSystem(true); }}
-          className="flex flex-col items-center gap-1 cursor-pointer transition-all text-[#BDAB9C] hover:text-[#C8854A]"
-        >
-          <IdentityIcon size={20} />
-          <span className="text-[9px] font-sans font-medium text-[#BDAB9C]">Símbolos</span>
         </button>
 
         <button
           onClick={() => { setActiveTab("perfil"); setSelectedEco(null); }}
           className={`flex flex-col items-center gap-1 cursor-pointer transition-all ${
-            activeTab === "perfil" ? "text-[#C8854A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
+            activeTab === "perfil" ? "text-[#C5895A]" : "text-[#BDAB9C] hover:text-[#1C1916]"
           }`}
         >
           <ProfileIcon size={20} />
@@ -2466,23 +2451,17 @@ export default function App() {
           { tab: "descoberta" as const, label: "Descoberta", icon: DescobertasIcon },
           { tab: "ecos" as const, label: "Ecos Literários", icon: EchoIcon },
           { tab: "companheira" as const, label: "Companheira IA", icon: CompanionIcon },
-          { tab: "simbolos" as const, label: "Símbolos Proprietários", icon: IdentityIcon },
           { tab: "perfil" as const, label: "Meu Perfil", icon: ProfileIcon },
         ].map((item) => {
           const IconComponent = item.icon;
-          const isSimbolos = item.tab === "simbolos";
-          const isActive = isSimbolos ? false : activeTab === item.tab;
+          const isActive = activeTab === item.tab;
           
           return (
             <button
               key={item.tab}
               onClick={() => {
-                if (isSimbolos) {
-                  setShowIconSystem(true);
-                } else {
-                  setActiveTab(item.tab);
-                  setSelectedEco(null);
-                }
+                setActiveTab(item.tab);
+                setSelectedEco(null);
               }}
               className={`p-2.5 rounded-lg transition-all flex items-center justify-center gap-2 group cursor-pointer relative ${
                 isActive 
@@ -2562,7 +2541,9 @@ export default function App() {
       {generatingWrapped && (
         <div className="fixed inset-0 bg-[#1C1916]/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
           <div className="max-w-md w-full bg-[#FAF8F3] border border-[#BDAB9C] rounded-2xl p-8 text-center space-y-6 journal-shadow">
-            <div className="w-12 h-12 border-4 border-amber-800 border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="flex justify-center items-center py-4">
+              <MarginaliaMark size={40} dotColor="#C5895A" color="#1C1916" strokeWidth={3.5} className="animate-spin-slow" />
+            </div>
             <h3 className="font-display text-xl font-semibold text-[#1C1916]">Sintonizando a Retrospectiva...</h3>
             <p className="font-serif italic text-xs text-[#3D3D3D] leading-relaxed">
               "Colhendo as folhas secas que você deixou cair ao longo do ano literário, fiando o ouro dos sentimentos que ecoaram..."

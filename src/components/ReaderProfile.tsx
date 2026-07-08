@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
 import { UserProfile, Margem } from "../types";
-import { ExportIcon, WrappedIcon, LinesDiaryIcon, FlameIcon, ClockIcon, BookOpenIcon, TrophyIcon } from "./icons/MarginaliaIcons";
+import { ExportIcon, WrappedIcon, LinesDiaryIcon, FlameIcon, ClockIcon, BookOpenIcon, TrophyIcon, IdentityIcon, MarginIcon } from "./icons/MarginaliaIcons";
 
 import { LiteraryAura } from "./LiteraryAura";
 import { SoulMap } from "./SoulMap";
@@ -102,7 +102,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
         <div className="h-28 bg-[#BDAB9C]/15 relative overflow-hidden">
           <div className="absolute inset-0 tactile-overlay" />
           <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF8F3] text-[10px] font-sans font-semibold text-[#1C1916] border border-[#BDAB9C]">
-            <FlameIcon size={12} className="text-amber-600" />
+            <FlameIcon size={12} className="text-[#C5895A]" />
             <span>{userProfile.streakDays} Dias Seguidos</span>
           </div>
         </div>
@@ -119,8 +119,8 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
               <div>
                 <div className="flex flex-wrap items-center gap-2 justify-center md:justify-start">
                   <h3 className="font-display text-xl font-semibold text-[#1C1916]">{userProfile.name}</h3>
-                  <span className="px-2 py-0.5 bg-[#1C1916]/10 text-[#1C1916] rounded-full text-[10px] font-sans font-medium border border-[#BDAB9C]/30">
-                    🎭 {userProfile.title}
+                  <span className="px-2 py-0.5 bg-[#1C1916]/10 text-[#1C1916] rounded-full text-[10px] font-sans font-medium border border-[#BDAB9C]/30 flex items-center gap-1">
+                    <IdentityIcon size={10} className="text-[#1C1916]/70" /> {userProfile.title}
                   </span>
                 </div>
                 <p className="text-xs font-mono text-[#BDAB9C]">@{userProfile.username}</p>
@@ -138,7 +138,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
                 </button>
                 <button
                   onClick={onTriggerWrapped}
-                  className="px-3.5 py-1 bg-gradient-to-r from-orange-600 to-amber-700 text-white rounded-full text-xs font-sans font-bold shadow-xs hover:opacity-90 transition-opacity flex items-center gap-1 cursor-pointer"
+                  className="px-3.5 py-1 bg-[#C5895A] hover:bg-[#b0784a] text-white rounded-full text-xs font-sans font-bold shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
                 >
                   <WrappedIcon className="w-3.5 h-3.5" />
                   <span>Sua Retrospectiva</span>
@@ -324,7 +324,9 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
                   <span className="text-[9px] font-mono text-[#BDAB9C] uppercase tracking-wider block">{item.date}</span>
                   <p className="text-xs font-serif italic text-[#3D3D3D] leading-relaxed mt-0.5">{item.event}</p>
                   {item.book && (
-                    <span className="text-[10px] font-sans font-bold text-[#1C1916] opacity-75 mt-0.5 block">👉 Sob influência de: "{item.book}"</span>
+                    <span className="text-[10px] font-sans font-bold text-[#1C1916] opacity-75 mt-0.5 flex items-center gap-1">
+                      <MarginIcon size={10} className="text-stone-500" /> Sob influência de: "{item.book}"
+                    </span>
                   )}
                 </div>
               ))}
@@ -412,18 +414,18 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
               key={i} 
               className={`p-4 rounded-xl border journal-shadow flex flex-col justify-between space-y-3 transition-all ${
                 h.unlocked 
-                  ? "bg-gradient-to-tr from-[#FAF8F3] to-[#FDF9F4] border-[#C5A880]/60" 
+                  ? "bg-gradient-to-tr from-[#FAF8F3] to-[#FDF9F4] border-[#C5895A]/60" 
                   : "bg-gray-50/50 border-gray-200 opacity-60"
               }`}
             >
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <h4 className="font-serif font-bold text-xs text-[#1C1916] flex items-center gap-1.5">
-                    <TrophyIcon size={14} className={h.unlocked ? "text-amber-600" : "text-stone-400"} />
+                    <TrophyIcon size={14} className={h.unlocked ? "text-[#C5895A]" : "text-stone-400"} />
                     <span>{h.title}</span>
                   </h4>
                   {h.unlocked ? (
-                    <span className="text-[8.5px] font-mono font-bold bg-[#C5A880]/15 text-amber-800 px-2 py-0.5 rounded uppercase tracking-wider">
+                    <span className="text-[8.5px] font-mono font-bold bg-[#C5895A]/15 text-[#C5895A] px-2 py-0.5 rounded uppercase tracking-wider">
                       CONCEDIDO
                     </span>
                   ) : (

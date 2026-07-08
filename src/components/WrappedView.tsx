@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
 import { CloseIcon, AuraIcon, ExportIcon, ShareIcon } from "./icons/MarginaliaIcons";
+import { MarginaliaMark } from "./branding/MarginaliaMark";
 
 interface WrappedViewProps {
   wrappedData: {
@@ -50,18 +51,16 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#1C1916] text-[#FAF8F3] flex flex-col items-center justify-center p-4 md:p-8 animate-page-turn selection:bg-orange-800/40">
+    <div className="fixed inset-0 z-50 bg-[#1C1916] text-[#FAF8F3] flex flex-col items-center justify-center p-4 md:p-8 animate-page-turn selection:bg-[#C5895A]/35">
       
       {/* Background Ambience */}
       <div className="absolute inset-0 pointer-events-none opacity-20 bg-repeat bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400')]" style={{ mixBlendMode: "overlay" }} />
-      <div className="absolute top-0 bottom-0 left-0 right-0 bg-gradient-to-b from-amber-950/10 via-stone-950/45 to-[#1C1916]" />
+      <div className="absolute top-0 bottom-0 left-0 right-0 bg-gradient-to-b from-[#C5895A]/5 via-stone-950/45 to-[#1C1916]" />
 
       {/* Header bar */}
       <div className="w-full max-w-lg flex justify-between items-center relative z-10 mb-6">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-[#FAF8F3] text-[#1C1916] flex items-center justify-center font-serif text-sm font-bold">
-            M
-          </div>
+          <MarginaliaMark size={20} dotColor="#C5895A" color="#FAF8F3" strokeWidth={3.5} />
           <span className="font-display font-bold text-xs uppercase tracking-widest text-[#BDAB9C]">
             Retrospectiva Viva
           </span>
@@ -83,7 +82,7 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
             className="flex-1 h-1 rounded-full overflow-hidden bg-[#FAF8F3]/15 border border-stone-850/50"
           >
             <div 
-              className={`h-full bg-gradient-to-r from-orange-500 to-amber-600 transition-all duration-350`}
+              className={`h-full bg-[#C5895A] transition-all duration-350`}
               style={{ width: idx < currentSlide ? "100%" : idx === currentSlide ? "100%" : "0%" }}
             />
           </div>
@@ -99,15 +98,15 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
         {/* SLIDE 0: Welcome / Slogan */}
         {currentSlide === 0 && (
           <div className="my-auto space-y-6 text-center animate-page-turn">
-            <span className="text-[12px] font-mono tracking-wide text-amber-500 uppercase block">Retrospectiva Marginalia</span>
+            <span className="text-[12px] font-mono tracking-wide text-[#C5895A] uppercase block">Retrospectiva Marginalia</span>
             
-            <div className="w-16 h-16 rounded-full border-2 border-dashed border-amber-500/50 flex items-center justify-center mx-auto mb-2 animate-spin-slow">
-              <AuraIcon className="w-6 h-6 text-amber-500" />
+            <div className="w-16 h-16 rounded-full border border-dashed border-[#C5895A]/50 flex items-center justify-center mx-auto mb-2">
+              <MarginaliaMark size={24} dotColor="#C5895A" color="#FAF8F3" strokeWidth={3} className="animate-spin-slow" />
             </div>
 
             <h2 className="font-serif text-3xl font-medium tracking-wide text-amber-50/90 leading-tight">
               O Mapa da Sua <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-400">Alma Leitora</span>
+              <span className="text-[#C5895A] italic">Alma Leitora</span>
             </h2>
             
             <p className="font-serif italic text-[15px] md:text-[16px] leading-relaxed text-[#DCD5CD] max-w-xs mx-auto">
@@ -115,7 +114,7 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
             </p>
 
             <div className="pt-6">
-              <div className="w-14 h-[1px] bg-amber-500/30 mx-auto mb-2" />
+              <div className="w-14 h-[1px] bg-[#C5895A]/30 mx-auto mb-2" />
               <p className="text-[11px] font-mono text-[#BDAB9C]">MARGINALIA • ESCRITURA VIVA</p>
             </div>
           </div>
@@ -125,7 +124,7 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
         {currentSlide === 1 && (
           <div className="my-auto space-y-6 animate-page-turn">
             <div className="text-center space-y-1.5">
-              <span className="text-[11px] font-mono tracking-wide text-amber-500 uppercase block">Capítulo 1 de 5</span>
+              <span className="text-[11px] font-mono tracking-wide text-[#C5895A] uppercase block">Capítulo 1 de 5</span>
               <h3 className="font-serif text-2xl font-medium text-amber-100/95 tracking-wide">Cartografia de Sentimentos</h3>
               <p className="text-[12px] md:text-[13px] text-[#BDAB9C] font-sans">As atmosferas onde seu coração mais habitou</p>
             </div>
@@ -135,12 +134,12 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
                 <div key={idx} className="space-y-1.5">
                   <div className="flex justify-between text-sm font-serif italic text-[#DCD5CD]">
                     <span>{emotion}</span>
-                    <span className="font-sans font-bold text-amber-500">{val}%</span>
+                    <span className="font-sans font-bold text-[#C5895A]">{val}%</span>
                   </div>
                   {/* Premium vintage bar chart */}
-                  <div className="w-full h-2 bg-stone-850 rounded-full overflow-hidden border border-amber-950/30">
+                  <div className="w-full h-2 bg-stone-850 rounded-full overflow-hidden border border-[#C5895A]/25">
                     <div 
-                      className="h-full bg-gradient-to-r from-amber-500 to-orange-600 rounded-full transition-all duration-700"
+                      className="h-full bg-[#C5895A] rounded-full transition-all duration-700"
                       style={{ width: `${val}%` }}
                     />
                   </div>
@@ -149,7 +148,7 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
             </div>
 
             <p className="text-center text-[13px] md:text-sm font-serif italic text-[#DCD5CD]/80 pt-2">
-              Seu refúgio emocional predominante é a <span className="text-amber-400 font-semibold">Melancolia</span>.
+              Seu refúgio emocional predominante é a <span className="text-[#C5895A] font-semibold">Melancolia</span>.
             </p>
           </div>
         )}
@@ -158,7 +157,7 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
         {currentSlide === 2 && (
           <div className="my-auto space-y-6 animate-page-turn">
             <div className="text-center space-y-1.5">
-              <span className="text-[11px] font-mono tracking-wide text-amber-500 uppercase block">Capítulo 2 de 5</span>
+              <span className="text-[11px] font-mono tracking-wide text-[#C5895A] uppercase block">Capítulo 2 de 5</span>
               <h3 className="font-serif text-2xl font-medium text-amber-100/95 tracking-wide">Linhas de Descoberta</h3>
               <p className="text-[12px] md:text-[13px] text-[#BDAB9C] font-sans">Os mistérios que você buscou decifrar nas margens</p>
             </div>
@@ -167,9 +166,9 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
               {wrappedData.temasPrincipais.map((theme, idx) => (
                 <div 
                   key={idx} 
-                  className="bg-[#1C1916]/50 border border-amber-950/40 p-4 rounded-xl flex gap-3.5 items-start hover:border-amber-500/30 transition-all"
+                  className="bg-[#1C1916]/50 border border-[#C5895A]/15 p-4 rounded-xl flex gap-3.5 items-start hover:border-[#C5895A]/30 transition-all"
                 >
-                  <span className="text-sm text-amber-500 font-bold mt-0.5">0{idx + 1}.</span>
+                  <span className="text-sm text-[#C5895A] font-bold mt-0.5">0{idx + 1}.</span>
                   <p className="text-[14px] md:text-[15px] font-serif italic text-[#DCD5CD] leading-relaxed">
                     “{theme}”
                   </p>
@@ -183,7 +182,7 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
         {currentSlide === 3 && (
           <div className="my-auto space-y-6 animate-page-turn">
             <div className="text-center space-y-1.5">
-              <span className="text-[11px] font-mono tracking-wide text-amber-500 uppercase block">Capítulo 3 de 5</span>
+              <span className="text-[11px] font-mono tracking-wide text-[#C5895A] uppercase block">Capítulo 3 de 5</span>
               <h3 className="font-serif text-2xl font-medium text-amber-100/95 tracking-wide">Mentes Companheiras</h3>
               <p className="text-[12px] md:text-[13px] text-[#BDAB9C] font-sans">Os pensadores que mais deitaram em sua cabeceira</p>
             </div>
@@ -196,10 +195,10 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
                 return (
                   <div 
                     key={idx} 
-                    className="w-52 bg-stone-900 border border-amber-500/35 rounded-lg py-3 px-5 text-center font-serif text-[13px] font-semibold text-[#F3E9DC] journal-shadow transition-all hover:border-amber-400"
+                    className="w-52 bg-stone-900 border border-[#C5895A]/35 rounded-lg py-3 px-5 text-center font-serif text-[13px] font-semibold text-[#F3E9DC] journal-shadow transition-all hover:border-[#C5895A]"
                     style={{ transform: `scale(${scale / 100})`, zIndex: 10 - idx }}
                   >
-                    <span className="text-[9px] font-mono uppercase text-amber-500 block mb-0.5">Volume {idx + 1}</span>
+                    <span className="text-[9px] font-mono uppercase text-[#C5895A] block mb-0.5">Volume {idx + 1}</span>
                     {author}
                   </div>
                 );
@@ -215,14 +214,14 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
         {/* SLIDE 4: Slogan & Final Psyche mapping */}
         {currentSlide === 4 && (
           <div className="my-auto space-y-6 text-center animate-page-turn">
-            <span className="text-[11px] font-mono tracking-wide text-amber-500 uppercase block">Capítulo 4 de 5</span>
+            <span className="text-[11px] font-mono tracking-wide text-[#C5895A] uppercase block">Capítulo 4 de 5</span>
             
             <div className="space-y-2">
               <p className="text-[11px] font-mono uppercase text-[#BDAB9C] tracking-wide">Seu Símbolo de Alma</p>
               <p className="text-3xl">🏮 {wrappedData.simboloPoetico}</p>
             </div>
 
-            <div className="w-12 h-[1px] bg-amber-500/30 mx-auto" />
+            <div className="w-12 h-[1px] bg-[#C5895A]/30 mx-auto" />
 
             <div className="space-y-2.5">
               <p className="text-[14px] md:text-[15px] font-serif text-[#DCD5CD] leading-relaxed max-w-sm mx-auto italic">
@@ -230,8 +229,8 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
               </p>
             </div>
 
-            <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl max-w-xs mx-auto">
-              <p className="text-[9px] font-mono text-amber-500 uppercase tracking-wide mb-1 font-semibold">Mote Poético</p>
+            <div className="p-4 bg-[#C5895A]/10 border border-[#C5895A]/20 rounded-xl max-w-xs mx-auto">
+              <p className="text-[9px] font-mono text-[#C5895A] uppercase tracking-wide mb-1 font-semibold">Mote Poético</p>
               <p className="text-xs font-serif italic font-bold text-[#FAF8F3]">
                 “{wrappedData.fraseWrapped}”
               </p>
@@ -279,7 +278,7 @@ export default function WrappedView({ wrappedData, onClose, onShare }: WrappedVi
             </button>
             <button
               onClick={onShare}
-              className="px-4.5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:opacity-90 text-white font-sans text-xs font-bold tracking-wide flex items-center gap-1.5 cursor-pointer shadow-md transition-all"
+              className="px-4.5 py-2.5 rounded-xl bg-[#C5895A] hover:bg-[#b0784a] text-white font-sans text-xs font-bold tracking-wide flex items-center gap-1.5 cursor-pointer shadow-md transition-all"
             >
               <ShareIcon className="w-4 h-4" />
               <span>Guardar Escrita</span>

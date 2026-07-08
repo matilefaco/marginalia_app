@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
 import { ExportIcon, RituaisIcon, DescobertasIcon, LinesDiaryIcon, AuraIcon } from "./icons/MarginaliaIcons";
+import { MarginaliaMark } from "./branding/MarginaliaMark";
 import { UserProfile, Margem, AuraData } from "../types";
 import { generateIdentityQuote } from "../utils/identityText";
 
@@ -128,11 +129,11 @@ export const LiteraryAura: React.FC<LiteraryAuraProps> = ({ userProfile, margens
         {/* Soft, beautiful color blob in background reflecting aestheticColor */}
         <div 
           className="absolute -top-12 -left-12 w-64 h-64 rounded-full blur-3xl opacity-20 transition-all duration-1000"
-          style={{ backgroundColor: userProfile.aestheticColor || "#C5A880" }}
+          style={{ backgroundColor: userProfile.aestheticColor || "#C5895A" }}
         />
         <div 
           className="absolute -bottom-16 -right-16 w-72 h-72 rounded-full blur-3xl opacity-15 transition-all duration-1000"
-          style={{ backgroundColor: userProfile.aestheticColor || "#9C8A7D" }}
+          style={{ backgroundColor: userProfile.aestheticColor || "#BDAB9C" }}
         />
 
         {/* Vintage corner guidelines */}
@@ -143,30 +144,30 @@ export const LiteraryAura: React.FC<LiteraryAuraProps> = ({ userProfile, margens
 
         {/* Top Header */}
         <div className="z-10 text-center space-y-2 mt-4">
-          <span className="text-[9px] font-mono tracking-widest text-[#C5A880] uppercase font-semibold">
+          <span className="text-[9px] font-mono tracking-widest text-[#C5895A] uppercase font-semibold">
             MAPA DE SINTONIZAÇÃO INTERIOR
           </span>
-          <h2 className="font-serif italic text-2xl md:text-3xl font-medium text-amber-100/90 tracking-wide">
+          <h2 className="font-serif italic text-2xl md:text-3xl font-medium text-[#FAF8F3]/90 tracking-wide">
             Sua Aura Literária
           </h2>
-          <div className="w-12 h-[1px] bg-[#C5A880]/30 mx-auto" />
+          <div className="w-12 h-[1px] bg-[#C5895A]/30 mx-auto" />
         </div>
 
         {/* Core Aura Orb Visual */}
         <div className="z-10 flex flex-col items-center my-6 relative py-4">
           <div 
-            className="w-32 h-32 md:w-36 md:h-36 rounded-full border border-dashed border-[#C5A880]/40 flex items-center justify-center relative animate-spin-slow"
+            className="w-32 h-32 md:w-36 md:h-36 rounded-full border border-dashed border-[#C5895A]/40 flex items-center justify-center relative animate-spin-slow"
           >
-            <div className="absolute inset-2 rounded-full border border-[#C5A880]/20" />
+            <div className="absolute inset-2 rounded-full border border-[#C5895A]/20" />
             <div 
               className="absolute inset-4 rounded-full filter blur-xl opacity-80 mix-blend-screen transition-all duration-1000 animate-pulse"
-              style={{ backgroundColor: userProfile.aestheticColor || "#C5A880" }}
+              style={{ backgroundColor: userProfile.aestheticColor || "#C5895A" }}
             />
             {/* Center Symbol */}
             <div className="z-20 text-[#FAF8F3]/90 transform -rotate-180">
-              {aura.symbol === "Lamparina" || aura.symbol === "Lamparina de Prata" ? <RituaisIcon className="w-8 h-8 text-amber-100" /> : 
-               aura.symbol === "Ampulheta" ? <DescobertasIcon className="w-8 h-8 text-amber-100" /> :
-               <LinesDiaryIcon className="w-8 h-8 text-amber-100" />}
+              {aura.symbol === "Lamparina" || aura.symbol === "Lamparina de Prata" ? <RituaisIcon className="w-8 h-8 text-[#FAF8F3]" /> : 
+               aura.symbol === "Ampulheta" ? <DescobertasIcon className="w-8 h-8 text-[#FAF8F3]" /> :
+               <LinesDiaryIcon className="w-8 h-8 text-[#FAF8F3]" />}
             </div>
           </div>
           <span className="text-[12px] font-mono text-[#BDAB9C] tracking-wider uppercase mt-4 block">
@@ -180,14 +181,14 @@ export const LiteraryAura: React.FC<LiteraryAuraProps> = ({ userProfile, margens
             <div key={emotion} className="space-y-1.5">
               <div className="flex justify-between items-end text-[13px] md:text-sm">
                 <span className="font-sans font-medium text-[#FAF8F3]/90 flex items-center gap-1.5">
-                  <AuraIcon className="w-3 h-3 text-[#C5A880]/90" />
+                  <AuraIcon className="w-3 h-3 text-[#C5895A]/90" />
                   {emotion}
                 </span>
                 <span className="font-mono text-[11px] text-[#BDAB9C]">{val}%</span>
               </div>
               <div className="w-full h-[1.5px] bg-[#FAF8F3]/10 relative">
                 <div 
-                  className="absolute top-0 left-0 h-full bg-[#C5A880]" 
+                  className="absolute top-0 left-0 h-full bg-[#C5895A]" 
                   style={{ width: `${val}%` }}
                 />
               </div>
@@ -205,9 +206,11 @@ export const LiteraryAura: React.FC<LiteraryAuraProps> = ({ userProfile, margens
             <p className="font-sans text-[13px] font-bold tracking-wide text-[#FAF8F3]/95">
               @{userProfile.username || "leitor_marginalia"}
             </p>
-            <p className="text-[9px] font-mono tracking-wider text-[#BDAB9C] uppercase">
-              ORGANIZANDO EMOÇÕES · MARGINALIA.APP
-            </p>
+            <div className="flex justify-center items-center gap-1.5 text-[9px] font-mono tracking-wider text-[#BDAB9C] uppercase">
+              <MarginaliaMark size={10} dotColor="#C5895A" color="currentColor" strokeWidth={3.5} className="opacity-80" />
+              <span className="font-display tracking-[0.15em] font-semibold text-[#FAF8F3]/90">Marginalia</span>
+              <span className="opacity-60">• o que fica em você</span>
+            </div>
           </div>
         </div>
       </div>

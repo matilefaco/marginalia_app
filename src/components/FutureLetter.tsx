@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
 import { FutureLetterIcon, ExportIcon } from "./icons/MarginaliaIcons";
+import { MarginaliaMark } from "./branding/MarginaliaMark";
 import { UserProfile, Margem } from "../types";
 
 interface FutureLetterProps {
@@ -80,7 +81,7 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
               UM PENSAMENTO SEU ESCRITO HÁ 30 DIAS
             </span>
             
-            <div className="space-y-1.5 border-l-2 border-[#C5A880]/60 pl-3">
+            <div className="space-y-1.5 border-l-2 border-[#C5895A]/60 pl-3">
               <p className="font-serif italic text-stone-800 text-xs md:text-sm">
                 "{selectedPastMargin.quote}"
               </p>
@@ -90,7 +91,7 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
             </div>
 
             <div className="space-y-1">
-              <span className="text-[8.5px] font-mono text-[#C5A880] tracking-wider uppercase block font-semibold">
+              <span className="text-[8.5px] font-mono text-[#C5895A] tracking-wider uppercase block font-semibold">
                 SEU SENTIMENTO ANOTADO NA ÉPOCA
               </span>
               <p className="font-sans text-xs text-[#1C1916] leading-relaxed font-light italic">
@@ -99,7 +100,7 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
             </div>
 
             <div className="pt-2 border-t border-[#BDAB9C]/10">
-              <p className="text-[10.5px] font-serif italic text-amber-900 leading-relaxed font-semibold">
+              <p className="text-[10.5px] font-serif italic text-[#C5895A] leading-relaxed font-semibold">
                 "Essa frase ainda te encontra, ou você já se despediu dela?"
               </p>
             </div>
@@ -107,7 +108,7 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
         ) : (
           <div className="space-y-4 my-auto text-center py-4">
             <div className="w-10 h-10 rounded-full bg-[#BDAB9C]/10 flex items-center justify-center mx-auto mb-2 border border-[#BDAB9C]/30">
-              <FutureLetterIcon className="w-5 h-5 text-[#C5A880]" />
+              <FutureLetterIcon className="w-5 h-5 text-[#C5895A]" />
             </div>
             <h4 className="font-serif italic text-base text-[#1C1916] font-semibold">
               Escreva hoje uma margem para o futuro
@@ -119,9 +120,10 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
         )}
 
         {/* Brand signoff for export */}
-        <div className="text-center pt-2 border-t border-[#BDAB9C]/10 mt-2">
-          <span className="text-[7.5px] font-mono tracking-widest text-[#BDAB9C]/70 uppercase block">
-            CONVERSAS COM SEU EU DO PASSADO · MARGINALIA.APP
+        <div className="text-center pt-2 border-t border-[#BDAB9C]/10 mt-2 flex justify-center items-center gap-1.5">
+          <MarginaliaMark size={9} dotColor="#C5895A" color="#BDAB9C" strokeWidth={3.5} className="opacity-80" />
+          <span className="text-[7.5px] font-mono tracking-widest text-[#BDAB9C]/70 uppercase block font-sans font-medium">
+            CONVERSAS COM SEU EU DO PASSADO • MARGINALIA.APP
           </span>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
 import { HeartIcon, ExportIcon } from "./icons/MarginaliaIcons";
+import { MarginaliaMark } from "./branding/MarginaliaMark";
 import { UserProfile, Margem } from "../types";
 import { calculateCompatibility, MOCK_COMPATIBLE_READERS } from "../utils/compatibility";
 
@@ -61,39 +62,39 @@ export const LiteraryCompatibility: React.FC<LiteraryCompatibilityProps> = ({ us
       {/* Visual Exportable dual-sided story card */}
       <div 
         ref={cardRef}
-        className="bg-[#FAF8F3] border-2 border-[#C5A880] rounded-xl p-6 md:p-8 relative overflow-hidden flex flex-col justify-between aspect-square md:aspect-[4/3] text-center"
+        className="bg-[#FAF8F3] border-2 border-[#C5895A] rounded-xl p-6 md:p-8 relative overflow-hidden flex flex-col justify-between aspect-square md:aspect-[4/3] text-center"
       >
         {/* Subtle texture layout */}
         <div className="absolute inset-0 tactile-overlay opacity-30 pointer-events-none" />
-        <div className="absolute inset-2 border border-[#C5A880]/20 rounded-lg pointer-events-none" />
+        <div className="absolute inset-2 border border-[#C5895A]/20 rounded-lg pointer-events-none" />
 
         {/* Top Header */}
         <div className="z-10 text-center space-y-1">
-          <span className="text-[9px] font-mono tracking-widest text-[#C5A880] uppercase block font-semibold">
+          <span className="text-[9px] font-mono tracking-widest text-[#C5895A] uppercase block font-semibold">
             AFINIDADE ENTRE ALMAS LEITORAS
           </span>
-          <div className="w-8 h-[1px] bg-[#C5A880]/40 mx-auto" />
+          <div className="w-8 h-[1px] bg-[#C5895A]/40 mx-auto" />
         </div>
 
         {/* Dual Avatars and Large Score */}
         <div className="z-10 flex items-center justify-center gap-8 md:gap-12 my-3">
           <div className="flex flex-col items-center gap-1.5">
-            <div className="w-11 h-11 rounded-full bg-[#1C1916] text-[#FAF8F3] flex items-center justify-center font-display text-sm font-bold border-2 border-[#C5A880]">
+            <div className="w-11 h-11 rounded-full bg-[#1C1916] text-[#FAF8F3] flex items-center justify-center font-display text-sm font-bold border-2 border-[#C5895A]">
               {userProfile.name?.charAt(0) || "U"}
             </div>
             <span className="text-[10px] font-mono text-[#3D3D3D]">@{userProfile.username || "voce"}</span>
           </div>
 
           <div className="relative">
-            <div className="absolute inset-0 bg-[#C5A880]/10 rounded-full filter blur-md transform scale-125" />
+            <div className="absolute inset-0 bg-[#C5895A]/10 rounded-full filter blur-md transform scale-125" />
             <div className="relative z-10 w-20 h-20 rounded-full border-2 border-[#1C1916] flex flex-col items-center justify-center bg-[#FAF8F3]">
               <span className="text-2xl font-serif font-black text-[#1C1916] leading-none">{compatibility.score}%</span>
-              <span className="text-[8px] font-mono tracking-widest text-[#C5A880] uppercase font-bold mt-1">SINTONIA</span>
+              <span className="text-[8px] font-mono tracking-widest text-[#C5895A] uppercase font-bold mt-1">SINTONIA</span>
             </div>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
-            <div className="w-11 h-11 rounded-full bg-stone-200 text-[#1C1916] flex items-center justify-center font-display text-sm font-bold border-2 border-[#C5A880]">
+            <div className="w-11 h-11 rounded-full bg-stone-200 text-[#1C1916] flex items-center justify-center font-display text-sm font-bold border-2 border-[#C5895A]">
               {otherUser.name.charAt(0)}
             </div>
             <span className="text-[10px] font-mono text-[#3D3D3D]">@{otherUser.username}</span>
@@ -104,7 +105,7 @@ export const LiteraryCompatibility: React.FC<LiteraryCompatibilityProps> = ({ us
         <div className="z-10 space-y-2 px-2 md:px-8 max-w-lg mx-auto">
           {compatibility.motifs.map((motif, i) => (
             <div key={i} className="flex items-center gap-2 justify-center text-[11px] md:text-xs text-stone-800">
-              <HeartIcon size={12} className="text-[#C5A880] fill-[#C5A880] flex-shrink-0" />
+              <HeartIcon size={12} className="text-[#C5895A] fill-[#C5895A] flex-shrink-0" />
               <p className="font-sans italic leading-relaxed text-center">{motif}</p>
             </div>
           ))}
@@ -118,9 +119,10 @@ export const LiteraryCompatibility: React.FC<LiteraryCompatibilityProps> = ({ us
         </div>
 
         {/* Branding footer */}
-        <div className="z-10 text-center pt-2 pointer-events-none">
-          <span className="text-[8px] font-mono tracking-widest text-[#BDAB9C] uppercase block">
-            CONEXÕES SILENCIOSAS · MARGINALIA
+        <div className="z-10 text-center pt-2 pointer-events-none flex justify-center items-center gap-1.5">
+          <MarginaliaMark size={9} dotColor="#C5895A" color="#BDAB9C" strokeWidth={3.5} className="opacity-80" />
+          <span className="text-[8px] font-mono tracking-widest text-[#BDAB9C] uppercase font-sans font-medium">
+            CONEXÕES SILENCIOSAS • MARGINALIA.APP
           </span>
         </div>
       </div>
