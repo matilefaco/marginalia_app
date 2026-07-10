@@ -8,6 +8,7 @@ import { SoulMap } from "./SoulMap";
 import { IdentityQuoteCard } from "./IdentityQuoteCard";
 import { LiteraryCompatibility } from "./LiteraryCompatibility";
 import { ErrorBoundary } from "./ErrorBoundary";
+import IconShowcase from "./IconShowcase";
 
 interface ReaderProfileProps {
   userProfile: UserProfile;
@@ -18,7 +19,7 @@ interface ReaderProfileProps {
 }
 
 export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, onReset, onOpenAddMargem }: ReaderProfileProps) {
-  const [activeSubTab, setActiveSubTab] = useState<"identidade" | "aura" | "mapa" | "compatibilidade" | "historico" | "recompensas">("identidade");
+  const [activeSubTab, setActiveSubTab] = useState<"identidade" | "aura" | "mapa" | "compatibilidade" | "historico" | "recompensas" | "marca">("identidade");
   const [exportingCard, setExportingCard] = useState(false);
   const identityCardRef = useRef<HTMLDivElement>(null);
 
@@ -208,6 +209,14 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
           }`}
         >
           Títulos Honorários
+        </button>
+        <button
+          onClick={() => setActiveSubTab("marca")}
+          className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+            activeSubTab === "marca" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
+          }`}
+        >
+          Sistema de Marca
         </button>
       </div>
 
@@ -445,6 +454,12 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {activeSubTab === "marca" && (
+        <div className="space-y-6 animate-page-turn">
+          <IconShowcase />
         </div>
       )}
 
