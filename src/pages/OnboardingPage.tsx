@@ -26,6 +26,7 @@ export const OnboardingPage: React.FC = () => {
     setOnboardingStep,
     onboardingForm,
     onboardingForm: { name, username },
+    setOnboardingForm,
     originBooks,
     setOriginBooks,
     bookQuery,
@@ -44,6 +45,13 @@ export const OnboardingPage: React.FC = () => {
     setEmotionalResidue,
     handleGenreToggle
   } = useOnboardingForm();
+
+  const updateOnboardingForm = (updates: Partial<typeof onboardingForm>) => {
+    setOnboardingForm(previous => ({
+      ...previous,
+      ...updates
+    }));
+  };
 
   const {
     loadingProfile,
@@ -121,14 +129,7 @@ export const OnboardingPage: React.FC = () => {
       {onboardingStep === 1 && (
         <IdentificationStep
           form={onboardingForm}
-          onFormChange={(updates) => {
-            const keys = Object.keys(updates) as Array<keyof typeof updates>;
-            keys.forEach((key) => {
-              (onboardingForm as any)[key] = updates[key];
-            });
-            // trigger state rerender
-            setBookQuery((q) => q);
-          }}
+          onFormChange={updateOnboardingForm}
           onNext={() => setOnboardingStep(2)}
         />
       )}
@@ -168,14 +169,7 @@ export const OnboardingPage: React.FC = () => {
       {onboardingStep === 4 && (
         <ReadingRitualsStep
           form={onboardingForm}
-          onFormChange={(updates) => {
-            const keys = Object.keys(updates) as Array<keyof typeof updates>;
-            keys.forEach((key) => {
-              (onboardingForm as any)[key] = updates[key];
-            });
-            // trigger state rerender
-            setBookQuery((q) => q);
-          }}
+          onFormChange={updateOnboardingForm}
           onSubmit={handleStartOnboardingAI}
           onPrev={() => setOnboardingStep(3)}
         />

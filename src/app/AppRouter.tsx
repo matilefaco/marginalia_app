@@ -5,8 +5,6 @@ import { ProfileRequiredRoute } from "../guards/ProfileRequiredRoute";
 import { GuestOnlyRoute } from "../guards/GuestOnlyRoute";
 
 import { MargensPage } from "../pages/MargensPage";
-import { NewMargemPage } from "../pages/NewMargemPage";
-import { OnboardingPage } from "../pages/OnboardingPage";
 import { EcosPage } from "../pages/EcosPage";
 import { ProfilePage } from "../pages/ProfilePage";
 
@@ -14,8 +12,16 @@ import { useMarginalia } from "../context/MarginaliaContext";
 import { PageLoading } from "../components/feedback/PageLoading";
 import { RouteErrorBoundary } from "../components/feedback/RouteErrorBoundary";
 import { RouteNotFound } from "../components/feedback/RouteNotFound";
+import { FeatureRoute } from "../components/FeatureRoute";
+import { isFeatureEnabled } from "../config/featureFlags";
 
-// Heavy components lazily loaded to minimize initial bundle size
+// Lazy-loaded pages to optimize initial bundle size
+const OnboardingPage = lazy(() => 
+  import("../pages/OnboardingPage").then(m => ({ default: m.OnboardingPage }))
+);
+const NewMargemPage = lazy(() => 
+  import("../pages/NewMargemPage").then(m => ({ default: m.NewMargemPage }))
+);
 const DiscoveryPage = lazy(() => 
   import("../pages/DiscoveryPage").then(m => ({ default: m.DiscoveryPage }))
 );
@@ -31,9 +37,11 @@ const SoulMapPage = lazy(() =>
 const WrappedPage = lazy(() => 
   import("../pages/WrappedPage")
 );
-const IconShowcasePage = lazy(() => 
-  import("../pages/IconShowcasePage").then(m => ({ default: m.IconShowcasePage }))
-);
+
+// Conditionally lazy import only in DEV mode for tree-shaking in production
+const IconShowcasePage = import.meta.env.DEV
+  ? lazy(() => import("../pages/IconShowcasePage").then(m => ({ default: m.IconShowcasePage })))
+  : null;
 
 const RootRedirect: React.FC = () => {
   const { userProfile } = useMarginalia();
@@ -49,9 +57,13 @@ export const AppRouter: React.FC = () => {
         <Route 
           path="/onboarding" 
           element={
-            <GuestOnlyRoute>
-              <OnboardingPage />
-            </GuestOnlyRoute>
+            <RouteErrorBoundary>
+              <GuestOnlyRoute>
+                <Suspense fallback={<PageLoading />}>
+                  <OnboardingPage />
+                </Suspense>
+              </GuestOnlyRoute>
+            </RouteErrorBoundary>
           } 
         />
 
@@ -63,21 +75,62 @@ export const AppRouter: React.FC = () => {
             </ProfileRequiredRoute>
           }
         >
-          {/* Eagerly loaded core routes */}
-          <Route path="/margens" element={<MargensPage />} />
-          <Route path="/margens/nova" element={<NewMargemPage />} />
-          <Route path="/ecos" element={<EcosPage />} />
-          <Route path="/ecos/:ecoId" element={<EcosPage />} />
-          <Route path="/perfil" element={<ProfilePage />} />
+          {/* Protected core/central routes wrapped individually in ErrorBoundaries */}
+          <Route 
+            path="/margens" 
+            element={
+              <RouteErrorBoundary>
+                <MargensPage />
+              </RouteErrorBoundary>
+            } 
+          />
+          <Route 
+            path="/margens/nova" 
+            element={
+              <RouteErrorBoundary>
+                <FeatureRoute flag="createMargin">
+                  <Suspense fallback={<PageLoading />}>
+                    <NewMargemPage />
+                  </Suspense>
+                </FeatureRoute>
+              </RouteErrorBoundary>
+            } 
+          />
+          <Route 
+            path="/ecos" 
+            element={
+              <RouteErrorBoundary>
+                <EcosPage />
+              </RouteErrorBoundary>
+            } 
+          />
+          <Route 
+            path="/ecos/:ecoId" 
+            element={
+              <RouteErrorBoundary>
+                <EcosPage />
+              </RouteErrorBoundary>
+            } 
+          />
+          <Route 
+            path="/perfil" 
+            element={
+              <RouteErrorBoundary>
+                <ProfilePage />
+              </RouteErrorBoundary>
+            } 
+          />
 
           {/* Lazily loaded pages, each isolated with a Suspense fallback and ErrorBoundary */}
           <Route 
             path="/descobrir" 
             element={
               <RouteErrorBoundary>
-                <Suspense fallback={<PageLoading />}>
-                  <DiscoveryPage />
-                </Suspense>
+                <FeatureRoute flag="editorialDiscovery">
+                  <Suspense fallback={<PageLoading />}>
+                    <DiscoveryPage />
+                  </Suspense>
+                </FeatureRoute>
               </RouteErrorBoundary>
             } 
           />
@@ -85,9 +138,11 @@ export const AppRouter: React.FC = () => {
             path="/companheira" 
             element={
               <RouteErrorBoundary>
-                <Suspense fallback={<PageLoading />}>
-                  <CompanionPage />
-                </Suspense>
+                <FeatureRoute flag="companion">
+                  <Suspense fallback={<PageLoading />}>
+                    <CompanionPage />
+                  </Suspense>
+                </FeatureRoute>
               </RouteErrorBoundary>
             } 
           />
@@ -95,9 +150,11 @@ export const AppRouter: React.FC = () => {
             path="/perfil/aura" 
             element={
               <RouteErrorBoundary>
-                <Suspense fallback={<PageLoading />}>
-                  <LiteraryAuraPage />
-                </Suspense>
+                <FeatureRoute flag="aura">
+                  <Suspense fallback={<PageLoading />}>
+                    <LiteraryAuraPage />
+                  </Suspense>
+                </FeatureRoute>
               </RouteErrorBoundary>
             } 
           />
@@ -105,9 +162,11 @@ export const AppRouter: React.FC = () => {
             path="/perfil/mapa-da-alma" 
             element={
               <RouteErrorBoundary>
-                <Suspense fallback={<PageLoading />}>
-                  <SoulMapPage />
-                </Suspense>
+                <FeatureRoute flag="soulMap">
+                  <Suspense fallback={<PageLoading />}>
+                    <SoulMapPage />
+                  </Suspense>
+                </FeatureRoute>
               </RouteErrorBoundary>
             } 
           />
@@ -115,28 +174,38 @@ export const AppRouter: React.FC = () => {
             path="/perfil/retrospectiva" 
             element={
               <RouteErrorBoundary>
-                <Suspense fallback={<PageLoading />}>
-                  <WrappedPage />
-                </Suspense>
+                <FeatureRoute flag="wrapped">
+                  <Suspense fallback={<PageLoading />}>
+                    <WrappedPage />
+                  </Suspense>
+                </FeatureRoute>
               </RouteErrorBoundary>
             } 
           />
-          <Route 
-            path="/__internal/icon-system" 
-            element={
-              <RouteErrorBoundary>
-                <Suspense fallback={<PageLoading />}>
-                  <IconShowcasePage />
-                </Suspense>
-              </RouteErrorBoundary>
-            } 
-          />
+
+          {/* Icon System Showcase only registered in Development with the feature flag active */}
+          {import.meta.env.DEV && isFeatureEnabled("internalIconShowcase") && IconShowcasePage && (
+            <Route 
+              path="/__internal/icon-system" 
+              element={
+                <RouteErrorBoundary>
+                  <Suspense fallback={<PageLoading />}>
+                    <IconShowcasePage />
+                  </Suspense>
+                </RouteErrorBoundary>
+              } 
+            />
+          )}
         </Route>
 
         {/* Canonical Redirects */}
         <Route path="/descobertas" element={<Navigate to="/descobrir" replace />} />
         <Route path="/companion" element={<Navigate to="/companheira" replace />} />
-        <Route path="/simbolos" element={<Navigate to="/__internal/icon-system" replace />} />
+        
+        {/* Dynamic Simbolos redirect only in DEV with showcase enabled */}
+        {import.meta.env.DEV && isFeatureEnabled("internalIconShowcase") && (
+          <Route path="/simbolos" element={<Navigate to="/__internal/icon-system" replace />} />
+        )}
 
         {/* Fallback routes and redirects */}
         <Route path="/" element={<RootRedirect />} />

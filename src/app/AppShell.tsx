@@ -33,10 +33,7 @@ export const AppShell: React.FC = () => {
     challenges, 
     showPersistenceWarning, 
     setShowPersistenceWarning, 
-    setShowResetModal,
-    setChatActiveMargem,
-    setChatMessages,
-    setUserInputMessage
+    setShowResetModal
   } = useMarginalia();
 
   if (!userProfile) return null;

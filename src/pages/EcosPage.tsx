@@ -9,13 +9,10 @@ import { EchoIcon, MarginIcon } from "../components/icons/MarginaliaIcons";
 export const EcosPage: React.FC = () => {
   const { ecoId } = useParams();
   const navigate = useNavigate();
-  const { 
-    margens, 
-    ecoAIPrompts, 
-    setEcoAIPrompts, 
-    loadingEcoPrompt, 
-    setLoadingEcoPrompt 
-  } = useMarginalia();
+  const { margens } = useMarginalia();
+
+  const [ecoAIPrompts, setEcoAIPrompts] = useState<Record<string, string>>({});
+  const [loadingEcoPrompt, setLoadingEcoPrompt] = useState(false);
 
   const selectedEco = INITIAL_ECOS.find(e => e.id === ecoId);
 

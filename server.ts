@@ -504,6 +504,11 @@ Retorne EXCLUSIVAMENTE em formato JSON estrito de acordo com o esquema solicitad
   }
 });
 
+// Fallback JSON 404 for any unhandled /api/* routes
+app.all("/api/*", (req, res) => {
+  res.status(404).json({ error: "Not Found" });
+});
+
 // Vite middleware setup
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {

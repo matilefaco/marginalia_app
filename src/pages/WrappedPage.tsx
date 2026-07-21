@@ -9,14 +9,12 @@ import { MarginaliaMark } from "../components/branding/MarginaliaMark";
 export const WrappedPage: React.FC = () => {
   const { 
     userProfile, 
-    margens,
-    wrappedData,
-    setWrappedData,
-    generatingWrapped,
-    setGeneratingWrapped,
-    wrappedErrorMessage,
-    setWrappedErrorMessage
+    margens
   } = useMarginalia();
+
+  const [wrappedData, setWrappedData] = useState<any>(null);
+  const [generatingWrapped, setGeneratingWrapped] = useState(false);
+  const [wrappedErrorMessage, setWrappedErrorMessage] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const [showShareSuccess, setShowShareSuccess] = useState(false);

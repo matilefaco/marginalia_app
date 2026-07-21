@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   BookOpen, 
@@ -21,24 +21,22 @@ import { DailyOpeningMoment } from "../components/DailyOpeningMoment";
 import { EchoIcon } from "../components/icons/MarginaliaIcons";
 import { orderFeedForDiscovery, pickMargemDoDia } from "../utils/feedAlgorithm";
 
+const LazyFutureLetter = lazy(() => import("../components/FutureLetter"));
+
 export const MargensPage: React.FC = () => {
   const { 
     margens, 
     setMargens, 
     userProfile, 
     triggerChallengeComplete, 
-    setSharingMargem, 
-    setChatActiveMargem, 
-    setChatMessages, 
-    setUserInputMessage,
-    feedMode,
-    setFeedMode,
-    setShowFutureLetter
+    setSharingMargem
   } = useMarginalia();
 
   const navigate = useNavigate();
 
   // Local interactive states for feed
+  const [feedMode, setFeedMode] = useState<"minhas-margens" | "curadoria">("minhas-margens");
+  const [showFutureLetter, setShowFutureLetter] = useState(false);
   const [unlockedSpoilers, setUnlockedSpoilers] = useState<Record<string, boolean>>({});
   const [activeCommentMargemId, setActiveCommentMargemId] = useState<string | null>(null);
   const [newCommentText, setNewCommentText] = useState("");
@@ -348,16 +346,12 @@ export const MargensPage: React.FC = () => {
                     {/* Send active quote to AI chatbot instantly */}
                     <button
                       onClick={() => {
-                        setChatActiveMargem(margem);
-                        setChatMessages([
-                          {
-                            role: "user",
-                            content: `Gostaria de debater o trecho de "${margem.bookTitle}" com você. O trecho é: "${margem.quote}". O que você pode expandir sobre ele?`,
-                            timestamp: new Date()
+                        navigate("/companheira", {
+                          state: {
+                            marginId: margem.id,
+                            initialMessage: `Gostaria de debater o trecho de "${margem.bookTitle}" com você. O trecho é: "${margem.quote}". O que você pode expandir sobre ele?`
                           }
-                        ]);
-                        setUserInputMessage(" "); // invisibly nudge to trigger companion
-                        navigate("/companheira");
+                        });
                       }}
                       className="text-[10px] font-sans text-[#BDAB9C] hover:text-[#1C1916] flex items-center gap-1 transition-colors cursor-pointer"
                       title="Debater trecho com a Companheira IA"
@@ -454,6 +448,12 @@ export const MargensPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {showFutureLetter && (
+        <Suspense fallback={null}>
+          <LazyFutureLetter onClose={() => setShowFutureLetter(false)} />
+        </Suspense>
+      )}
 
     </div>
   );
