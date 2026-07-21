@@ -1,6 +1,7 @@
 import { UserProfile, Margem, Challenge } from "../types";
+import { isFeatureEnabled } from "../config/featureFlags";
 
-const STORAGE_SCHEMA_VERSION = "marginalia_v1";
+const STORAGE_SCHEMA_VERSION = "marginalia_v2";
 
 /**
  * Safe JSON parser with error handling and fallback
@@ -40,13 +41,21 @@ export const getStoredProfile = (): UserProfile | null => {
     const profile = safeParse<UserProfile>(saved, null as any);
     if (!profile) return null;
 
-    // Defensive migration to clean up pre-existing profiles with simulated/fallback data
     let modified = false;
 
+    // Normalizar fields enquanto desativados
+    if (profile.streakDays !== 0 || profile.booksReadCount !== 0 || profile.savedCount !== 0) {
+      profile.streakDays = 0;
+      profile.booksReadCount = 0;
+      profile.savedCount = 0;
+      modified = true;
+    }
+
     if (profile.literaryDNA) {
-      // Clear old hardcoded dominant emotions/identity formulas
+      // Clear mock/simulated dominant emotions and identity formulas
       const emotions = profile.literaryDNA.dominantEmotions || {};
-      if (emotions["Melancolia Elegante"] === 35 && emotions["Desejo Impossível"] === 25) {
+      const hasEmotions = Object.keys(emotions).length > 0;
+      if (hasEmotions || profile.literaryDNA.identityFormula) {
         profile.literaryDNA.dominantEmotions = {};
         profile.literaryDNA.identityFormula = "";
         modified = true;
@@ -54,30 +63,26 @@ export const getStoredProfile = (): UserProfile | null => {
 
       // Clear default authors if they are the simulated fallbacks and weren't in originBooks
       if (Array.isArray(profile.literaryDNA.shapingAuthors)) {
-        const hasClarice = profile.literaryDNA.shapingAuthors.includes("Clarice Lispector");
-        const hasGabo = profile.literaryDNA.shapingAuthors.includes("Gabriel García Márquez");
-        if (hasClarice || hasGabo) {
-          const originBookAuthors = (profile.literaryDNA.originBooks || []).map(b => b.author).filter(a => a && a !== "Autor Desconhecido");
-          const beforeLen = profile.literaryDNA.shapingAuthors.length;
-          profile.literaryDNA.shapingAuthors = profile.literaryDNA.shapingAuthors.filter(author => {
-            const isDefault = author === "Clarice Lispector" || author === "Gabriel García Márquez";
-            if (!isDefault) return true;
-            return originBookAuthors.includes(author);
-          });
-          if (profile.literaryDNA.shapingAuthors.length !== beforeLen) {
-            modified = true;
-          }
+        const originBookAuthors = (profile.literaryDNA.originBooks || []).map(b => b.author).filter(a => a && a !== "Autor Desconhecido");
+        const beforeLen = profile.literaryDNA.shapingAuthors.length;
+        profile.literaryDNA.shapingAuthors = profile.literaryDNA.shapingAuthors.filter(author => {
+          const isDefault = author === "Clarice Lispector" || author === "Gabriel García Márquez";
+          if (!isDefault) return true;
+          return originBookAuthors.includes(author);
+        });
+        if (profile.literaryDNA.shapingAuthors.length !== beforeLen) {
+          modified = true;
         }
       }
     }
 
-    // Recommended ecosystems cleanup (revert default fallback to mapped/universais)
+    // Recommended ecosystems cleanup (no default Clássicos Universais if insufficient data, just empty)
     if (Array.isArray(profile.recommendedEcos)) {
-      const isOldFallback = profile.recommendedEcos.length === 2 && 
-                            profile.recommendedEcos.includes("Filosofia Existencialista") && 
-                            profile.recommendedEcos.includes("Clássicos Russos");
+      const containsOldFallbacks = profile.recommendedEcos.includes("Filosofia Existencialista") || 
+                                   profile.recommendedEcos.includes("Clássicos Russos") ||
+                                   profile.recommendedEcos.includes("Clássicos Universais");
       
-      if (isOldFallback) {
+      if (containsOldFallbacks) {
         const genreToEcoMap: Record<string, string> = {
           "Literatura Clássica": "Clássicos Russos",
           "Poesia e Lírica": "Poesia Marginal",
@@ -95,17 +100,15 @@ export const getStoredProfile = (): UserProfile | null => {
             matchedEcos.push(eco);
           }
         });
-        profile.recommendedEcos = matchedEcos.length > 0 ? matchedEcos : ["Clássicos Universais"];
+        profile.recommendedEcos = matchedEcos; // No "Clássicos Universais" fallback here, use [] if empty
         modified = true;
       }
     }
 
     // Ensure persistent mock emotionalMap is cleared
     if (profile.emotionalMap && Object.keys(profile.emotionalMap).length > 0) {
-      if (profile.emotionalMap["Melancolia Elegante"] === 35 || profile.emotionalMap["Solidão Bonita"] === 25) {
-        profile.emotionalMap = {};
-        modified = true;
-      }
+      profile.emotionalMap = {};
+      modified = true;
     }
 
     if (modified) {
@@ -149,7 +152,13 @@ export const getStoredMargens = (fallback: Margem[]): Margem[] => {
 
 export const setStoredMargens = (margens: Margem[]): void => {
   try {
-    localStorage.setItem("marginalia_margens", JSON.stringify(margens));
+    const onlyUserMargins = margens.filter(
+      margem => margem && !margem.isEditorial
+    );
+    localStorage.setItem(
+      "marginalia_margens",
+      JSON.stringify(onlyUserMargins)
+    );
   } catch (error) {
     console.error("Failed to save margens to storage:", error);
   }
@@ -157,6 +166,10 @@ export const setStoredMargens = (margens: Margem[]): void => {
 
 export const getStoredChallenges = (fallback: Challenge[]): Challenge[] => {
   try {
+    if (!isFeatureEnabled("weeklyRituals")) {
+      localStorage.removeItem("marginalia_challenges");
+      return [];
+    }
     const saved = localStorage.getItem("marginalia_challenges");
     return saved ? safeParse<Challenge[]>(saved, fallback) : fallback;
   } catch (error) {
@@ -167,6 +180,10 @@ export const getStoredChallenges = (fallback: Challenge[]): Challenge[] => {
 
 export const setStoredChallenges = (challenges: Challenge[]): void => {
   try {
+    if (!isFeatureEnabled("weeklyRituals")) {
+      localStorage.removeItem("marginalia_challenges");
+      return;
+    }
     localStorage.setItem("marginalia_challenges", JSON.stringify(challenges));
   } catch (error) {
     console.error("Failed to save challenges to storage:", error);

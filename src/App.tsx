@@ -27,7 +27,6 @@ import {
   Sparkle,
   HelpCircle,
   Eye,
-  LogOut,
   AlertCircle,
   Clock,
   Download
@@ -307,35 +306,83 @@ export default function App() {
       "Ficção Científica": "Ficção Distópica"
     };
 
-    const selectedEcos = form.genres.map(g => genreToEcoMap[g]).filter(Boolean);
-    const recommendedEcos = selectedEcos.length > 0 ? selectedEcos : ["Clássicos Universais"];
+    const genresList = form.genres || [];
+    const authorsList = [
+      ...new Set([
+        ...(booksList.map(b => b.author).filter(a => a && a !== "Autor Desconhecido")),
+        ...(form.favoriteAuthors ? form.favoriteAuthors.split(",").map(a => a.trim()).filter(Boolean) : [])
+      ])
+    ];
+    const booksListTitles = [
+      ...new Set([
+        ...(booksList.map(b => b.title).filter(Boolean)),
+        ...(form.favoriteBooks ? form.favoriteBooks.split(",").map(b => b.trim()).filter(Boolean) : [])
+      ])
+    ];
+
+    let title = "Perfil Literário Inicial";
+    let description = "Seu rastro de leitura começou a ser desenhado. À medida que você registrar suas reflexões nas margens, sua identidade poética ganhará novos contornos.";
+    let signatureQuote = "Ler é deparar-se com o pensamento alheio nas margens do próprio ser.";
+    let aestheticColor = "#BDAB9C";
+    let aestheticSymbol = "Pena de Ganso";
+
+    if (genresList.length > 0 || authorsList.length > 0 || booksListTitles.length > 0) {
+      const mainGenre = genresList[0] || "";
+      const mainAuthor = authorsList[0] || "";
+      const mainBook = booksListTitles[0] || "";
+
+      if (mainGenre && mainAuthor) {
+        title = `Leitor de Afinidades (${mainGenre})`;
+        description = `Seu perfil reflete um interesse pelas atmosferas de ${mainGenre}, movido pela influência artística de autores como ${mainAuthor}.`;
+      } else if (mainGenre) {
+        title = `Explorador de ${mainGenre}`;
+        description = `Suas escolhas apontam para uma sensibilidade sintonizada com ${mainGenre}, revelando um olhar atento aos subtextos dessa atmosfera.`;
+      } else if (mainAuthor) {
+        title = `Arqueólogo Literário`;
+        description = `Suas leituras orbitam ao redor de referências como ${mainAuthor}, buscando compreender as minúcias de sua escrita e estilo.`;
+      } else if (mainBook) {
+        title = `Leitor de Afinidades`;
+        description = `Seu diário se inicia sob a inspiração de obras marcantes como "${mainBook}", onde cada margem é uma nova reflexão.`;
+      }
+    }
+
+    const selectedEcos = genresList.map(g => genreToEcoMap[g]).filter(Boolean);
+    const recommendedEcos = selectedEcos; // No default "Clássicos Universais" if empty
 
     const fallbackDNA = {
       originBooks: booksList,
-      shapingAuthors: [
-        ...new Set([
-          ...(booksList.map(b => b.author).filter(a => a && a !== "Autor Desconhecido")),
-          ...(form.favoriteAuthors ? form.favoriteAuthors.split(",").map(a => a.trim()).filter(Boolean) : [])
-        ])
-      ].slice(0, 3),
+      shapingAuthors: authorsList.slice(0, 3),
       dominantEmotions: {} as Record<string, number>,
       identityFormula: "",
-      sharePhrase: booksList.length > 0
-        ? `Você lê como quem busca abrigo nos rastros de "${booksList[0].title}".`
-        : "Você lê como quem procura uma casa dentro das frases."
+      sharePhrase: booksListTitles.length > 0
+        ? `Você lê como quem busca abrigo nos rastros de "${booksListTitles[0]}".`
+        : "Você lê como quem procura uma casa dentro das páginas."
     };
 
+    // Bio dynamic
+    let bioParts = [];
+    if (genresList.length > 0) {
+      bioParts.push(`Sintonizado com ${genresList.slice(0, 2).join(" e ")}`);
+    }
+    if (authorsList.length > 0) {
+      bioParts.push(`Inspirado pela escrita de ${authorsList.slice(0, 2).join(", ")}`);
+    }
+    if (form.habits) {
+      bioParts.push(`Lê habitualmente: ${form.habits.toLowerCase()}`);
+    }
+    const bio = bioParts.join(". ") || "Iniciando um novo diário de descobertas poéticas.";
+
     return {
-      title: "O Filósofo Silencioso",
-      description: "Você enxerga nas entrelinhas uma conversa silenciosa sobre a existência humana. Seus hábitos apontam para reflexões meditativas, colecionando pensamentos profundos.",
-      signatureQuote: "Pensar é o ato de tatear o invisível no escuro.",
+      title,
+      description,
+      signatureQuote,
       recommendedEcos,
-      aestheticColor: "#BDAB9C",
-      aestheticSymbol: "Lamparina",
+      aestheticColor,
+      aestheticSymbol,
       name: form.name,
       username: form.username,
       avatarSeed: form.username.toLowerCase(),
-      bio: `Leitor devoto de ${form.genres.slice(0, 2).join(" e ") || "clássicos"}. Escrevendo margens sob a influência de ${form.favoriteAuthors || "grandes mentes"}.`,
+      bio,
       streakDays: 0,
       booksReadCount: 0,
       savedCount: 0,
@@ -449,10 +496,10 @@ export default function App() {
       console.error("[AuraFlow] request failed, using fallback", err);
       
       const fallbackProfile = createFallbackLiteraryProfile(onboardingForm, originBooks);
-      console.log("[AuraFlow] normalized profile", fallbackProfile);
+      console.log("[AuraFlow] local profile fallback built", fallbackProfile);
       
       setGeneratedProfile(fallbackProfile);
-      setOnboardingGenerationState("ready");
+      setOnboardingGenerationState("error");
     } finally {
       console.log("[AuraFlow] state ready (or error resolved to ready)");
       setLoadingProfile(false);
@@ -689,7 +736,36 @@ export default function App() {
     setUserProfile(null);
     setOnboardingStep(1);
     setMargens([]); // Emptied of mock margins to keep profile clean
-    setChallenges(INITIAL_CHALLENGES);
+    setChallenges([]);
+    setOriginBooks([]);
+    setBookQuery("");
+    setBookSearchResults([]);
+    setSelectedSearchBook(null);
+    setEmotionalResidue("");
+    setManualTitle("");
+    setManualAuthor("");
+    setNewMargem({
+      quote: "",
+      thought: "",
+      bookTitle: "",
+      author: "",
+      spoilerLevel: "none",
+      themeKey: "classic",
+      ecoId: ""
+    });
+    setShowAddMargem(false);
+    setCaptureState("choose");
+    setSelectedEco(null);
+    setFeedMode("minhas-margens");
+    setChatActiveMargem(null);
+    setSharingMargem(null);
+    setPostMargemMomentData(null);
+    setEcoAIPrompts({});
+    setUnlockedSpoilers({});
+    setActiveCommentMargemId(null);
+    setNewCommentText("");
+    setShowFutureLetter(false);
+    setShowPersistenceWarning(true);
     setOnboardingForm({
       name: "",
       username: "",
@@ -1273,7 +1349,7 @@ export default function App() {
                             M A R G I N A L I A
                           </span>
                           <span className="text-[10px] font-mono tracking-widest text-[#BDAB9C] uppercase font-semibold">
-                            AURA LITERÁRIA • @{safeProfile.username}
+                            {onboardingGenerationState === "error" ? "INTERPRETAÇÃO LOCAL" : "AURA LITERÁRIA"} • @{safeProfile.username}
                           </span>
                         </div>
 
@@ -1342,9 +1418,15 @@ export default function App() {
                       </div>
                     </div>
 
+                    {onboardingGenerationState === "error" && (
+                      <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-center text-xs font-sans text-amber-900 leading-relaxed">
+                        A análise mais aprofundada da inteligência artificial não pôde ser concluída no momento. Apresentamos uma <strong>interpretação inicial criada localmente</strong> com base nos dados que você forneceu.
+                      </div>
+                    )}
+
                     {downloadSuccess && (
                       <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center text-xs font-sans text-emerald-700 animate-pulse">
-                        Aura Literária exportada! Poste nos stories do Instagram com <strong>#Marginalia</strong> para encontrar seus pares.
+                        {onboardingGenerationState === "error" ? "Perfil exportado!" : "Aura Literária exportada!"} Poste nos stories do Instagram com <strong>#Marginalia</strong> para encontrar seus pares.
                       </div>
                     )}
 
@@ -1362,14 +1444,14 @@ export default function App() {
                           className="w-full border-2 border-[#1C1916] hover:bg-[#1C1916]/5 text-[#1C1916] py-3 rounded-lg font-sans text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                         >
                           <Download className="w-4 h-4" />
-                          <span>{downloadingAura ? "Preparando sua Aura para atravessar páginas…" : "Compartilhar como Story"}</span>
+                          <span>{downloadingAura ? "Preparando imagem para download…" : onboardingGenerationState === "error" ? "Compartilhar Perfil como Story" : "Compartilhar como Story"}</span>
                         </button>
 
                         <button
                           onClick={handleConfirmProfile}
                           className="w-full bg-[#1C1916] hover:bg-[#2A2724] text-[#FAF8F3] py-3 rounded-lg font-sans text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl"
                         >
-                          <span>Salvar Aura & Entrar</span>
+                          <span>{onboardingGenerationState === "error" ? "Salvar Perfil & Entrar" : "Salvar Aura & Entrar"}</span>
                           <Check className="w-4 h-4" />
                         </button>
                       </div>
@@ -1491,14 +1573,14 @@ export default function App() {
               </button>
             )}
 
-            {/* Logout/Reset */}
+            {/* Reiniciar Experiência */}
             <button
               onClick={handleResetApp}
-              title="Redefinir aplicativo e recomeçar jornada"
-              aria-label="Redefinir aplicativo e recomeçar jornada"
+              aria-label="Reiniciar experiência"
+              title="Reiniciar experiência"
               className="p-1.5 rounded hover:bg-[#BDAB9C]/20 text-[#3D3D3D]/60 hover:text-red-700 transition-colors cursor-pointer"
             >
-              <LogOut className="w-4 h-4" />
+              <RefreshIcon size={16} />
             </button>
 
           </div>
@@ -1781,13 +1863,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Local Storage Disclaimer Card */}
-              {feedMode === "minhas-margens" && (
-                <div className="bg-[#FAF8F3] border border-[#BDAB9C]/30 rounded-xl p-3.5 text-center flex items-center justify-center gap-2 text-[10.5px] font-sans text-stone-600 journal-shadow animate-page-turn">
-                  <span className="text-[#C5895A] animate-pulse">✦</span>
-                  <span>Os dados do seu diário estão salvos localmente neste dispositivo. Em breve na Beta real: sincronização automática em nuvem.</span>
-                </div>
-              )}
+
 
               {/* Margem do Dia Highlight Card */}
               {margemDoDia && (
@@ -2283,7 +2359,7 @@ export default function App() {
                       })
                     ) : (
                       <p className="text-center py-8 text-xs font-serif italic text-[#BDAB9C]">
-                        O silêncio ainda ecoa por aqui. Seja a primeira alma a registrar uma margem neste Eco!
+                        Você ainda não registrou nenhuma margem nesta atmosfera.
                       </p>
                     )}
                   </div>
