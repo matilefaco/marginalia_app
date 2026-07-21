@@ -25,6 +25,38 @@ export const readStoredSchemaVersion = (): string | null => {
   }
 };
 
+const LEGACY_MOCK_DOMINANT_EMOTIONS = {
+  "Desejo Impossível": 25,
+  "Melancolia Elegante": 35,
+  "Nostalgia Atenta": 15,
+  "Solidão Bonita": 25
+};
+
+const LEGACY_MOCK_EMOTIONAL_MAP = {
+  "Desejo Impossível": 25,
+  "Melancolia Elegante": 35,
+  "Nostalgia Atenta": 15,
+  "Solidão Bonita": 25
+};
+
+export const exactlyMatchesRecord = (
+  actual: Record<string, number> | undefined | null,
+  expected: Record<string, number>
+): boolean => {
+  if (!actual) return false;
+  const actualKeys = Object.keys(actual).sort();
+  const expectedKeys = Object.keys(expected).sort();
+
+  return (
+    actualKeys.length === expectedKeys.length &&
+    actualKeys.every(
+      (key, index) =>
+        key === expectedKeys[index] &&
+        actual[key] === expected[key]
+    )
+  );
+};
+
 export const migrateProfile = (
   profile: UserProfile,
   fromVersion: string | null
@@ -39,17 +71,12 @@ export const migrateProfile = (
     modified = true;
   }
 
-  // Se a versão já for marginalia_v2 ou superior, não alteramos dados legítimos de DNA!
-  if (fromVersion && fromVersion >= "marginalia_v2") {
-    return { profile, modified };
-  }
-
-  // Estamos migrando de uma versão anterior (< "marginalia_v2" ou null)
+  // Estamos migrando de uma versão anterior
   if (profile.literaryDNA) {
     const emotions = profile.literaryDNA.dominantEmotions || {};
     
     // Identificar se os dados de DNA correspondem exatamente aos antigos mocks estáticos
-    const isMockEmotions = emotions["Melancolia Elegante"] === 35 && emotions["Desejo Impossível"] === 25;
+    const isMockEmotions = exactlyMatchesRecord(emotions, LEGACY_MOCK_DOMINANT_EMOTIONS);
     
     if (isMockEmotions) {
       // Limpar apenas se for detectado o padrão exato do mock legado
@@ -57,55 +84,23 @@ export const migrateProfile = (
       profile.literaryDNA.identityFormula = "";
       modified = true;
     }
-
-    // Clear default authors if they are the simulated fallbacks and weren't in originBooks
-    if (Array.isArray(profile.literaryDNA.shapingAuthors)) {
-      const originBookAuthors = (profile.literaryDNA.originBooks || []).map(b => b.author).filter(a => a && a !== "Autor Desconhecido");
-      const beforeLen = profile.literaryDNA.shapingAuthors.length;
-      profile.literaryDNA.shapingAuthors = profile.literaryDNA.shapingAuthors.filter(author => {
-        const isDefault = author === "Clarice Lispector" || author === "Gabriel García Márquez";
-        if (!isDefault) return true;
-        return originBookAuthors.includes(author);
-      });
-      if (profile.literaryDNA.shapingAuthors.length !== beforeLen) {
-        modified = true;
-      }
-    }
   }
 
-  // Recommended ecosystems cleanup (no default Clássicos Universais if insufficient data, just empty)
+  // Recommended ecosystems cleanup (only remove "Clássicos Universais" if it is exactly the fallback with no classic references)
   if (Array.isArray(profile.recommendedEcos)) {
-    const containsOldFallbacks = profile.recommendedEcos.includes("Filosofia Existencialista") || 
-                                 profile.recommendedEcos.includes("Clássicos Russos") ||
-                                 profile.recommendedEcos.includes("Clássicos Universais");
-    
-    if (containsOldFallbacks) {
-      const genreToEcoMap: Record<string, string> = {
-        "Literatura Clássica": "Clássicos Russos",
-        "Poesia e Lírica": "Poesia Marginal",
-        "Filosofia": "Filosofia Existencialista",
-        "Realismo Mágico": "Latino-Americana Mágica",
-        "Fantasia Sombria": "Fantasia Gótica",
-        "Romance Histórico": "Romance de Época",
-        "Ensaios Modernos": "Crítica Social",
-        "Suspense Psicológico": "Thriller de Mente",
-        "Ficção Científica": "Ficção Distópica"
-      };
-      const matchedEcos: string[] = [];
-      Object.entries(genreToEcoMap).forEach(([genre, eco]) => {
-        if (profile.bio && profile.bio.toLowerCase().includes(genre.toLowerCase())) {
-          matchedEcos.push(eco);
-        }
-      });
-      profile.recommendedEcos = matchedEcos; // No "Clássicos Universais" fallback here, use [] if empty
+    const hasClassicosUniversais = profile.recommendedEcos.includes("Clássicos Universais");
+    const hasNoBooks = !profile.literaryDNA?.originBooks || profile.literaryDNA.originBooks.length === 0;
+    const hasNoClassicsInBio = !profile.bio || !profile.bio.toLowerCase().includes("clássicos");
+
+    if (hasClassicosUniversais && hasNoBooks && hasNoClassicsInBio) {
+      profile.recommendedEcos = profile.recommendedEcos.filter(eco => eco !== "Clássicos Universais");
       modified = true;
     }
   }
 
   // Ensure persistent mock emotionalMap is cleared
   if (profile.emotionalMap && Object.keys(profile.emotionalMap).length > 0) {
-    const map = profile.emotionalMap;
-    const isMockMap = map["Melancolia Elegante"] === 35 || map["Solidão Bonita"] === 25;
+    const isMockMap = exactlyMatchesRecord(profile.emotionalMap, LEGACY_MOCK_EMOTIONAL_MAP);
     if (isMockMap) {
       profile.emotionalMap = {};
       modified = true;
@@ -121,22 +116,29 @@ export const getStoredProfile = (): UserProfile | null => {
     if (!saved) {
       // Se não houver perfil salvo, inicializa diretamente a versão mais recente
       localStorage.setItem("marginalia_schema_version", STORAGE_SCHEMA_VERSION);
+      localStorage.setItem("marginalia_profile_migration_v2_completed", "true");
       return null;
     }
     const profile = safeParse<UserProfile>(saved, null as any);
     if (!profile) return null;
 
-    const fromVersion = readStoredSchemaVersion();
-    const { profile: migratedProfile, modified } = migrateProfile(profile, fromVersion);
+    const isMigrationCompleted = localStorage.getItem("marginalia_profile_migration_v2_completed") === "true";
 
-    if (modified) {
-      localStorage.setItem("marginalia_profile", JSON.stringify(migratedProfile));
+    if (!isMigrationCompleted) {
+      const fromVersion = readStoredSchemaVersion();
+      const { profile: migratedProfile, modified } = migrateProfile(profile, fromVersion);
+
+      if (modified) {
+        localStorage.setItem("marginalia_profile", JSON.stringify(migratedProfile));
+      }
+
+      localStorage.setItem("marginalia_profile_migration_v2_completed", "true");
+      localStorage.setItem("marginalia_schema_version", STORAGE_SCHEMA_VERSION);
+
+      return migratedProfile;
     }
 
-    // Somente após a migração terminar e ser persistida com sucesso, marcamos a versão como marginalia_v2
-    localStorage.setItem("marginalia_schema_version", STORAGE_SCHEMA_VERSION);
-
-    return migratedProfile;
+    return profile;
   } catch (error) {
     console.error("Failed to load profile from storage:", error);
     return null;
@@ -150,6 +152,7 @@ export const setStoredProfile = (profile: UserProfile | null): void => {
     } else {
       localStorage.setItem("marginalia_profile", JSON.stringify(profile));
       localStorage.setItem("marginalia_schema_version", STORAGE_SCHEMA_VERSION);
+      localStorage.setItem("marginalia_profile_migration_v2_completed", "true");
     }
   } catch (error) {
     console.error("Failed to save profile to storage:", error);
@@ -256,6 +259,7 @@ export const clearAllStorage = (): void => {
     keysToRemove.forEach(k => localStorage.removeItem(k));
     // Re-initialize version after clear
     localStorage.setItem("marginalia_schema_version", STORAGE_SCHEMA_VERSION);
+    localStorage.setItem("marginalia_profile_migration_v2_completed", "true");
   } catch (error) {
     console.error("Failed to clear Marginalia storage:", error);
   }
