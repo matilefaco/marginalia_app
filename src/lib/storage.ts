@@ -58,7 +58,13 @@ export const setStoredProfile = (profile: UserProfile | null): void => {
 export const getStoredMargens = (fallback: Margem[]): Margem[] => {
   try {
     const saved = localStorage.getItem("marginalia_margens");
-    return saved ? safeParse<Margem[]>(saved, fallback) : fallback;
+    if (!saved) return fallback;
+    const parsed = safeParse<Margem[]>(saved, fallback);
+    const onlyUser = parsed.filter(m => !m.isEditorial);
+    if (parsed.length !== onlyUser.length) {
+      localStorage.setItem("marginalia_margens", JSON.stringify(onlyUser));
+    }
+    return onlyUser;
   } catch (error) {
     console.error("Failed to load margens from storage, using default fallback:", error);
     return fallback;
@@ -107,12 +113,35 @@ export const setDailyDismissed = (dateStr: string): void => {
   }
 };
 
+export const getPersistenceWarningDismissed = (): boolean => {
+  try {
+    return localStorage.getItem("marginalia_persistence_warning_dismissed") === "true";
+  } catch (error) {
+    return false;
+  }
+};
+
+export const setPersistenceWarningDismissed = (): void => {
+  try {
+    localStorage.setItem("marginalia_persistence_warning_dismissed", "true");
+  } catch (error) {
+    console.error("Failed to dismiss persistence warning:", error);
+  }
+};
+
 export const clearAllStorage = (): void => {
   try {
-    localStorage.clear();
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("marginalia_")) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
     // Re-initialize version after clear
     localStorage.setItem("marginalia_schema_version", STORAGE_SCHEMA_VERSION);
   } catch (error) {
-    console.error("Failed to clear storage:", error);
+    console.error("Failed to clear Marginalia storage:", error);
   }
 };

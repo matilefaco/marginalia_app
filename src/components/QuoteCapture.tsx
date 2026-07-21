@@ -1,7 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { RefreshIcon } from "./icons/MarginaliaIcons";
 import { MarginaliaMark } from "./branding/MarginaliaMark";
-import Tesseract from "tesseract.js";
 
 interface QuoteCaptureProps {
   onCaptureComplete: (quote: string) => void;
@@ -21,11 +20,46 @@ export default function QuoteCapture({ onCaptureComplete, onSelectManual, onCanc
   const [ocrError, setOcrError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Handle image selection
+  // Safely revoke object URLs to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
+  // Handle image selection with size & type validation
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+
+      // Validate file size: 10MB maximum limit
+      if (file.size > 10 * 1024 * 1024) {
+        setOcrError("O arquivo selecionado excede o limite máximo de 10MB.");
+        setImageFile(null);
+        if (imagePreview) {
+          URL.revokeObjectURL(imagePreview);
+          setImagePreview(null);
+        }
+        return;
+      }
+
+      // Validate file type: images only
+      if (!file.type.startsWith("image/")) {
+        setOcrError("Formato de arquivo inválido. Por favor, carregue uma imagem.");
+        setImageFile(null);
+        if (imagePreview) {
+          URL.revokeObjectURL(imagePreview);
+          setImagePreview(null);
+        }
+        return;
+      }
+
       setImageFile(file);
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
       setImagePreview(URL.createObjectURL(file));
       setOcrResult("");
       setOcrError(null);
@@ -34,12 +68,16 @@ export default function QuoteCapture({ onCaptureComplete, onSelectManual, onCanc
     }
   };
 
-  // Run client-side OCR
+  // Run client-side OCR with dynamic (lazy) library loading
   const runOCR = async (file: File) => {
     setIsProcessing(true);
     setProgress(0);
-    setProgressStatus("Iniciando o leitor de páginas...");
+    setProgressStatus("Iniciando o leitor óptico...");
     try {
+      setProgressStatus("Carregando inteligência de leitura (Tesseract)...");
+      // Lazy load Tesseract.js dynamically to reduce bundle size
+      const { default: Tesseract } = await import("tesseract.js");
+
       // We try with 'por' (Portuguese) first, falling back to 'eng' if needed
       const result = await Tesseract.recognize(file, "por", {
         logger: (m) => {
@@ -63,6 +101,7 @@ export default function QuoteCapture({ onCaptureComplete, onSelectManual, onCanc
       // Retry with 'eng' just in case, or fallback
       try {
         setProgressStatus("Tentando com mecanismo alternativo...");
+        const { default: Tesseract } = await import("tesseract.js");
         const resultAlt = await Tesseract.recognize(file, "eng");
         const extractedTextAlt = resultAlt.data.text.trim();
         if (extractedTextAlt) {
@@ -182,24 +221,34 @@ export default function QuoteCapture({ onCaptureComplete, onSelectManual, onCanc
           </div>
 
           {!imagePreview ? (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-[#BDAB9C]/50 hover:border-[#1C1916] rounded-xl p-8 text-center bg-[#1C1916]/5 cursor-pointer transition-all space-y-3 group"
-            >
-              <div className="w-12 h-12 rounded-full bg-[#1C1916]/5 flex items-center justify-center text-[#BDAB9C] group-hover:text-[#1C1916] mx-auto transition-colors">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+            <div className="space-y-4">
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-[#BDAB9C]/50 hover:border-[#1C1916] rounded-xl p-8 text-center bg-[#1C1916]/5 cursor-pointer transition-all space-y-3 group animate-page-turn"
+              >
+                <div className="w-12 h-12 rounded-full bg-[#1C1916]/5 flex items-center justify-center text-[#BDAB9C] group-hover:text-[#1C1916] mx-auto transition-colors">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                </div>
+                <div className="space-y-1">
+                  <p className="font-sans font-semibold text-xs text-[#1C1916]">Clique para carregar ou tirar uma foto</p>
+                  <p className="text-[10px] font-mono text-[#BDAB9C] uppercase tracking-wider">PNG, JPG ou JPEG (máx 10MB)</p>
+                </div>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
               </div>
-              <div className="space-y-1">
-                <p className="font-sans font-semibold text-xs text-[#1C1916]">Clique para carregar ou tirar uma foto</p>
-                <p className="text-[10px] font-mono text-[#BDAB9C] uppercase tracking-wider">PNG, JPG ou JPEG</p>
+
+              {/* Privacy Note */}
+              <div className="bg-[#BDAB9C]/10 border border-[#BDAB9C]/20 rounded-lg p-3 text-[10px] font-sans text-stone-600 flex gap-2.5 items-start">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#C5895A] shrink-0 mt-0.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <p className="font-serif italic leading-normal text-stone-750">
+                  <strong>Leitura Privada:</strong> O reconhecimento de texto (OCR) roda de forma estritamente segura e local no seu navegador. Nenhuma imagem ou dado do livro é enviado para servidores externos.
+                </p>
               </div>
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-              />
             </div>
           ) : (
             <div className="space-y-4">

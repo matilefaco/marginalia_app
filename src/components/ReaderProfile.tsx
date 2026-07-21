@@ -9,7 +9,6 @@ import { SoulMap } from "./SoulMap";
 import { IdentityQuoteCard } from "./IdentityQuoteCard";
 import { LiteraryCompatibility } from "./LiteraryCompatibility";
 import { ErrorBoundary } from "./ErrorBoundary";
-import IconShowcase from "./IconShowcase";
 
 interface ReaderProfileProps {
   userProfile: UserProfile;
@@ -20,7 +19,7 @@ interface ReaderProfileProps {
 }
 
 export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, onReset, onOpenAddMargem }: ReaderProfileProps) {
-  const [activeSubTab, setActiveSubTab] = useState<"identidade" | "aura" | "mapa" | "compatibilidade" | "historico" | "recompensas" | "marca">("identidade");
+  const [activeSubTab, setActiveSubTab] = useState<"identidade" | "aura" | "mapa" | "compatibilidade" | "historico" | "recompensas">("identidade");
   const [exportingCard, setExportingCard] = useState(false);
   const identityCardRef = useRef<HTMLDivElement>(null);
 
@@ -40,61 +39,56 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
   };
 
   // Filter margins created by user
-  const userMargins = (margens || []).filter(m => m && (m.authorAvatar === userProfile.avatarSeed || m.authorName === userProfile.name));
+  const userMargins = (margens || []).filter(m => m && !m.isEditorial);
 
-  // Dynamic emotional map based on user's active margins if exists, otherwise preset
-  const emotionalMap = userProfile.emotionalMap || {
-    "Melancolia Elegante": 45,
-    "Solidão Bonita": 25,
-    "Crises Existenciais": 20,
-    "Esperança Atenta": 10
-  };
+  // Dynamic emotional map based on user's active margins if exists, otherwise onboarding
+  const emotionalMap = userProfile.emotionalMap || userProfile.literaryDNA?.dominantEmotions || {};
 
-  const shapingBooks = userProfile.shapingBooks || [
-    "Cem Anos de Solidão",
-    "O Mito de Sísifo",
-    "Livro do Desassossego"
-  ];
+  // Shaping books based strictly on Origin Books or real margins
+  const originBookTitles = (userProfile.literaryDNA?.originBooks || []).map(b => b.title);
+  const marginBookTitles = userMargins.map(m => m.bookTitle).filter(Boolean);
+  const shapingBooks = Array.from(new Set([...originBookTitles, ...marginBookTitles])).filter(Boolean);
 
-  const atmospheres = userProfile.favoriteAtmospheres || [
-    "Chuva batendo de leve na vidraça",
-    "Café com aroma fresco de canela de tarde",
-    "O silêncio sagrado de uma biblioteca antiga"
-  ];
+  // Atmospheres from user profile only
+  const atmospheres = userProfile.favoriteAtmospheres || [];
 
-  const timeline = userProfile.literaryTimeline || [
-    { date: "2026-06", event: "Dobrou a primeira página física de Dostoiévski no escuro.", book: "Crime e Castigo" },
-    { date: "2026-06-20", event: "Encontrou consolo existencial no absurdo sorridente de Camus.", book: "O Mito de Sísifo" },
-    { date: "2026-07-02", event: "Criou sua primeira Margem na eternidade do Realismo Mágico.", book: "Cem Anos de Solidão" }
-  ];
+  // Dynamic timeline constructed solely from user margins (or real events)
+  const timeline = userMargins.map(m => {
+    const formattedDate = m.date ? m.date.slice(0, 10) : "";
+    return {
+      date: formattedDate,
+      event: m.thought ? (m.thought.length > 60 ? m.thought.slice(0, 60) + "..." : m.thought) : "Registrou uma nova Margem.",
+      book: m.bookTitle
+    };
+  }).sort((a, b) => b.date.localeCompare(a.date));
 
   // Literary Honors (Recompensas Não Infantis)
-  const honors = [
+  const honors = isFeatureEnabled("honors") ? [
     {
       title: "Guardião da Melancolia",
       description: "Concedido a leitores cujas anotações capturam a doçura sutil do recolhimento poético.",
       requirement: "Registrar 3 margens com sentimentos melancólicos",
-      unlocked: userMargins.length >= 1
+      unlocked: userMargins.length >= 3
     },
     {
       title: "Colecionador de Silêncios",
       description: "Concedido para mentes que buscam registrar o invisível entre as linhas de livros eternos.",
       requirement: "Escrever pelo menos 5 margens no diário",
-      unlocked: userMargins.length >= 3
+      unlocked: userMargins.length >= 5
     },
     {
       title: "Cartógrafo das Emoções",
-      description: "Para quem cruza diferentes sentimentos sem medo de se perder no labirinto da alma.",
+      description: "Para quem cruza differentes sentimentos sem medo de se perder no labirinto da alma.",
       requirement: "Explorar mais de 3 categorias emocionais de Ecos",
-      unlocked: true
+      unlocked: userMargins.length >= 3
     },
     {
       title: "Observador de Estrelas",
       description: "Leitores que convidam a Companheira IA para debater mistérios poéticos na escuridão.",
       requirement: "Completar uma conversa profunda sobre subtextos",
-      unlocked: true
+      unlocked: userMargins.length >= 1
     }
-  ];
+  ] : [];
 
   return (
     <div className="space-y-6 animate-page-turn">
@@ -213,22 +207,16 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
         >
           Diário de Linhas
         </button>
-        <button
-          onClick={() => setActiveSubTab("recompensas")}
-          className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-            activeSubTab === "recompensas" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
-          }`}
-        >
-          Títulos Honorários
-        </button>
-        <button
-          onClick={() => setActiveSubTab("marca")}
-          className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-            activeSubTab === "marca" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
-          }`}
-        >
-          Sistema de Marca
-        </button>
+        {isFeatureEnabled("honors") && (
+          <button
+            onClick={() => setActiveSubTab("recompensas")}
+            className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeSubTab === "recompensas" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
+            }`}
+          >
+            Títulos Honorários
+          </button>
+        )}
       </div>
 
       {/* TAB SUB-CONTENT 1: ALMA LEITORA */}
@@ -256,21 +244,27 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
               </div>
 
               <div className="space-y-3.5">
-                {Object.entries(emotionalMap).map(([emotion, val]) => (
-                  <div key={emotion} className="space-y-1">
-                    <div className="flex justify-between text-xs font-serif italic text-[#3D3D3D]">
-                      <span>{emotion}</span>
-                      <span className="font-sans font-semibold text-[11px]">{val}%</span>
+                {Object.keys(emotionalMap).length > 0 ? (
+                  Object.entries(emotionalMap).map(([emotion, val]) => (
+                    <div key={emotion} className="space-y-1">
+                      <div className="flex justify-between text-xs font-serif italic text-[#3D3D3D]">
+                        <span>{emotion}</span>
+                        <span className="font-sans font-semibold text-[11px]">{val}%</span>
+                      </div>
+                      {/* Retro Elegant progress bar */}
+                      <div className="w-full h-1.5 bg-[#BDAB9C]/10 rounded-full overflow-hidden border border-[#BDAB9C]/20">
+                        <div 
+                          className="h-full bg-[#1C1916] rounded-full transition-all duration-1000"
+                          style={{ width: `${val}%`, backgroundColor: userProfile.aestheticColor || "#BDAB9C" }}
+                        />
+                      </div>
                     </div>
-                    {/* Retro Elegant progress bar */}
-                    <div className="w-full h-1.5 bg-[#BDAB9C]/10 rounded-full overflow-hidden border border-[#BDAB9C]/20">
-                      <div 
-                        className="h-full bg-[#1C1916] rounded-full transition-all duration-1000"
-                        style={{ width: `${val}%`, backgroundColor: userProfile.aestheticColor || "#BDAB9C" }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-xs font-serif italic text-[#BDAB9C] py-4 text-center">
+                    Crie margens para começar a mapear suas emoções literárias.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -280,14 +274,20 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
               {/* Atmosferas Favoritas */}
               <div className="elevation-1 p-5 rounded-2xl space-y-3.5">
                 <h4 className="font-sans font-bold text-sm uppercase text-[#1C1916] tracking-wide">Atmosferas Prediletas</h4>
-                <ul className="space-y-2.5">
-                  {atmospheres.map((atm, idx) => (
-                    <li key={idx} className="text-sm font-serif italic text-stone-850 flex items-center gap-2">
-                      <ClockIcon size={12} className="opacity-50 text-stone-500" />
-                      <span>{atm}</span>
-                    </li>
-                  ))}
-                </ul>
+                {atmospheres.length > 0 ? (
+                  <ul className="space-y-2.5">
+                    {atmospheres.map((atm, idx) => (
+                      <li key={idx} className="text-sm font-serif italic text-stone-850 flex items-center gap-2">
+                        <ClockIcon size={12} className="opacity-50 text-stone-500" />
+                        <span>{atm}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs font-serif italic text-[#BDAB9C] text-center py-2">
+                    Nenhuma atmosfera catalogada.
+                  </p>
+                )}
               </div>
 
               {/* Livros de Origem / que moldaram a alma */}
@@ -314,14 +314,20 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
                       ))}
                     </div>
                   ) : (
-                    <ul className="space-y-2">
-                      {shapingBooks.map((bk, idx) => (
-                        <li key={idx} className="text-xs font-serif font-semibold text-[#1C1916] flex items-center gap-2">
-                          <BookOpenIcon size={12} className="opacity-45 text-[#BDAB9C]" />
-                          <span>{bk}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    shapingBooks.length > 0 ? (
+                      <ul className="space-y-2">
+                        {shapingBooks.map((bk, idx) => (
+                          <li key={idx} className="text-xs font-serif font-semibold text-[#1C1916] flex items-center gap-2">
+                            <BookOpenIcon size={12} className="opacity-45 text-[#BDAB9C]" />
+                            <span>{bk}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs font-serif italic text-[#BDAB9C] text-center py-2">
+                        Nenhum livro de alma catalogado ainda.
+                      </p>
+                    )
                   )}
                 </div>
               )}
@@ -337,22 +343,28 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
               <p className="text-xs text-[#BDAB9C] mt-0.5">Linha do tempo poética das suas descobertas</p>
             </div>
 
-            <div className="border-l border-[#BDAB9C]/30 ml-2 pl-4 space-y-5 relative">
-              {timeline.map((item, idx) => (
-                <div key={idx} className="relative group">
-                  {/* Circle dot marker */}
-                  <div className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-[#FAF8F3] border-2 border-[#1C1916] group-hover:bg-[#1C1916] transition-colors" />
-                  
-                  <span className="text-[9px] font-mono text-[#BDAB9C] uppercase tracking-wider block">{item.date}</span>
-                  <p className="text-xs font-serif italic text-[#3D3D3D] leading-relaxed mt-0.5">{item.event}</p>
-                  {item.book && (
-                    <span className="text-[10px] font-sans font-bold text-[#1C1916] opacity-75 mt-0.5 flex items-center gap-1">
-                      <MarginIcon size={10} className="text-stone-500" /> Sob influência de: "{item.book}"
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
+            {timeline.length > 0 ? (
+              <div className="border-l border-[#BDAB9C]/30 ml-2 pl-4 space-y-5 relative">
+                {timeline.map((item, idx) => (
+                  <div key={idx} className="relative group">
+                    {/* Circle dot marker */}
+                    <div className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-[#FAF8F3] border-2 border-[#1C1916] group-hover:bg-[#1C1916] transition-colors" />
+                    
+                    <span className="text-[9px] font-mono text-[#BDAB9C] uppercase tracking-wider block">{item.date}</span>
+                    <p className="text-xs font-serif italic text-[#3D3D3D] leading-relaxed mt-0.5">{item.event}</p>
+                    {item.book && (
+                      <span className="text-[10px] font-sans font-bold text-[#1C1916] opacity-75 mt-0.5 flex items-center gap-1">
+                        <MarginIcon size={10} className="text-stone-500" /> Sob influência de: "{item.book}"
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs font-serif italic text-[#BDAB9C] text-center py-4">
+                Sua linha do tempo começará a florescer assim que você registrar suas próprias margens.
+              </p>
+            )}
           </div>
 
         </div>
@@ -429,7 +441,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
       )}
 
       {/* TAB SUB-CONTENT 3: TÍTULOS HONORÁRIOS (Phase 7 - Recompensas) */}
-      {activeSubTab === "recompensas" && (
+      {activeSubTab === "recompensas" && isFeatureEnabled("honors") && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-page-turn">
           {honors.map((h, i) => (
             <div 
@@ -467,12 +479,6 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {activeSubTab === "marca" && (
-        <div className="space-y-6 animate-page-turn">
-          <IconShowcase />
         </div>
       )}
 

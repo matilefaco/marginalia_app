@@ -66,7 +66,7 @@ import {
   CloseIcon,
   RefreshIcon
 } from "./components/icons/MarginaliaIcons";
-import IconShowcase from "./components/IconShowcase";
+const IconShowcase = React.lazy(() => import("./components/IconShowcase"));
 import { INITIAL_ECOS, INITIAL_MARGENS, PRESET_HIGHLIGHTS, INITIAL_CHALLENGES, AESTHETIC_THEMES } from "./data";
 import { exportNodeAsPng } from "./lib/exportImage";
 import { searchBooks } from "./lib/booksApi";
@@ -90,7 +90,9 @@ import {
   setStoredMargens, 
   getStoredChallenges, 
   setStoredChallenges, 
-  clearAllStorage 
+  clearAllStorage,
+  getPersistenceWarningDismissed,
+  setPersistenceWarningDismissed
 } from "./lib/storage";
 import {
   orderFeedForDiscovery,
@@ -131,6 +133,14 @@ export default function App() {
 
   // Origin Books onboarding states
   const [originBooks, setOriginBooks] = useState<OriginBook[]>([]);
+  
+  // Persistence Warning state
+  const [showPersistenceWarning, setShowPersistenceWarning] = useState(() => {
+    return !getPersistenceWarningDismissed();
+  });
+
+  // Custom Reset Confirmation Modal state
+  const [showResetModal, setShowResetModal] = useState(false);
   const [bookQuery, setBookQuery] = useState("");
   const [bookSearchResults, setBookSearchResults] = useState<BookSearchResult[]>([]);
   const [isSearchingBooks, setIsSearchingBooks] = useState(false);
@@ -146,7 +156,7 @@ export default function App() {
   });
   const [feedMode, setFeedMode] = useState<"minhas-margens" | "curadoria">("minhas-margens");
   const [margens, setMargens] = useState<Margem[]>(() => {
-    return getStoredMargens(INITIAL_MARGENS);
+    return getStoredMargens([]);
   });
   const [ecos] = useState<Eco[]>(INITIAL_ECOS);
   const [selectedEco, setSelectedEco] = useState<Eco | null>(null);
@@ -169,7 +179,7 @@ export default function App() {
 
   // Interactive Challenges
   const [challenges, setChallenges] = useState<Challenge[]>(() => {
-    return getStoredChallenges(INITIAL_CHALLENGES);
+    return isFeatureEnabled("weeklyRituals") ? getStoredChallenges(INITIAL_CHALLENGES) : [];
   });
 
   // Companheira (AI Assistant) Chat state
@@ -264,7 +274,9 @@ export default function App() {
   }, [margens]);
 
   useEffect(() => {
-    setStoredChallenges(challenges);
+    if (isFeatureEnabled("weeklyRituals")) {
+      setStoredChallenges(challenges);
+    }
   }, [challenges]);
 
   useEffect(() => {
@@ -321,9 +333,9 @@ export default function App() {
       username: form.username,
       avatarSeed: form.username.toLowerCase(),
       bio: `Leitor devoto de ${form.genres.slice(0, 2).join(" e ") || "clássicos"}. Escrevendo margens sob a influência de ${form.favoriteAuthors || "grandes mentes"}.`,
-      streakDays: 3,
-      booksReadCount: 4,
-      savedCount: 12,
+      streakDays: 0,
+      booksReadCount: 0,
+      savedCount: 0,
       literaryDNA: fallbackDNA
     };
   };
@@ -363,9 +375,9 @@ export default function App() {
       username: form.username,
       avatarSeed: form.username.toLowerCase(),
       bio: `Leitor devoto de ${form.genres.slice(0, 2).join(" e ") || "clássicos"}. Escrevendo margens sob a influência de ${form.favoriteAuthors || "grandes mentes"}.`,
-      streakDays: 3,
-      booksReadCount: 4,
-      savedCount: 12,
+      streakDays: 0,
+      booksReadCount: 0,
+      savedCount: 0,
       literaryDNA: cleanDNA
     };
   };
@@ -504,9 +516,6 @@ export default function App() {
 
     // Complete Challenge
     triggerChallengeComplete("ch1");
-    if (userProfile) {
-      setUserProfile(prev => prev ? { ...prev, streakDays: prev.streakDays + 1 } : null);
-    }
   };
 
   // Generate reflection using Companion AI
@@ -667,13 +676,16 @@ export default function App() {
 
   // Reset Onboarding / Log Out
   const handleResetApp = () => {
-    if (confirm("Deseja redefinir seu perfil literário e recomeçar o diário?")) {
-      clearAllStorage();
-      setUserProfile(null);
-      setOnboardingStep(1);
-      setMargens(INITIAL_MARGENS);
-      setChallenges(INITIAL_CHALLENGES);
-    }
+    setShowResetModal(true);
+  };
+
+  const executeResetApp = () => {
+    clearAllStorage();
+    setUserProfile(null);
+    setOnboardingStep(1);
+    setMargens([]); // Emptied of mock margins to keep profile clean
+    setChallenges(INITIAL_CHALLENGES);
+    setShowResetModal(false);
   };
 
   const handleDownloadAura = async () => {
@@ -1353,11 +1365,13 @@ export default function App() {
   }
 
   // --- DYNAMIC ALGORITHMIC COMPUTATIONS (Para Você, Margem do Dia & Eco da Semana) ---
-  const margemDoDia = pickMargemDoDia(margens);
+  const userMargins = margens.filter(m => !m.isEditorial);
+  const margemDoDia = feedMode === "minhas-margens"
+    ? (userMargins.length > 0 ? pickMargemDoDia(userMargins) : null)
+    : pickMargemDoDia(INITIAL_MARGENS);
   const ecoDaSemana = pickEcoDaSemana(ecos);
 
   // Compute live profile attributes to be reactive
-  const userMargins = margens.filter(m => !m.isEditorial);
   const liveEmotionalMap = computeEmotionalMap(userMargins) || userProfile.emotionalMap;
   const liveShapingBooks = computeShapingBooks(userMargins) || userProfile.shapingBooks;
   
@@ -1370,10 +1384,10 @@ export default function App() {
 
   const displayedFeed = feedMode === "minhas-margens"
     ? [...userMargins].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    : [...margens].filter(m => m.isEditorial).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    : [...INITIAL_MARGENS].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // --- MAIN APP RENDER ---
-  if (showIconSystem) {
+  if (showIconSystem && import.meta.env.DEV && isFeatureEnabled("internalIconShowcase")) {
     return (
       <div className="min-h-screen bg-[#FAF8F3] relative">
         <button
@@ -1386,7 +1400,9 @@ export default function App() {
         >
           <FeedIcon size={16} /> Voltar ao Marginalia
         </button>
-        <IconShowcase />
+        <React.Suspense fallback={<div className="p-12 text-center text-xs font-serif italic text-[#BDAB9C]">Carregando sistema de ícones...</div>}>
+          <IconShowcase />
+        </React.Suspense>
       </div>
     );
   }
@@ -1394,6 +1410,27 @@ export default function App() {
   return (
     <div className="min-h-screen paper-grain flex flex-col selection:bg-[#BDAB9C]/30 selection:text-[#1C1916]">
       
+      {/* Persistence Warning Banner */}
+      {showPersistenceWarning && (
+        <div className="bg-[#1C1916] text-[#FAF8F3] px-4 py-3 md:py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs border-b border-[#BDAB9C]/30 z-40 relative animate-fade-in font-sans">
+          <div className="flex items-center gap-2 max-w-3xl">
+            <span className="p-1 rounded bg-[#C5895A]/20 text-[#C5895A] font-bold text-[9px] tracking-wider uppercase font-mono shrink-0">Aviso</span>
+            <p className="font-serif italic leading-relaxed text-stone-200">
+              Neste estágio piloto, suas anotações são salvas exclusivamente em seu dispositivo (armazenamento local). Sincronização em nuvem e contas permanentes chegam na <strong className="text-[#C5895A] font-sans not-italic font-bold">Fase 1 (Sincronização em Nuvem)</strong>.
+            </p>
+          </div>
+          <button 
+            onClick={() => {
+              setPersistenceWarningDismissed();
+              setShowPersistenceWarning(false);
+            }}
+            className="text-stone-400 hover:text-white px-3 py-1 border border-stone-700 hover:border-stone-500 rounded text-[10px] font-semibold tracking-wide uppercase transition-all duration-200 cursor-pointer text-center whitespace-nowrap shrink-0"
+          >
+            Compreendi
+          </button>
+        </div>
+      )}
+
       {/* HEADER BAR (Clean Apple/Notion look) */}
       <header className="sticky top-0 bg-[#FAF8F3]/90 backdrop-blur-md border-b border-[#BDAB9C]/30 z-30 px-4 py-3 md:py-4">
         <div className="w-full max-w-5xl mx-auto flex justify-between items-center">
@@ -1519,14 +1556,14 @@ export default function App() {
                   {/* Eco community selection */}
                   <div>
                     <label className="block text-[10px] font-sans font-semibold text-[#3D3D3D] uppercase tracking-wider mb-1">
-                      Publicar em um Eco (Comunidade)
+                      Organizar em um Eco (Atmosferas)
                     </label>
                     <select
                       value={newMargem.ecoId}
                       onChange={(e) => setNewMargem(prev => ({ ...prev, ecoId: e.target.value }))}
                       className="w-full bg-[#FAF8F3] border border-[#BDAB9C]/40 rounded p-2 text-xs font-sans text-[#1C1916]"
                     >
-                      <option value="">Nenhum - Publicar no feed geral</option>
+                      <option value="">Nenhum - Manter no diário íntimo</option>
                       {ecos.map(e => (
                         <option key={e.id} value={e.id}>Eco: {e.name}</option>
                       ))}
@@ -1730,7 +1767,7 @@ export default function App() {
                 <div className="bg-[#FAF8F3] border-2 border-[#C5895A] rounded-2xl journal-shadow overflow-hidden relative group transition-all duration-300 hover:scale-[1.005] animate-page-turn">
                   <div className="absolute top-3 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C5895A]/15 text-[9.5px] font-sans font-semibold text-stone-800 border border-[#C5895A]/40">
                     <Sparkles className="w-3 h-3 text-[#C5895A] animate-pulse" />
-                    <span>MARGEM DO DIA</span>
+                    <span>{feedMode === "minhas-margens" ? "MARGEM DO DIA" : "CURADORIA MARGINALIA"}</span>
                   </div>
 
                   <div className="p-6 md:p-8 space-y-4">
@@ -2324,53 +2361,55 @@ export default function App() {
           </div>
 
           {/* READING STREAK & WEEKLY RITUALS (De-gamified literary flow) */}
-          <div className="bg-[#FAF8F3] border border-[#BDAB9C] rounded-xl p-5 journal-shadow space-y-4">
-            
-            <div className="flex justify-between items-center">
-              <h4 className="font-display font-semibold text-xs uppercase tracking-wider text-[#1C1916] flex items-center gap-1.5">
-                <Compass className="w-4 h-4 text-[#BDAB9C]" />
-                Rituais da Semana
-              </h4>
-              <span className="text-[10px] font-sans text-[#BDAB9C]">
-                {challenges.filter(c => c.completed).length} / {challenges.length}
-              </span>
-            </div>
+          {isFeatureEnabled("weeklyRituals") && (
+            <div className="bg-[#FAF8F3] border border-[#BDAB9C] rounded-xl p-5 journal-shadow space-y-4">
+              
+              <div className="flex justify-between items-center">
+                <h4 className="font-display font-semibold text-xs uppercase tracking-wider text-[#1C1916] flex items-center gap-1.5">
+                  <Compass className="w-4 h-4 text-[#BDAB9C]" />
+                  Rituais da Semana
+                </h4>
+                <span className="text-[10px] font-sans text-[#BDAB9C]">
+                  {challenges.filter(c => c.completed).length} / {challenges.length}
+                </span>
+              </div>
 
-            <div className="space-y-3">
-              {challenges.map((c) => (
-                <div 
-                  key={c.id}
-                  className={`p-3 rounded-lg border flex items-start gap-2.5 transition-all ${
-                    c.completed 
-                      ? "bg-green-50/50 border-green-200" 
-                      : "bg-[#FAF8F3] border-[#BDAB9C]/30 hover:border-[#BDAB9C]"
-                  }`}
-                >
-                  <button
-                    onClick={() => triggerChallengeComplete(c.id)}
-                    disabled={c.completed}
-                    className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
+              <div className="space-y-3">
+                {challenges.map((c) => (
+                  <div 
+                    key={c.id}
+                    className={`p-3 rounded-lg border flex items-start gap-2.5 transition-all ${
                       c.completed 
-                        ? "bg-green-600 border-green-600 text-[#FAF8F3]" 
-                        : "border-[#BDAB9C] hover:border-[#1C1916]"
+                        ? "bg-green-50/50 border-green-200" 
+                        : "bg-[#FAF8F3] border-[#BDAB9C]/30 hover:border-[#BDAB9C]"
                     }`}
                   >
-                    {c.completed && <Check className="w-2.5 h-2.5" />}
-                  </button>
+                    <button
+                      onClick={() => triggerChallengeComplete(c.id)}
+                      disabled={c.completed}
+                      className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
+                        c.completed 
+                          ? "bg-green-600 border-green-600 text-[#FAF8F3]" 
+                          : "border-[#BDAB9C] hover:border-[#1C1916]"
+                      }`}
+                    >
+                      {c.completed && <Check className="w-2.5 h-2.5" />}
+                    </button>
 
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-xs font-sans font-medium leading-none ${c.completed ? "line-through text-[#BDAB9C]" : "text-[#1C1916]"}`}>
-                      {c.title}
-                    </p>
-                    <p className="text-[10px] text-[#3D3D3D] opacity-70 mt-1 leading-snug">
-                      {c.description}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-xs font-sans font-medium leading-none ${c.completed ? "line-through text-[#BDAB9C]" : "text-[#1C1916]"}`}>
+                        {c.title}
+                      </p>
+                      <p className="text-[10px] text-[#3D3D3D] opacity-70 mt-1 leading-snug">
+                        {c.description}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-          </div>
+            </div>
+          )}
 
           {/* ECO DA SEMANA (Curated collection trigger) */}
           {ecoDaSemana && (
@@ -2378,7 +2417,7 @@ export default function App() {
               
               <div className="space-y-1">
                 <span className="text-[10px] font-mono tracking-widest text-[#C5895A] uppercase block font-semibold">
-                  Sintonização Coletiva
+                  Atmosfera da Semana
                 </span>
                 <h4 className="font-display font-semibold text-xs uppercase tracking-wider text-[#1C1916]">
                   Eco da Semana
@@ -2599,6 +2638,41 @@ export default function App() {
       {/* FUTURE LETTER POPUP MODAL */}
       {showFutureLetter && (
         <FutureLetter onClose={() => setShowFutureLetter(false)} />
+      )}
+
+      {/* CUSTOM RESET MODAL (Instead of standard confirm) */}
+      {showResetModal && (
+        <div className="fixed inset-0 bg-[#1C1916]/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4 animate-fade-in">
+          <div className="max-w-md w-full bg-[#FAF8F3] border border-[#BDAB9C] rounded-2xl p-6 md:p-8 space-y-6 journal-shadow text-center">
+            <div className="mx-auto w-12 h-12 bg-amber-550/10 text-[#C5895A] rounded-full flex items-center justify-center">
+              <RefreshIcon size={24} className="opacity-80" />
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="font-display text-lg font-semibold text-[#1C1916]">
+                Deseja recomeçar sua jornada?
+              </h3>
+              <p className="font-serif italic text-xs text-[#3D3D3D] leading-relaxed">
+                Ao redefinir, seu perfil literário e todas as suas margens anotadas localmente serão apagadas para que você possa iniciar um novo diário de descobertas poéticas. Esta ação é definitiva.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <button
+                onClick={() => setShowResetModal(false)}
+                className="w-full sm:order-2 px-4 py-2 border border-[#BDAB9C] text-[#3D3D3D] rounded-full text-xs font-sans font-bold hover:bg-[#FAF8F3]/50 transition-all cursor-pointer"
+              >
+                Permanecer na jornada
+              </button>
+              <button
+                onClick={executeResetApp}
+                className="w-full sm:order-1 px-4 py-2 bg-[#1C1916] text-[#FAF8F3] rounded-full text-xs font-sans font-bold hover:bg-[#2A2724] transition-all cursor-pointer border border-[#BDAB9C]/20"
+              >
+                Desejo recomeçar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>

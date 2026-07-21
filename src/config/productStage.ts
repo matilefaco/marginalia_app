@@ -5,10 +5,10 @@ export type ProductStage =
   | "production";
 
 export const PRODUCT_STAGE: ProductStage =
-  ((import.meta as any).env?.VITE_PRODUCT_STAGE as ProductStage) === "closed-beta"
+  import.meta.env.VITE_PRODUCT_STAGE === "closed-beta"
     ? "closed-beta"
-    : ((import.meta as any).env?.VITE_PRODUCT_STAGE as ProductStage) === "public-beta"
+    : import.meta.env.VITE_PRODUCT_STAGE === "public-beta"
       ? "public-beta"
-      : ((import.meta as any).env?.VITE_PRODUCT_STAGE as ProductStage) === "production"
+      : import.meta.env.VITE_PRODUCT_STAGE === "production"
         ? "production"
         : "local-preview";
