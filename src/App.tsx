@@ -306,6 +306,30 @@ export default function App() {
       "Ficção Científica": "Ficção Distópica"
     };
 
+    const genreToSymbolMap: Record<string, string> = {
+      "Literatura Clássica": "Tomo Antigo",
+      "Poesia e Lírica": "Lira de Bronze",
+      "Filosofia": "Ampulheta",
+      "Realismo Mágico": "Borboleta de Papel",
+      "Fantasia Sombria": "Chave Enferrujada",
+      "Romance Histórico": "Pergaminho",
+      "Ensaios Modernos": "Lente de Aumento",
+      "Suspense Psicológico": "Espelho Convexo",
+      "Ficção Científica": "Astrolábio"
+    };
+
+    const genreToColorMap: Record<string, string> = {
+      "Literatura Clássica": "#8A7D72", // Sepia escuro
+      "Poesia e Lírica": "#A67C8E", // Rosé antigo
+      "Filosofia": "#7D8C82", // Sálvia
+      "Realismo Mágico": "#BCA374", // Ouro velho
+      "Fantasia Sombria": "#5C5470", // Púrpura acinzentado
+      "Romance Histórico": "#9B7D62", // Terracota suave
+      "Ensaios Modernos": "#6B828F", // Azul ardósia
+      "Suspense Psicológico": "#5F7161", // Verde musgo sombrio
+      "Ficção Científica": "#787A91" // Cinza sideral
+    };
+
     const genresList = form.genres || [];
     const authorsList = [
       ...new Set([
@@ -320,17 +344,17 @@ export default function App() {
       ])
     ];
 
+    const mainGenre = genresList[0] || "";
+    const mainAuthor = authorsList[0] || "";
+    const mainBook = booksListTitles[0] || "";
+
     let title = "Perfil Literário Inicial";
     let description = "Seu rastro de leitura começou a ser desenhado. À medida que você registrar suas reflexões nas margens, sua identidade poética ganhará novos contornos.";
-    let signatureQuote = "Ler é deparar-se com o pensamento alheio nas margens do próprio ser.";
+    let signatureQuote = "";
     let aestheticColor = "#BDAB9C";
-    let aestheticSymbol = "Pena de Ganso";
+    let aestheticSymbol = "";
 
     if (genresList.length > 0 || authorsList.length > 0 || booksListTitles.length > 0) {
-      const mainGenre = genresList[0] || "";
-      const mainAuthor = authorsList[0] || "";
-      const mainBook = booksListTitles[0] || "";
-
       if (mainGenre && mainAuthor) {
         title = `Leitor de Afinidades (${mainGenre})`;
         description = `Seu perfil reflete um interesse pelas atmosferas de ${mainGenre}, movido pela influência artística de autores como ${mainAuthor}.`;
@@ -344,6 +368,33 @@ export default function App() {
         title = `Leitor de Afinidades`;
         description = `Seu diário se inicia sob a inspiração de obras marcantes como "${mainBook}", onde cada margem é uma nova reflexão.`;
       }
+    }
+
+    // Gerar signatureQuote honesto e derivado
+    if (mainAuthor && mainBook) {
+      signatureQuote = `“Nas dobras das páginas de ${mainBook}, busco decifrar a escrita e os rastros de ${mainAuthor}.”`;
+    } else if (mainAuthor) {
+      signatureQuote = `“Reescrevendo minhas próprias impressões sob as linhas traçadas por ${mainAuthor}.”`;
+    } else if (mainBook) {
+      signatureQuote = `“Procurando abrigo e novos significados nos silêncios e entrelinhas de ${mainBook}.”`;
+    } else if (mainGenre) {
+      signatureQuote = `“Aventurando-se pelas atmosferas e sensibilidades de ${mainGenre}.”`;
+    } else {
+      signatureQuote = "“Assinatura Poética Provisória: Caminhando pelas margens iniciais de um novo diário de leitura.”";
+    }
+
+    // Gerar aestheticSymbol honesto e derivado
+    if (mainGenre && genreToSymbolMap[mainGenre]) {
+      aestheticSymbol = genreToSymbolMap[mainGenre];
+    } else if (mainAuthor || mainBook) {
+      aestheticSymbol = "Lacre de Cera";
+    } else {
+      aestheticSymbol = "Símbolo Provisório: Marcador de Páginas";
+    }
+
+    // Gerar aestheticColor honesto e derivado
+    if (mainGenre && genreToColorMap[mainGenre]) {
+      aestheticColor = genreToColorMap[mainGenre];
     }
 
     const selectedEcos = genresList.map(g => genreToEcoMap[g]).filter(Boolean);
@@ -425,7 +476,7 @@ export default function App() {
       name: form.name,
       username: form.username,
       avatarSeed: form.username.toLowerCase(),
-      bio: `Leitor devoto de ${form.genres.slice(0, 2).join(" e ") || "clássicos"}. Escrevendo margens sob a influência de ${form.favoriteAuthors || "grandes mentes"}.`,
+      bio: typeof raw?.bio === "string" && raw.bio.trim() !== "" ? raw.bio.trim() : fallback.bio,
       streakDays: 0,
       booksReadCount: 0,
       savedCount: 0,
@@ -841,7 +892,13 @@ export default function App() {
           {/* Onboarding Header */}
           <div className="text-center mb-8 relative flex flex-col items-center">
             <span className="text-[11px] font-sans font-semibold tracking-widest text-[#BDAB9C] uppercase block mb-3">
-              {onboardingStep === 4 ? "Sua Alma Revelada" : "Iniciação ao Marginalia"}
+              {onboardingStep === 5
+                ? (onboardingGenerationState === "generating"
+                    ? "Revelando sua Aura"
+                    : onboardingGenerationState === "error"
+                      ? "Sua Interpretação Inicial"
+                      : "Sua Aura Revelada")
+                : "Iniciação ao Marginalia"}
             </span>
             <MarginaliaLogo variant="vertical-lockup" size={28} />
             <div className="w-16 h-[1px] bg-[#BDAB9C] mx-auto mt-4" />
@@ -2489,17 +2546,15 @@ export default function App() {
                         : "bg-[#FAF8F3] border-[#BDAB9C]/30 hover:border-[#BDAB9C]"
                     }`}
                   >
-                    <button
-                      onClick={() => triggerChallengeComplete(c.id)}
-                      disabled={c.completed}
-                      className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
+                    <div
+                      className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
                         c.completed 
                           ? "bg-green-600 border-green-600 text-[#FAF8F3]" 
-                          : "border-[#BDAB9C] hover:border-[#1C1916]"
+                          : "border-[#BDAB9C]"
                       }`}
                     >
                       {c.completed && <Check className="w-2.5 h-2.5" />}
-                    </button>
+                    </div>
 
                     <div className="flex-1 min-w-0">
                       <p className={`text-xs font-sans font-medium leading-none ${c.completed ? "line-through text-[#BDAB9C]" : "text-[#1C1916]"}`}>
