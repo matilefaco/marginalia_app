@@ -12,7 +12,7 @@ export const routes: RouteItem[] = [
     isNav: true,
   },
   {
-    path: "/descobertas",
+    path: "/descobrir",
     label: "Descobertas",
     isNav: true,
   },
@@ -22,7 +22,7 @@ export const routes: RouteItem[] = [
     isNav: true,
   },
   {
-    path: "/companion",
+    path: "/companheira",
     label: "Companheira",
     isNav: true,
   },

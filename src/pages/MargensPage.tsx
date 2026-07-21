@@ -47,7 +47,19 @@ export const MargensPage: React.FC = () => {
   const userMargins = margens.filter(m => !m.isEditorial);
   const displayedFeed = feedMode === "minhas-margens"
     ? [...userMargins].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    : orderFeedForDiscovery(margens, userProfile || { name: "", username: "", title: "", genres: [], favoriteBooks: "", favoriteAuthors: "", habits: "", spoilerTolerance: "moderate" });
+    : orderFeedForDiscovery(margens, userProfile || { 
+        name: "Visitante", 
+        username: "visitante", 
+        title: "O Explorador Silencioso", 
+        description: "Em busca das dobras invisíveis do diário.", 
+        signatureQuote: "Pensar é o ato de tatear o invisível no escuro.", 
+        recommendedEcos: [], 
+        aestheticColor: "#BDAB9C", 
+        aestheticSymbol: "Pena de Ganso", 
+        streakDays: 0, 
+        booksReadCount: 0, 
+        savedCount: 0 
+      });
 
   const margemDoDia = feedMode === "minhas-margens"
     ? (userMargins.length > 0 ? pickMargemDoDia(userMargins) : null)
@@ -111,7 +123,7 @@ export const MargensPage: React.FC = () => {
           if (action === "aura" || action === "soulmap") {
             navigate("/perfil");
           } else if (action === "companion") {
-            navigate("/companion");
+            navigate("/companheira");
           } else if (action === "write") {
             navigate("/margens/nova");
           } else if (action === "letter") {
@@ -345,7 +357,7 @@ export const MargensPage: React.FC = () => {
                           }
                         ]);
                         setUserInputMessage(" "); // invisibly nudge to trigger companion
-                        navigate("/companion");
+                        navigate("/companheira");
                       }}
                       className="text-[10px] font-sans text-[#BDAB9C] hover:text-[#1C1916] flex items-center gap-1 transition-colors cursor-pointer"
                       title="Debater trecho com a Companheira IA"

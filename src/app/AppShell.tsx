@@ -47,9 +47,9 @@ export const AppShell: React.FC = () => {
   const getRouteIcon = (path: string) => {
     switch (path) {
       case "/margens": return <FeedIcon size={16} />;
-      case "/descobertas": return <DescobertasIcon size={16} />;
+      case "/descobrir": return <DescobertasIcon size={16} />;
       case "/ecos": return <Library className="w-4 h-4" />;
-      case "/companion": return <CompanionIcon size={16} />;
+      case "/companheira": return <CompanionIcon size={16} />;
       case "/perfil": return <ProfileIcon size={16} />;
       default: return <Compass className="w-4 h-4" />;
     }

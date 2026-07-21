@@ -1,12 +1,11 @@
 import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { exportNodeAsPng } from "../lib/exportImage";
 import { UserProfile, Margem } from "../types";
 import { ExportIcon, WrappedIcon, LinesDiaryIcon, FlameIcon, ClockIcon, BookOpenIcon, TrophyIcon, IdentityIcon, MarginIcon } from "./icons/MarginaliaIcons";
 import { isFeatureEnabled } from "../config/featureFlags";
 import { computeEmotionalMap } from "../utils/feedAlgorithm";
 
-import { LiteraryAura } from "./LiteraryAura";
-import { SoulMap } from "./SoulMap";
 import { IdentityQuoteCard } from "./IdentityQuoteCard";
 import { LiteraryCompatibility } from "./LiteraryCompatibility";
 import { ErrorBoundary } from "./ErrorBoundary";
@@ -20,6 +19,7 @@ interface ReaderProfileProps {
 }
 
 export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, onReset, onOpenAddMargem }: ReaderProfileProps) {
+  const navigate = useNavigate();
   const [activeSubTab, setActiveSubTab] = useState<"identidade" | "aura" | "mapa" | "compatibilidade" | "historico" | "recompensas">("identidade");
   const [exportingCard, setExportingCard] = useState(false);
   const identityCardRef = useRef<HTMLDivElement>(null);
@@ -137,7 +137,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
                 </button>
                 {isFeatureEnabled("wrapped") && (
                   <button
-                    onClick={onTriggerWrapped}
+                    onClick={() => navigate("/perfil/retrospectiva")}
                     className="px-3.5 py-1 bg-[#C5895A] hover:bg-[#b0784a] text-white rounded-full text-xs font-sans font-bold shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
                   >
                     <WrappedIcon className="w-3.5 h-3.5" />
@@ -172,20 +172,16 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
         </button>
         {isFeatureEnabled("aura") && (
           <button
-            onClick={() => setActiveSubTab("aura")}
-            className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-              activeSubTab === "aura" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
-            }`}
+            onClick={() => navigate("/perfil/aura")}
+            className="pb-2 border-b-2 border-transparent text-[#BDAB9C] hover:text-[#1C1916] transition-all whitespace-nowrap cursor-pointer"
           >
             Aura Poética
           </button>
         )}
         {isFeatureEnabled("soulMap") && (
           <button
-            onClick={() => setActiveSubTab("mapa")}
-            className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-              activeSubTab === "mapa" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
-            }`}
+            onClick={() => navigate("/perfil/mapa-da-alma")}
+            className="pb-2 border-b-2 border-transparent text-[#BDAB9C] hover:text-[#1C1916] transition-all whitespace-nowrap cursor-pointer"
           >
             Mapa da Alma
           </button>
@@ -368,35 +364,6 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
             )}
           </div>
 
-        </div>
-      )}
-
-      {/* TAB SUB-CONTENT: AURA POÉTICA */}
-      {activeSubTab === "aura" && (
-        <div className="space-y-6 animate-page-turn">
-          <LiteraryAura userProfile={userProfile} margens={margens} />
-        </div>
-      )}
-
-      {/* TAB SUB-CONTENT: MAPA DA ALMA */}
-      {activeSubTab === "mapa" && (
-        <div className="space-y-6 animate-page-turn">
-          <ErrorBoundary fallbackMessage="Seu Mapa da Alma ainda está sendo desenhado.">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-              <div className="lg:col-span-2">
-                <SoulMap userProfile={userProfile} margens={margens} onOpenAddMargem={onOpenAddMargem} />
-              </div>
-              <div className="space-y-6">
-                <IdentityQuoteCard userProfile={userProfile} margens={margens} />
-                <div className="elevation-1 p-5 rounded-2xl space-y-3.5">
-                  <h4 className="font-sans font-bold text-sm uppercase tracking-wide text-[#1C1916]">Sinal Cósmico</h4>
-                  <p className="font-serif italic text-sm leading-relaxed text-stone-800">
-                    Sua alma emite vibrações na frequência da pena de ganso. Cada margem criada expande seu rastro estelar no grande arquivo da sensibilidade humana.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </ErrorBoundary>
         </div>
       )}
 

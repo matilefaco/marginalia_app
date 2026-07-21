@@ -1,15 +1,26 @@
 import React, { useRef, useState, useEffect } from "react";
+import { X } from "lucide-react";
 import { exportNodeAsPng } from "../lib/exportImage";
 import { FutureLetterIcon, ExportIcon } from "./icons/MarginaliaIcons";
 import { MarginaliaMark } from "./branding/MarginaliaMark";
 import { UserProfile, Margem } from "../types";
+import { useMarginalia } from "../context/MarginaliaContext";
 
 interface FutureLetterProps {
-  userProfile: UserProfile;
-  margens: Margem[];
+  userProfile?: UserProfile;
+  margens?: Margem[];
+  onClose?: () => void;
 }
 
-export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens }) => {
+export const FutureLetter: React.FC<FutureLetterProps> = ({ 
+  userProfile: propUserProfile, 
+  margens: propMargens,
+  onClose 
+}) => {
+  const context = useMarginalia();
+  const userProfile = propUserProfile || context.userProfile;
+  const margens = propMargens || context.margens;
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
   const [response, setResponse] = useState("");
@@ -18,11 +29,11 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
 
   // Filter margins belonging to the user
   const userMargins = (margens || []).filter(
-    (m) => m && (m.authorAvatar === userProfile.avatarSeed || m.authorName === userProfile.name)
+    (m) => m && userProfile && (m.authorAvatar === userProfile.avatarSeed || m.authorName === userProfile.name)
   );
 
   useEffect(() => {
-    if (userMargins.length > 0) {
+    if (userProfile && userMargins.length > 0) {
       // Choose a deterministic margin (first one or based on profile name length)
       const index = (userProfile.name?.length || 0) % userMargins.length;
       setSelectedPastMargin(userMargins[index]);
@@ -62,8 +73,20 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
     }
   };
 
-  return (
-    <div className="bg-[#FAF8F3] border border-[#BDAB9C] rounded-xl p-5 journal-shadow space-y-4">
+  if (!userProfile) return null;
+
+  const cardContent = (
+    <div className="bg-[#FAF8F3] border border-[#BDAB9C] rounded-xl p-5 journal-shadow space-y-4 max-w-lg w-full relative">
+      {onClose && (
+        <button 
+          onClick={onClose}
+          className="absolute top-3 right-3 text-[#BDAB9C] hover:text-[#1C1916] transition-colors p-1 rounded-full hover:bg-[#1C1916]/5 cursor-pointer z-20"
+          title="Fechar correspondência"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
+
       {/* Visual letter / envelope layout */}
       <div 
         ref={containerRef}
@@ -82,7 +105,7 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
             </span>
             
             <div className="space-y-1.5 border-l-2 border-[#C5895A]/60 pl-3">
-              <p className="font-serif italic text-stone-800 text-xs md:text-sm">
+              <p className="font-serif italic text-stone-800 text-xs md:text-sm leading-relaxed">
                 "{selectedPastMargin.quote}"
               </p>
               <span className="text-[9px] font-mono text-[#BDAB9C] uppercase block">
@@ -160,11 +183,19 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
         </div>
       )}
 
-      <div className="no-export flex justify-end gap-2 pt-1 border-t border-[#BDAB9C]/10">
+      <div className="no-export flex justify-between gap-2 pt-1 border-t border-[#BDAB9C]/10">
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="text-[10px] font-sans font-semibold text-[#1C1916] hover:bg-stone-100 px-3 py-1.5 rounded-lg border border-[#BDAB9C]/30 cursor-pointer transition-colors"
+          >
+            Voltar ao diário
+          </button>
+        )}
         <button 
           onClick={handleExport}
           disabled={exporting}
-          className="text-[10px] font-sans font-semibold text-stone-800 hover:text-[#1C1916] flex items-center gap-1 bg-[#BDAB9C]/15 px-3 py-1.5 rounded-lg border border-[#BDAB9C]/30 cursor-pointer transition-colors"
+          className="text-[10px] font-sans font-semibold text-stone-800 hover:text-[#1C1916] flex items-center gap-1 bg-[#BDAB9C]/15 px-3 py-1.5 rounded-lg border border-[#BDAB9C]/30 cursor-pointer transition-colors ml-auto"
         >
           <ExportIcon className="w-3.5 h-3.5" />
           <span>{exporting ? "Compilando..." : "Exportar Carta"}</span>
@@ -172,4 +203,16 @@ export const FutureLetter: React.FC<FutureLetterProps> = ({ userProfile, margens
       </div>
     </div>
   );
+
+  if (onClose) {
+    return (
+      <div className="fixed inset-0 bg-[#1C1916]/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4 animate-fade-in">
+        {cardContent}
+      </div>
+    );
+  }
+
+  return cardContent;
 };
+
+export default FutureLetter;
