@@ -86,6 +86,7 @@ export interface Margem {
   ecoId?: string; // Optional reference to an Eco
   influential?: boolean; // Post-Margem Choice: Marked as major influence
   contributesToIdentity?: boolean; // Post-Margem Choice: Contributes to literary identity
+  isEditorial?: boolean; // If this is an official curated editorial margin
 }
 
 export interface Eco {
@@ -93,8 +94,6 @@ export interface Eco {
   name: string;
   description: string;
   category: string;
-  memberCount: number;
-  marginsCount: number;
   icon: string; // Lucide icon string name
   imageBg: string; // Aesthetic photo background
 }

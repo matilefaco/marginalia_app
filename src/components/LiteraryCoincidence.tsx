@@ -20,26 +20,26 @@ export const LiteraryCoincidence: React.FC<LiteraryCoincidenceProps> = ({ onExpl
     
     const options = [
       {
-        title: "Coincidência Literária",
-        text: "Hoje, 14 leitores orbitaram a mesma emoção que você: Solidão Bonita. Uma sensação sutil de que nunca estamos verdadeiramente sós nas entrelinhas.",
+        title: "Sintonia Poética",
+        text: "A literatura é o reencontro de duas solidões. Ao ler um clássico, você caminha pela mesma névoa de sentimentos que outrora habitou a mente de quem o escreveu.",
         ecoName: "Filosofia Existencialista",
-        cta: "Visitar Eco de Filosofia"
+        cta: "Visitar Território de Filosofia"
       },
       {
-        title: "Eco em Sintonia",
-        text: "Uma margem esquecida em 'Clássicos Russos' por outro leitor foi anotada exatamente no mesmo horário em que você abriu o app ontem.",
+        title: "Sussurro do Tempo",
+        text: "Em algum lugar do mundo, uma página está sendo dobrada exatamente no mesmo parágrafo que te fez suspirar ontem. Livros são pontes silenciosas através dos séculos.",
         ecoName: "Clássicos Russos",
         cta: "Visitar Clássicos Russos"
       },
       {
-        title: "Sussurro da Tarde",
-        text: "Três novos leitores adicionaram reflexões sobre Clarice Lispector nas últimas 12 horas. Há uma névoa de sentimentos compartilhada no ar.",
+        title: "Diálogo Silencioso",
+        text: "Escrever nas margens é deixar um rastro de luz para futuros navegantes. Suas anotações locais eternizam o diálogo sagrado entre leitor e autor.",
         ecoName: "Poesia e Lírica",
         cta: "Visitar Poesia e Lírica"
       },
       {
-        title: "Constelação Ativa",
-        text: "Seu Eco favorito está com uma taxa de sintonia 24% mais alta neste crepúsculo. Os leitores parecem inquietos hoje.",
+        title: "Ressonância da Alma",
+        text: "Seu percurso de leitura desenha uma constelação íntima. Cada emoção catalogada é um farol que brilha nas profundas atmosferas da sua própria biblioteca.",
         ecoName: "Fantasia Sombria",
         cta: "Explorar Fantasia Sombria"
       }

@@ -53,8 +53,6 @@ export const INITIAL_ECOS: Eco[] = [
     name: "Clássicos Russos",
     description: "Para debater a melancolia existencial de Dostoiévski, a vastidão espiritual de Tolstói e a fina tragédia humana de Tchekhov.",
     category: "Literatura Clássica",
-    memberCount: 1240,
-    marginsCount: 342,
     icon: "BookOpen",
     imageBg: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=400"
   },
@@ -63,8 +61,6 @@ export const INITIAL_ECOS: Eco[] = [
     name: "Filosofia Existencialista",
     description: "Espaço para as anotações sobre o absurdo, a angústia da escolha e o peso da liberdade. Sartre, Camus, Nietzsche e Kierkegaard.",
     category: "Filosofia",
-    memberCount: 980,
-    marginsCount: 289,
     icon: "Compass",
     imageBg: "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&q=80&w=400"
   },
@@ -73,8 +69,6 @@ export const INITIAL_ECOS: Eco[] = [
     name: "Poesia e Lírica",
     description: "Versos que perfuram a alma. De Fernando Pessoa a Emily Dickinson. Onde cada palavra é um universo inteiro.",
     category: "Poesia",
-    memberCount: 1540,
-    marginsCount: 412,
     icon: "Feather",
     imageBg: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=400"
   },
@@ -83,8 +77,6 @@ export const INITIAL_ECOS: Eco[] = [
     name: "Realismo Mágico",
     description: "A sutil fusão do ordinário com o impossível. Gabriel García Márquez, Isabel Allende, Julio Cortázar e Jorge Luis Borges.",
     category: "Ficção",
-    memberCount: 860,
-    marginsCount: 198,
     icon: "Sparkles",
     imageBg: "https://images.unsplash.com/photo-1474932430478-367dbb6832c1?auto=format&fit=crop&q=80&w=400"
   },
@@ -93,8 +85,6 @@ export const INITIAL_ECOS: Eco[] = [
     name: "Fantasia Sombria",
     description: "Mitologias misteriosas, mundos crepusculares e criaturas que habitam as frestas do tempo. Neil Gaiman, Shirley Jackson e H.P. Lovecraft.",
     category: "Ficção",
-    memberCount: 1120,
-    marginsCount: 220,
     icon: "Ghost",
     imageBg: "https://images.unsplash.com/photo-1519074069444-1ba4e6663104?auto=format&fit=crop&q=80&w=400"
   },
@@ -103,8 +93,6 @@ export const INITIAL_ECOS: Eco[] = [
     name: "Romance Histórico",
     description: "Amores e revoluções tecidos nas tapeçarias do passado remoto. Onde a ficção se deita nas margens da história real.",
     category: "Literatura Clássica",
-    memberCount: 750,
-    marginsCount: 145,
     icon: "Hourglass",
     imageBg: "https://images.unsplash.com/photo-1461360370896-922624d12aa1?auto=format&fit=crop&q=80&w=400"
   },
@@ -114,8 +102,6 @@ export const INITIAL_ECOS: Eco[] = [
     name: "Amor Impossível",
     description: "Para os corações que suspiram por encontros desencontrados, distâncias insuperáveis e promessas escritas na areia.",
     category: "Eco Emocional",
-    memberCount: 1890,
-    marginsCount: 512,
     icon: "EcoAmorImpossivelIcon",
     imageBg: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&q=80&w=400"
   },
@@ -124,8 +110,6 @@ export const INITIAL_ECOS: Eco[] = [
     name: "Solidão Bonita",
     description: "O silêncio doce do retiro literário. A solitude que não dói, mas transborda em autorreflexão e paz crepuscular.",
     category: "Eco Emocional",
-    memberCount: 2430,
-    marginsCount: 689,
     icon: "EcoSolidaoBonitaIcon",
     imageBg: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80&w=400"
   },
@@ -134,8 +118,6 @@ export const INITIAL_ECOS: Eco[] = [
     name: "Nostalgia do Tempo",
     description: "Lembranças de infância, cheiro de chuva na terra molhada, e a doçura melancólica de épocas que nunca vivemos.",
     category: "Eco Emocional",
-    memberCount: 1670,
-    marginsCount: 420,
     icon: "EcoNostalgiaIcon",
     imageBg: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&q=80&w=400"
   },
@@ -144,8 +126,6 @@ export const INITIAL_ECOS: Eco[] = [
     name: "Crises Existenciais",
     description: "Para quando o peso do mundo e o mistério do ser parecem grandes demais. Perguntas difíceis em páginas eternas.",
     category: "Eco Emocional",
-    memberCount: 3120,
-    marginsCount: 940,
     icon: "EcoCrisesExistenciaisIcon",
     imageBg: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&q=80&w=400"
   },
@@ -154,8 +134,6 @@ export const INITIAL_ECOS: Eco[] = [
     name: "Esperança Atenta",
     description: "Trechos que iluminam a escuridão. O recomeço silencioso que floresce entre as frestas do desespero.",
     category: "Eco Emocional",
-    memberCount: 1450,
-    marginsCount: 310,
     icon: "EcoEsperancaAtentaIcon",
     imageBg: "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&q=80&w=400"
   },
@@ -164,8 +142,6 @@ export const INITIAL_ECOS: Eco[] = [
     name: "Melancolia Elegante",
     description: "A beleza secreta da tristeza. Um recolhimento poético em tons de cinza e luz de velas.",
     category: "Eco Emocional",
-    memberCount: 2210,
-    marginsCount: 575,
     icon: "EcoMelancoliaEleganteIcon",
     imageBg: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=400"
   }
@@ -225,23 +201,15 @@ export const INITIAL_MARGENS: Margem[] = [
     author: "Gabriel García Márquez",
     spoilerLevel: "none",
     date: "2026-07-04T12:00:00Z",
-    authorName: "Clarice Albuquerque",
-    authorAvatar: "clarice",
-    authorTitle: "A Romântica Melancólica",
-    lovesCount: 38,
-    loves: ["clarice", "arthur", "helena"],
+    authorName: "Curadoria Marginalia",
+    authorAvatar: "marginalia",
+    authorTitle: "Inspiração Editorial",
+    lovesCount: 0,
+    loves: [],
     themeKey: "classic",
     ecoId: "realismo-magico",
-    comments: [
-      {
-        id: "c1",
-        authorName: "Arthur Ramos",
-        authorAvatar: "arthur",
-        authorTitle: "O Filósofo Silencioso",
-        content: "Nossa, 'batizar o silêncio' foi uma definição arrebatadora. Sua margem é tão poética quanto o próprio trecho do Gabo.",
-        date: "2026-07-04T13:45:00Z"
-      }
-    ]
+    comments: [],
+    isEditorial: true
   },
   {
     id: "m2",
@@ -251,14 +219,15 @@ export const INITIAL_MARGENS: Margem[] = [
     author: "Oscar Wilde",
     spoilerLevel: "light",
     date: "2026-07-03T16:30:00Z",
-    authorName: "Lucas Mendes",
-    authorAvatar: "lucas",
-    authorTitle: "O Colecionador de Clássicos",
-    lovesCount: 22,
-    loves: ["lucas", "helena"],
+    authorName: "Curadoria Marginalia",
+    authorAvatar: "marginalia",
+    authorTitle: "Inspiração Editorial",
+    lovesCount: 0,
+    loves: [],
     themeKey: "sunset",
     ecoId: "poesia-lirica",
-    comments: []
+    comments: [],
+    isEditorial: true
   },
   {
     id: "m3",
@@ -268,23 +237,15 @@ export const INITIAL_MARGENS: Margem[] = [
     author: "Albert Camus",
     spoilerLevel: "none",
     date: "2026-07-02T19:15:00Z",
-    authorName: "Helena Castro",
-    authorAvatar: "helena",
-    authorTitle: "O Filósofo Silencioso",
-    lovesCount: 45,
-    loves: ["helena", "clarice", "lucas", "arthur"],
+    authorName: "Curadoria Marginalia",
+    authorAvatar: "marginalia",
+    authorTitle: "Inspiração Editorial",
+    lovesCount: 0,
+    loves: [],
     themeKey: "night",
     ecoId: "filosofia-existencialista",
-    comments: [
-      {
-        id: "c2",
-        authorName: "Clarice Albuquerque",
-        authorAvatar: "clarice",
-        authorTitle: "A Romântica Melancólica",
-        content: "Exatamente. É a liberdade absoluta encontrada na total falta de esperança. Camus é libertador.",
-        date: "2026-07-02T20:00:00Z"
-      }
-    ]
+    comments: [],
+    isEditorial: true
   }
 ];
 

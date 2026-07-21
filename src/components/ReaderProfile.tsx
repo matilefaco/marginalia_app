@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { exportNodeAsPng } from "../lib/exportImage";
 import { UserProfile, Margem } from "../types";
 import { ExportIcon, WrappedIcon, LinesDiaryIcon, FlameIcon, ClockIcon, BookOpenIcon, TrophyIcon, IdentityIcon, MarginIcon } from "./icons/MarginaliaIcons";
+import { isFeatureEnabled } from "../config/featureFlags";
 
 import { LiteraryAura } from "./LiteraryAura";
 import { SoulMap } from "./SoulMap";
@@ -102,10 +103,12 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
       <div ref={identityCardRef} className="bg-[#FAF8F3] border border-[#BDAB9C] rounded-2xl overflow-hidden journal-shadow">
         <div className="h-28 bg-[#BDAB9C]/15 relative overflow-hidden">
           <div className="absolute inset-0 tactile-overlay" />
-          <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF8F3] text-[10px] font-sans font-semibold text-[#1C1916] border border-[#BDAB9C]">
-            <FlameIcon size={12} className="text-[#C5895A]" />
-            <span>{userProfile.streakDays} Dias Seguidos</span>
-          </div>
+          {isFeatureEnabled("streaks") && (
+            <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF8F3] text-[10px] font-sans font-semibold text-[#1C1916] border border-[#BDAB9C]">
+              <FlameIcon size={12} className="text-[#C5895A]" />
+              <span>{userProfile.streakDays} Dias Seguidos</span>
+            </div>
+          )}
         </div>
 
         <div className="px-6 pb-6 relative">
@@ -137,13 +140,15 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
                   <ExportIcon className="w-3 h-3" />
                   <span>{exportingCard ? "Gerando..." : "Exportar Cartão"}</span>
                 </button>
-                <button
-                  onClick={onTriggerWrapped}
-                  className="px-3.5 py-1 bg-[#C5895A] hover:bg-[#b0784a] text-white rounded-full text-xs font-sans font-bold shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
-                >
-                  <WrappedIcon className="w-3.5 h-3.5" />
-                  <span>Sua Retrospectiva</span>
-                </button>
+                {isFeatureEnabled("wrapped") && (
+                  <button
+                    onClick={onTriggerWrapped}
+                    className="px-3.5 py-1 bg-[#C5895A] hover:bg-[#b0784a] text-white rounded-full text-xs font-sans font-bold shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <WrappedIcon className="w-3.5 h-3.5" />
+                    <span>Sua Retrospectiva</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -170,30 +175,36 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
         >
           Minha Alma Leitora
         </button>
-        <button
-          onClick={() => setActiveSubTab("aura")}
-          className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-            activeSubTab === "aura" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
-          }`}
-        >
-          Aura Poética
-        </button>
-        <button
-          onClick={() => setActiveSubTab("mapa")}
-          className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-            activeSubTab === "mapa" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
-          }`}
-        >
-          Mapa da Alma
-        </button>
-        <button
-          onClick={() => setActiveSubTab("compatibilidade")}
-          className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-            activeSubTab === "compatibilidade" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
-          }`}
-        >
-          Sintonia de Leitores
-        </button>
+        {isFeatureEnabled("aura") && (
+          <button
+            onClick={() => setActiveSubTab("aura")}
+            className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeSubTab === "aura" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
+            }`}
+          >
+            Aura Poética
+          </button>
+        )}
+        {isFeatureEnabled("soulMap") && (
+          <button
+            onClick={() => setActiveSubTab("mapa")}
+            className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeSubTab === "mapa" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
+            }`}
+          >
+            Mapa da Alma
+          </button>
+        )}
+        {isFeatureEnabled("realCompatibility") && (
+          <button
+            onClick={() => setActiveSubTab("compatibilidade")}
+            className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+              activeSubTab === "compatibilidade" ? "border-[#1C1916] text-[#1C1916] font-bold" : "border-transparent text-[#BDAB9C]"
+            }`}
+          >
+            Sintonia de Leitores
+          </button>
+        )}
         <button
           onClick={() => setActiveSubTab("historico")}
           className={`pb-2 border-b-2 transition-all whitespace-nowrap cursor-pointer ${
@@ -280,38 +291,40 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
               </div>
 
               {/* Livros de Origem / que moldaram a alma */}
-              <div className="elevation-1 p-5 rounded-2xl space-y-3.5">
-                <h4 className="font-sans font-bold text-sm uppercase text-[#1C1916] tracking-wide">Livros de Origem</h4>
-                {userProfile.literaryDNA?.originBooks && userProfile.literaryDNA.originBooks.length > 0 ? (
-                  <div className="space-y-3">
-                    {userProfile.literaryDNA.originBooks.map((book, idx) => (
-                      <div key={idx} className="flex gap-2.5 items-start bg-[#1C1916]/5 p-2 rounded-lg border border-[#BDAB9C]/20">
-                        {book.coverUrl ? (
-                          <img src={book.coverUrl} referrerPolicy="no-referrer" className="w-8 h-11 object-cover rounded shadow-xs" alt="" />
-                        ) : (
-                          <div className="w-8 h-11 bg-[#1C1916]/10 rounded flex items-center justify-center text-[#BDAB9C]">
-                            <BookOpenIcon size={12} className="opacity-45 text-[#BDAB9C]" />
+              {isFeatureEnabled("originBooks") && (
+                <div className="elevation-1 p-5 rounded-2xl space-y-3.5">
+                  <h4 className="font-sans font-bold text-sm uppercase text-[#1C1916] tracking-wide">Livros de Origem</h4>
+                  {userProfile.literaryDNA?.originBooks && userProfile.literaryDNA.originBooks.length > 0 ? (
+                    <div className="space-y-3">
+                      {userProfile.literaryDNA.originBooks.map((book, idx) => (
+                        <div key={idx} className="flex gap-2.5 items-start bg-[#1C1916]/5 p-2 rounded-lg border border-[#BDAB9C]/20">
+                          {book.coverUrl ? (
+                            <img src={book.coverUrl} referrerPolicy="no-referrer" className="w-8 h-11 object-cover rounded shadow-xs" alt="" />
+                          ) : (
+                            <div className="w-8 h-11 bg-[#1C1916]/10 rounded flex items-center justify-center text-[#BDAB9C]">
+                              <BookOpenIcon size={12} className="opacity-45 text-[#BDAB9C]" />
+                            </div>
+                          )}
+                          <div className="space-y-0.5 min-w-0 flex-1">
+                            <h5 className="font-serif font-bold text-[11px] text-[#1C1916] truncate">{book.title}</h5>
+                            <p className="text-[9px] font-sans text-[#3D3D3D]/80 truncate">por {book.author}</p>
+                            <p className="font-serif italic text-[10px] text-[#3D3D3D]/70 leading-normal line-clamp-2">"{book.emotionalResidue}"</p>
                           </div>
-                        )}
-                        <div className="space-y-0.5 min-w-0 flex-1">
-                          <h5 className="font-serif font-bold text-[11px] text-[#1C1916] truncate">{book.title}</h5>
-                          <p className="text-[9px] font-sans text-[#3D3D3D]/80 truncate">por {book.author}</p>
-                          <p className="font-serif italic text-[10px] text-[#3D3D3D]/70 leading-normal line-clamp-2">"{book.emotionalResidue}"</p>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <ul className="space-y-2">
-                    {shapingBooks.map((bk, idx) => (
-                      <li key={idx} className="text-xs font-serif font-semibold text-[#1C1916] flex items-center gap-2">
-                        <BookOpenIcon size={12} className="opacity-45 text-[#BDAB9C]" />
-                        <span>{bk}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <ul className="space-y-2">
+                      {shapingBooks.map((bk, idx) => (
+                        <li key={idx} className="text-xs font-serif font-semibold text-[#1C1916] flex items-center gap-2">
+                          <BookOpenIcon size={12} className="opacity-45 text-[#BDAB9C]" />
+                          <span>{bk}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
 
             </div>
 
@@ -375,7 +388,7 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
       )}
 
       {/* TAB SUB-CONTENT: SINTONIA DE LEITORES */}
-      {activeSubTab === "compatibilidade" && (
+      {isFeatureEnabled("realCompatibility") && activeSubTab === "compatibilidade" && (
         <div className="space-y-6 animate-page-turn">
           <LiteraryCompatibility userProfile={userProfile} margens={margens} />
         </div>
