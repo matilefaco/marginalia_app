@@ -36,7 +36,83 @@ initSchemaVersion();
 export const getStoredProfile = (): UserProfile | null => {
   try {
     const saved = localStorage.getItem("marginalia_profile");
-    return saved ? safeParse<UserProfile>(saved, null as any) : null;
+    if (!saved) return null;
+    const profile = safeParse<UserProfile>(saved, null as any);
+    if (!profile) return null;
+
+    // Defensive migration to clean up pre-existing profiles with simulated/fallback data
+    let modified = false;
+
+    if (profile.literaryDNA) {
+      // Clear old hardcoded dominant emotions/identity formulas
+      const emotions = profile.literaryDNA.dominantEmotions || {};
+      if (emotions["Melancolia Elegante"] === 35 && emotions["Desejo Impossível"] === 25) {
+        profile.literaryDNA.dominantEmotions = {};
+        profile.literaryDNA.identityFormula = "";
+        modified = true;
+      }
+
+      // Clear default authors if they are the simulated fallbacks and weren't in originBooks
+      if (Array.isArray(profile.literaryDNA.shapingAuthors)) {
+        const hasClarice = profile.literaryDNA.shapingAuthors.includes("Clarice Lispector");
+        const hasGabo = profile.literaryDNA.shapingAuthors.includes("Gabriel García Márquez");
+        if (hasClarice || hasGabo) {
+          const originBookAuthors = (profile.literaryDNA.originBooks || []).map(b => b.author).filter(a => a && a !== "Autor Desconhecido");
+          const beforeLen = profile.literaryDNA.shapingAuthors.length;
+          profile.literaryDNA.shapingAuthors = profile.literaryDNA.shapingAuthors.filter(author => {
+            const isDefault = author === "Clarice Lispector" || author === "Gabriel García Márquez";
+            if (!isDefault) return true;
+            return originBookAuthors.includes(author);
+          });
+          if (profile.literaryDNA.shapingAuthors.length !== beforeLen) {
+            modified = true;
+          }
+        }
+      }
+    }
+
+    // Recommended ecosystems cleanup (revert default fallback to mapped/universais)
+    if (Array.isArray(profile.recommendedEcos)) {
+      const isOldFallback = profile.recommendedEcos.length === 2 && 
+                            profile.recommendedEcos.includes("Filosofia Existencialista") && 
+                            profile.recommendedEcos.includes("Clássicos Russos");
+      
+      if (isOldFallback) {
+        const genreToEcoMap: Record<string, string> = {
+          "Literatura Clássica": "Clássicos Russos",
+          "Poesia e Lírica": "Poesia Marginal",
+          "Filosofia": "Filosofia Existencialista",
+          "Realismo Mágico": "Latino-Americana Mágica",
+          "Fantasia Sombria": "Fantasia Gótica",
+          "Romance Histórico": "Romance de Época",
+          "Ensaios Modernos": "Crítica Social",
+          "Suspense Psicológico": "Thriller de Mente",
+          "Ficção Científica": "Ficção Distópica"
+        };
+        const matchedEcos: string[] = [];
+        Object.entries(genreToEcoMap).forEach(([genre, eco]) => {
+          if (profile.bio && profile.bio.toLowerCase().includes(genre.toLowerCase())) {
+            matchedEcos.push(eco);
+          }
+        });
+        profile.recommendedEcos = matchedEcos.length > 0 ? matchedEcos : ["Clássicos Universais"];
+        modified = true;
+      }
+    }
+
+    // Ensure persistent mock emotionalMap is cleared
+    if (profile.emotionalMap && Object.keys(profile.emotionalMap).length > 0) {
+      if (profile.emotionalMap["Melancolia Elegante"] === 35 || profile.emotionalMap["Solidão Bonita"] === 25) {
+        profile.emotionalMap = {};
+        modified = true;
+      }
+    }
+
+    if (modified) {
+      localStorage.setItem("marginalia_profile", JSON.stringify(profile));
+    }
+
+    return profile;
   } catch (error) {
     console.error("Failed to load profile from storage:", error);
     return null;

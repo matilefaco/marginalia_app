@@ -18,11 +18,9 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens, onOpenAd
   const safeUserProfile = userProfile || {} as UserProfile;
   const safeMargins = Array.isArray(margens) ? margens : [];
 
-  const userMargins = safeMargins.filter(
-    (m) => m && (m.authorAvatar === safeUserProfile.avatarSeed || m.authorName === safeUserProfile.name)
-  );
+  const userMargins = safeMargins.filter(m => m && !m.isEditorial);
 
-  // Generate constellation nodes based on user's real margins or beautiful defaults
+  // Generate constellation nodes based on user's real margins
   const generateNodes = (): SoulMapNode[] => {
     const nodes: SoulMapNode[] = [];
     
@@ -70,16 +68,6 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens, onOpenAd
           details: `Emoção sintonizada fortemente através das suas anotações.`
         });
       });
-    } else {
-      // Fallback seeded nodes
-      const fallbackNodes: SoulMapNode[] = [
-        { id: "f-1", x: 25, y: 30, label: "Cem Anos de Solidão", type: "book", details: "A melancolia do tempo infinito que molda suas escolhas." },
-        { id: "f-2", x: 75, y: 35, label: "Albert Camus", type: "author", details: "O autor que ancora seus questionamentos existenciais." },
-        { id: "f-3", x: 30, y: 70, label: "Solidão Bonita", type: "emotion", details: "Seu principal refúgio emocional ao segurar um livro." },
-        { id: "f-4", x: 70, y: 75, label: "Clássicos Russos", type: "eco", details: "O eco comunitário onde seus pensamentos se sentem em casa." },
-        { id: "f-5", x: 48, y: 22, label: "Nostalgia", type: "emotion", details: "Um perfume do passado que você persegue entre as linhas." }
-      ];
-      nodes.push(...fallbackNodes);
     }
 
     return nodes;
@@ -116,7 +104,7 @@ export const SoulMap: React.FC<SoulMapProps> = ({ userProfile, margens, onOpenAd
           </h3>
         </div>
         <span className="text-[10px] font-mono text-[#BDAB9C] uppercase">
-          {nodes.length} Pontos de Sintonia
+          {userMargins.length} Margens Sintonizadas
         </span>
       </div>
 

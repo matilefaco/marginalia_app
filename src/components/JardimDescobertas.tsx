@@ -262,11 +262,11 @@ export default function JardimDescobertas({ onSelectHighlight, margens }: Jardim
         )}
       </div>
 
-      {/* Community margins board */}
+      {/* Reference margins board */}
       <div className="space-y-4 pt-4 border-t border-[#BDAB9C]/25">
         <h4 className="font-display font-semibold text-xs uppercase tracking-wider text-[#1C1916] border-b border-[#BDAB9C]/20 pb-1.5 flex justify-between items-center">
-          <span>Descobertas da Comunidade ({displayedMargins.length})</span>
-          <span className="text-[9px] font-mono lowercase opacity-60">anotações reais de leitores</span>
+          <span>Jardim de Inspirações e Sintonias ({displayedMargins.length})</span>
+          <span className="text-[9px] font-mono lowercase opacity-60">referências e conexões literárias</span>
         </h4>
 
         {displayedMargins.length > 0 ? (
@@ -280,7 +280,7 @@ export default function JardimDescobertas({ onSelectHighlight, margens }: Jardim
                   title: m.bookTitle,
                   author: m.author,
                   quote: m.quote,
-                  emotion: selectedEmotion || "Comunidade"
+                  emotion: selectedEmotion || "Inspiração"
                 })}
               >
                 <div className="space-y-3">

@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { CreateMarginIcon, CloseIcon, AuraIcon } from "./icons/MarginaliaIcons";
 import { getDailyDismissed, setDailyDismissed } from "../lib/storage";
+import { Margem } from "../types";
 
 interface DailyOpeningMomentProps {
   onTriggerAction: (action: "aura" | "soulmap" | "companion" | "write" | "letter") => void;
+  margens?: Margem[];
 }
 
-export const DailyOpeningMoment: React.FC<DailyOpeningMomentProps> = ({ onTriggerAction }) => {
+export const DailyOpeningMoment: React.FC<DailyOpeningMomentProps> = ({ onTriggerAction, margens }) => {
   const [visible, setVisible] = useState(false);
   const [content, setContent] = useState({
-    title: "O Despertar da Alma Leitora",
-    description: "Sua sensibilidade hoje está sintonizada na calmaria das entrelinhas.",
-    cta: "Revelar minha Aura",
-    actionType: "aura" as "aura" | "soulmap" | "companion" | "write" | "letter"
+    title: "Uma provocação para sua leitura de hoje",
+    description: "Selecione um fragmento, uma contradição ou uma fresta de luz na sua leitura atual e eternize-a em suas anotações de margem.",
+    cta: "Escrever Nova Margem",
+    actionType: "write" as "aura" | "soulmap" | "companion" | "write" | "letter"
   });
 
   const getTodayString = () => {
@@ -25,40 +27,49 @@ export const DailyOpeningMoment: React.FC<DailyOpeningMomentProps> = ({ onTrigge
     const isDismissed = getDailyDismissed(todayStr);
     
     if (!isDismissed) {
-      // Deterministic calculation of daily content
       const dayOfMonth = new Date().getDate();
-      const items = [
+      const userMargins = (margens || []).filter(m => m && !m.isEditorial);
+
+      const items: {
+        title: string;
+        description: string;
+        cta: string;
+        actionType: "aura" | "soulmap" | "companion" | "write" | "letter";
+      }[] = [
         {
-          title: "Sua Sintonia do Dia",
-          description: "Hoje sua alma leitora acordou sob o signo da Melancolia Elegante. As palavras mais densas falarão mais alto.",
-          cta: "Mapear minha Aura",
-          actionType: "aura" as const
-        },
-        {
-          title: "Uma Cápsula do Passado",
-          description: "Um pensamento que você escreveu há algumas semanas está ansioso para te reencontrar. Deixe que ele te visite.",
-          cta: "Abrir Carta do Futuro",
-          actionType: "letter" as const
-        },
-        {
-          title: "O Céu Literário Mudou",
-          description: "As constelações da sua alma leitora se realinharam 7% desde sua última visita. Venha ver as novas estrelas no seu céu.",
-          cta: "Explorar Mapa da Alma",
-          actionType: "soulmap" as const
-        },
-        {
-          title: "Silêncio Desejado",
-          description: "Há um Eco emocional sussurrando perguntas desafiadoras no Jardim hoje. Deixe sua anotação na margem do tempo.",
+          title: "Uma provocação para sua leitura de hoje",
+          description: "Selecione um fragmento, uma contradição ou uma fresta de luz na sua leitura atual e eternize-a em suas anotações de margem.",
           cta: "Escrever Nova Margem",
+          actionType: "write" as const
+        },
+        {
+          title: "Que frase merece permanecer com você?",
+          description: "Às vezes, um livro inteiro se justifica por uma única sentença. Qual é a frase que capturou sua atenção hoje?",
+          cta: "Registrar Minha Impressão",
           actionType: "write" as const
         }
       ];
+
+      // If there are real margins, add the dynamic revisit option
+      if (userMargins.length > 0) {
+        const pastMargin = userMargins[dayOfMonth % userMargins.length];
+        const formattedDate = pastMargin.date ? new Date(pastMargin.date).toLocaleDateString("pt-BR") : "recentemente";
+        const snippet = pastMargin.thought || pastMargin.quote || "suas anotações";
+        const shortSnippet = snippet.length > 90 ? snippet.slice(0, 90) + "..." : snippet;
+
+        items.push({
+          title: "Talvez hoje seja um bom dia para revisitar uma margem.",
+          description: `No dia ${formattedDate}, você sintonizou esta reflexão no livro "${pastMargin.bookTitle || "Leitura"}": "${shortSnippet}".`,
+          cta: "Explorar Meu Espaço",
+          actionType: "aura" as const
+        });
+      }
 
       const idx = dayOfMonth % items.length;
       setContent(items[idx]);
       setVisible(true);
     }
-  }, []);
+  }, [margens]);
 
   const handleDismiss = () => {
     const todayStr = getTodayString();
@@ -78,7 +89,7 @@ export const DailyOpeningMoment: React.FC<DailyOpeningMomentProps> = ({ onTrigge
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-1.5 text-[11px] font-mono tracking-wide text-[#BDAB9C] uppercase font-bold">
             <CreateMarginIcon className="w-3.5 h-3.5 text-[#C5895A]" />
-            <span>DESPERTAR DIÁRIO</span>
+            <span>DESPERTAR INSPIRACIONAL</span>
           </div>
           <button 
             onClick={handleDismiss}

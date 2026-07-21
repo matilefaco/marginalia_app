@@ -3,6 +3,7 @@ import { exportNodeAsPng } from "../lib/exportImage";
 import { UserProfile, Margem } from "../types";
 import { ExportIcon, WrappedIcon, LinesDiaryIcon, FlameIcon, ClockIcon, BookOpenIcon, TrophyIcon, IdentityIcon, MarginIcon } from "./icons/MarginaliaIcons";
 import { isFeatureEnabled } from "../config/featureFlags";
+import { computeEmotionalMap } from "../utils/feedAlgorithm";
 
 import { LiteraryAura } from "./LiteraryAura";
 import { SoulMap } from "./SoulMap";
@@ -41,8 +42,8 @@ export default function ReaderProfile({ userProfile, margens, onTriggerWrapped, 
   // Filter margins created by user
   const userMargins = (margens || []).filter(m => m && !m.isEditorial);
 
-  // Dynamic emotional map based on user's active margins if exists, otherwise onboarding
-  const emotionalMap = userProfile.emotionalMap || userProfile.literaryDNA?.dominantEmotions || {};
+  // Dynamic emotional map based strictly on user's active margins computed dynamically
+  const emotionalMap = computeEmotionalMap(userMargins) || {};
 
   // Shaping books based strictly on Origin Books or real margins
   const originBookTitles = (userProfile.literaryDNA?.originBooks || []).map(b => b.title);

@@ -16,83 +16,107 @@ export const LiteraryAura: React.FC<LiteraryAuraProps> = ({ userProfile, margens
   const [copied, setCopied] = useState(false);
 
   // Filter margins written by user
-  const userMargins = (margens || []).filter(
-    (m) => m && (m.authorAvatar === userProfile.avatarSeed || m.authorName === userProfile.name)
-  );
+  const userMargins = (margens || []).filter(m => m && !m.isEditorial);
 
   // Compute or fallback aura attributes
-  const computeAuraData = (): AuraData => {
-    // Default emotions fallback
-    const defaultEmotions: Record<string, number> = {
-      "Solidão Bonita": 38,
-      "Nostalgia do Tempo": 27,
-      "Crises Existenciais": 21,
-      "Esperança Atenta": 14,
-    };
+  const computeAuraData = (): AuraData | null => {
+    if (userMargins.length === 0) {
+      return null;
+    }
 
     // Calculate real proportions based on margins
     const computed: Record<string, number> = {};
-    if (userMargins.length > 0) {
-      userMargins.forEach((m) => {
-        // Find if any book highlights or emotion keywords match
-        const text = (m.thought + " " + m.quote).toLowerCase();
-        let matched = false;
-        if (text.includes("solidão") || text.includes("só") || text.includes("solitude")) {
-          computed["Solidão Bonita"] = (computed["Solidão Bonita"] || 0) + 1;
-          matched = true;
-        }
-        if (text.includes("nostalgia") || text.includes("passado") || text.includes("tempo") || text.includes("antigo")) {
-          computed["Nostalgia do Tempo"] = (computed["Nostalgia do Tempo"] || 0) + 1;
-          matched = true;
-        }
-        if (text.includes("exist") || text.includes("vazio") || text.includes("sentido") || text.includes("por que")) {
-          computed["Crises Existenciais"] = (computed["Crises Existenciais"] || 0) + 1;
-          matched = true;
-        }
-        if (text.includes("esperança") || text.includes("luz") || text.includes("beleza") || text.includes("recomeço")) {
-          computed["Esperança Atenta"] = (computed["Esperança Atenta"] || 0) + 1;
-          matched = true;
-        }
-        if (!matched) {
-          computed["Silêncio Elegante"] = (computed["Silêncio Elegante"] || 0) + 1;
-        }
-      });
+    userMargins.forEach((m) => {
+      // Find if any book highlights or emotion keywords match
+      const text = ((m.thought || "") + " " + (m.quote || "")).toLowerCase();
+      let matched = false;
+      if (text.includes("solidão") || text.includes("só") || text.includes("solitude")) {
+        computed["Solidão Bonita"] = (computed["Solidão Bonita"] || 0) + 1;
+        matched = true;
+      }
+      if (text.includes("nostalgia") || text.includes("passado") || text.includes("tempo") || text.includes("antigo")) {
+        computed["Nostalgia do Tempo"] = (computed["Nostalgia do Tempo"] || 0) + 1;
+        matched = true;
+      }
+      if (text.includes("exist") || text.includes("vazio") || text.includes("sentido") || text.includes("por que")) {
+        computed["Crises Existenciais"] = (computed["Crises Existenciais"] || 0) + 1;
+        matched = true;
+      }
+      if (text.includes("esperança") || text.includes("luz") || text.includes("beleza") || text.includes("recomeço")) {
+        computed["Esperança Atenta"] = (computed["Esperança Atenta"] || 0) + 1;
+        matched = true;
+      }
+      if (!matched) {
+        computed["Silêncio Elegante"] = (computed["Silêncio Elegante"] || 0) + 1;
+      }
+    });
 
-      // Normalize to 100%
-      const total = Object.values(computed).reduce((a, b) => a + b, 0);
-      const normalized: Record<string, number> = {};
-      let runningTotal = 0;
-      const keys = Object.keys(computed);
-      
-      keys.forEach((key, idx) => {
-        if (idx === keys.length - 1) {
-          normalized[key] = 100 - runningTotal;
-        } else {
-          const val = Math.round((computed[key] / total) * 100);
-          normalized[key] = val;
-          runningTotal += val;
-        }
-      });
-      return {
-        emotions: normalized,
-        archetype: userProfile.dominantArchetype || userProfile.title || "Leitor Contemplativo",
-        themes: userProfile.favoriteAtmospheres || ["Claridade nas frestas", "Biblioteca Silenciosa"],
-        symbol: userProfile.aestheticSymbol || "Lamparina de Prata",
-        phrase: generateIdentityQuote(userProfile, margens, 0),
-      };
-    }
-
-    // Default return
+    // Normalize to 100%
+    const total = Object.values(computed).reduce((a, b) => a + b, 0);
+    const normalized: Record<string, number> = {};
+    let runningTotal = 0;
+    const keys = Object.keys(computed);
+    
+    keys.forEach((key, idx) => {
+      if (idx === keys.length - 1) {
+        normalized[key] = 100 - runningTotal;
+      } else {
+        const val = Math.round((computed[key] / total) * 100);
+        normalized[key] = val;
+        runningTotal += val;
+      }
+    });
     return {
-      emotions: defaultEmotions,
-      archetype: userProfile.dominantArchetype || userProfile.title || "Buscador de Silêncios",
-      themes: userProfile.favoriteAtmospheres || ["Páginas envelhecidas", "Chuva de fim de tarde"],
+      emotions: normalized,
+      archetype: userProfile.dominantArchetype || userProfile.title || "Leitor Contemplativo",
+      themes: userProfile.favoriteAtmospheres || [],
       symbol: userProfile.aestheticSymbol || "Lamparina de Prata",
       phrase: generateIdentityQuote(userProfile, margens, 0),
     };
   };
 
   const aura = computeAuraData();
+
+  if (!aura) {
+    return (
+      <div className="space-y-6 animate-page-turn">
+        {/* Elegant Latent Aura Card */}
+        <div 
+          ref={auraRef}
+          className="bg-[#1C1916] text-[#FAF8F3] border border-[#BDAB9C]/20 rounded-2xl overflow-hidden relative shadow-2xl flex flex-col justify-between p-8 md:p-12 aspect-[9/16] max-w-sm mx-auto text-center"
+        >
+          <div className="absolute inset-0 pointer-events-none bg-radial-gradient opacity-10" />
+          <div className="absolute top-4 left-4 text-[9px] font-mono tracking-widest text-[#BDAB9C]/40">AURA</div>
+          <div className="absolute top-4 right-4 text-[9px] font-mono tracking-widest text-[#BDAB9C]/40">LATENTE</div>
+          <div className="absolute bottom-4 left-4 text-[9px] font-mono tracking-widest text-[#BDAB9C]/40">SINTONIA</div>
+          <div className="absolute bottom-4 right-4 text-[9px] font-mono tracking-widest text-[#BDAB9C]/40">M R G N L</div>
+
+          <div className="my-auto space-y-6">
+            <div className="w-20 h-20 rounded-full border border-dashed border-[#BDAB9C]/30 flex items-center justify-center mx-auto animate-pulse">
+              <AuraIcon className="w-8 h-8 text-[#BDAB9C]/60" />
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="font-serif italic text-lg text-[#FAF8F3]/90">Aura em Latência</h3>
+              <p className="font-serif italic text-xs text-[#BDAB9C] leading-relaxed px-2">
+                Sua assinatura de sintonização literária tomará forma e revelará seus tons à medida que você registrar suas primeiras margens e impressões íntimas no diário.
+              </p>
+            </div>
+
+            {/* Preserving explicit onboarding choices neutrally without presenting as active stats */}
+            {((userProfile.literaryDNA?.originBooks?.length || 0) > 0) && (
+              <div className="pt-4 border-t border-[#BDAB9C]/10 text-left space-y-2">
+                <span className="text-[9px] font-mono tracking-widest text-[#C5895A] uppercase block text-center font-semibold">Fundamentos Informados</span>
+                <p className="text-[10px] font-serif italic text-[#BDAB9C]/80 leading-normal text-center">
+                  Inspirado em obras como <strong className="text-[#FAF8F3] font-sans not-italic font-bold">"{userProfile.literaryDNA?.originBooks[0]?.title}"</strong> e autores como <strong className="text-[#FAF8F3] font-sans not-italic font-bold">"{userProfile.literaryDNA?.shapingAuthors?.slice(0, 2).join(", ") || "seus favoritos"}"</strong>.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleExport = async () => {
     if (!auraRef.current || exporting) return;

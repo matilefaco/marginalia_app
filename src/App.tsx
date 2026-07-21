@@ -102,6 +102,7 @@ import {
   computeShapingBooks
 } from "./utils/feedAlgorithm";
 import { isFeatureEnabled } from "./config/featureFlags";
+import { PRODUCT_STAGE } from "./config/productStage";
 
 export type OnboardingGenerationState = "idle" | "generating" | "ready" | "error";
 
@@ -152,7 +153,8 @@ export default function App() {
   // Core App State
   const [activeTab, setActiveTab] = useState<"diario" | "descoberta" | "ecos" | "companheira" | "perfil" | "simbolos">("diario");
   const [showIconSystem, setShowIconSystem] = useState(() => {
-    return window.location.pathname === "/icon-system" || window.location.hash === "#icon-system";
+    const isPathSelected = window.location.pathname === "/icon-system" || window.location.hash === "#icon-system";
+    return isPathSelected && PRODUCT_STAGE !== "production";
   });
   const [feedMode, setFeedMode] = useState<"minhas-margens" | "curadoria">("minhas-margens");
   const [margens, setMargens] = useState<Margem[]>(() => {
@@ -203,9 +205,20 @@ export default function App() {
   const [showWrapped, setShowWrapped] = useState(false);
   const [wrappedData, setWrappedData] = useState<any>(null);
   const [generatingWrapped, setGeneratingWrapped] = useState(false);
+  const [wrappedErrorMessage, setWrappedErrorMessage] = useState<string | null>(null);
 
   const handleTriggerWrapped = async () => {
     if (!userProfile) return;
+
+    // Filter strictly personal margins
+    const userMargins = margens.filter(m => m && !m.isEditorial);
+
+    // Require a minimum of 3 personal margins
+    if (userMargins.length < 3) {
+      setWrappedErrorMessage("Sua retrospectiva ainda está sendo escrita. Para sintonizar sua Retrospectiva Viva, registre pelo menos 3 margens autorais no seu diário íntimo.");
+      return;
+    }
+
     setGeneratingWrapped(true);
     try {
       const res = await fetch("/api/ai/wrapped", {
@@ -213,39 +226,22 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           profile: userProfile,
-          margins: margens.filter(m => m.authorAvatar === userProfile.avatarSeed)
+          margins: userMargins
         })
       });
+      if (!res.ok) {
+        throw new Error(`HTTP error ${res.status}`);
+      }
       const data = await res.json();
       if (data.wrapped) {
         setWrappedData(data.wrapped);
         setShowWrapped(true);
+      } else {
+        throw new Error("No wrapped data received from API");
       }
     } catch (err) {
       console.error("Error generating wrapped:", err);
-      // Premium offline fallback to ensure immediate feedback
-      setWrappedData({
-        jornadaEmocoes: {
-          "Melancolia Elegante": 45,
-          "Solidão Bonita": 25,
-          "Crises Existenciais": 20,
-          "Esperança Atenta": 10
-        },
-        temasPrincipais: [
-          "A transitoriedade do tempo nas pequenas frestas do cotidiano",
-          "O abraço doce da melancolia",
-          "O desassossego como santuário para a criação poética"
-        ],
-        autoresMoldaram: [
-          userProfile.favoriteAuthors || "Clarice Lispector",
-          "Albert Camus",
-          "Gabriel García Márquez"
-        ],
-        mapaAlma: "Sua mente busca abrigo no silêncio meditativo. Seus rituais apontam para encontros devotos na penumbra das páginas, onde o desassossego se transmuta em paz.",
-        simboloPoetico: userProfile.aestheticSymbol || "Lamparina de Prata",
-        fraseWrapped: "Habitante dos silêncios entre linhas"
-      });
-      setShowWrapped(true);
+      setWrappedErrorMessage("Falha ao sintonizar sua retrospectiva via IA. Deseja tentar novamente?");
     } finally {
       setGeneratingWrapped(false);
     }
@@ -298,35 +294,42 @@ export default function App() {
   // Core Helper Functions for Onboarding AI Generation
   const createFallbackLiteraryProfile = (form: typeof onboardingForm, booksList: OriginBook[]): UserProfile => {
     console.log("[AuraFlow] Gerando fallback literário offline centralizado...");
+    
+    const genreToEcoMap: Record<string, string> = {
+      "Literatura Clássica": "Clássicos Russos",
+      "Poesia e Lírica": "Poesia Marginal",
+      "Filosofia": "Filosofia Existencialista",
+      "Realismo Mágico": "Latino-Americana Mágica",
+      "Fantasia Sombria": "Fantasia Gótica",
+      "Romance Histórico": "Romance de Época",
+      "Ensaios Modernos": "Crítica Social",
+      "Suspense Psicológico": "Thriller de Mente",
+      "Ficção Científica": "Ficção Distópica"
+    };
+
+    const selectedEcos = form.genres.map(g => genreToEcoMap[g]).filter(Boolean);
+    const recommendedEcos = selectedEcos.length > 0 ? selectedEcos : ["Clássicos Universais"];
+
     const fallbackDNA = {
       originBooks: booksList,
       shapingAuthors: [
         ...new Set([
           ...(booksList.map(b => b.author).filter(a => a && a !== "Autor Desconhecido")),
-          ...(form.favoriteAuthors ? form.favoriteAuthors.split(",").map(a => a.trim()) : [])
+          ...(form.favoriteAuthors ? form.favoriteAuthors.split(",").map(a => a.trim()).filter(Boolean) : [])
         ])
       ].slice(0, 3),
-      dominantEmotions: {
-        "Melancolia Elegante": 35,
-        "Desejo Impossível": 25,
-        "Inquietação Filosófica": 25,
-        "Esperança Atenta": 15
-      },
-      identityFormula: "35% melancolia elegante · 25% desejo impossível · 25% inquietação filosófica · 15% esperança atenta",
+      dominantEmotions: {} as Record<string, number>,
+      identityFormula: "",
       sharePhrase: booksList.length > 0
         ? `Você lê como quem busca abrigo nos rastros de "${booksList[0].title}".`
         : "Você lê como quem procura uma casa dentro das frases."
     };
 
-    if (fallbackDNA.shapingAuthors.length === 0) {
-      fallbackDNA.shapingAuthors.push("Clarice Lispector", "Gabriel García Márquez");
-    }
-
     return {
       title: "O Filósofo Silencioso",
-      description: "Você enxerga nas entrelinhas uma conversa silenciosa sobre a existência humana. Seus hábitos apontam para reflexões meditativas, colecionando pensamentos profundos como quem recolhe conchas raras na maré baixa.",
+      description: "Você enxerga nas entrelinhas uma conversa silenciosa sobre a existência humana. Seus hábitos apontam para reflexões meditativas, colecionando pensamentos profundos.",
       signatureQuote: "Pensar é o ato de tatear o invisível no escuro.",
-      recommendedEcos: ["Filosofia Existencialista", "Clássicos Russos"],
+      recommendedEcos,
       aestheticColor: "#BDAB9C",
       aestheticSymbol: "Lamparina",
       name: form.name,
@@ -336,7 +339,8 @@ export default function App() {
       streakDays: 0,
       booksReadCount: 0,
       savedCount: 0,
-      literaryDNA: fallbackDNA
+      literaryDNA: fallbackDNA,
+      emotionalMap: {}
     };
   };
 
@@ -464,6 +468,7 @@ export default function App() {
 
   // Complete a reading challenge and gain feedback
   const triggerChallengeComplete = (id: string) => {
+    if (!isFeatureEnabled("weeklyRituals")) return;
     setChallenges(prev => 
       prev.map(c => {
         if (c.id === id && !c.completed) {
@@ -685,6 +690,26 @@ export default function App() {
     setOnboardingStep(1);
     setMargens([]); // Emptied of mock margins to keep profile clean
     setChallenges(INITIAL_CHALLENGES);
+    setOnboardingForm({
+      name: "",
+      username: "",
+      genres: [] as string[],
+      favoriteBooks: "",
+      favoriteAuthors: "",
+      habits: "Todas as noites antes de dormir",
+      spoilerTolerance: "moderate" as SpoilerLevel
+    });
+    setGeneratedProfile(null);
+    setWrappedData(null);
+    setShowWrapped(false);
+    setWrappedErrorMessage(null);
+    setChatMessages([
+      {
+        role: "companion",
+        content: "Olá, alma leitora. Sou sua Companheira de Leitura. Que segredos de papel você trouxe para desvendar comigo hoje? Podemos falar sobre seus autores favoritos, debater o subtexto de um livro ou refinar uma anotação que você queira registrar nas margens.",
+        timestamp: new Date()
+      }
+    ]);
     setShowResetModal(false);
   };
 
@@ -1387,7 +1412,7 @@ export default function App() {
     : [...INITIAL_MARGENS].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // --- MAIN APP RENDER ---
-  if (showIconSystem && import.meta.env.DEV && isFeatureEnabled("internalIconShowcase")) {
+  if (showIconSystem && PRODUCT_STAGE !== "production" && isFeatureEnabled("internalIconShowcase")) {
     return (
       <div className="min-h-screen bg-[#FAF8F3] relative">
         <button
@@ -1469,7 +1494,8 @@ export default function App() {
             {/* Logout/Reset */}
             <button
               onClick={handleResetApp}
-              title="Redefinir aplicativo"
+              title="Redefinir aplicativo e recomeçar jornada"
+              aria-label="Redefinir aplicativo e recomeçar jornada"
               className="p-1.5 rounded hover:bg-[#BDAB9C]/20 text-[#3D3D3D]/60 hover:text-red-700 transition-colors cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
@@ -1688,6 +1714,7 @@ export default function App() {
             <div className="space-y-6 animate-page-turn">
               
               <DailyOpeningMoment 
+                margens={margens}
                 onTriggerAction={(action) => {
                   if (action === "aura" || action === "soulmap") {
                     setActiveTab("perfil");
@@ -2061,25 +2088,27 @@ export default function App() {
                 margens={margens}
               />
 
-              <div className="border-t border-[#BDAB9C]/20 pt-8 space-y-4">
-                <div>
-                  <h3 className="font-display font-semibold text-lg text-[#1C1916] tracking-tight flex items-center gap-2">
-                    <span>🏛️ O Museu das Margens</span>
-                  </h3>
-                  <p className="text-xs text-stone-600 font-sans">
-                    Navegue pelas reflexões mais sintonizadas, melancólicas e profundas curadas pelos próprios leitores.
-                  </p>
-                </div>
+              {isFeatureEnabled("communityMuseum") && (
+                <div className="border-t border-[#BDAB9C]/20 pt-8 space-y-4">
+                  <div>
+                    <h3 className="font-display font-semibold text-lg text-[#1C1916] tracking-tight flex items-center gap-2">
+                      <span>🏛️ O Museu das Margens</span>
+                    </h3>
+                    <p className="text-xs text-stone-600 font-sans">
+                      Navegue pelas reflexões mais sintonizadas, melancólicas e profundas curadas pelos próprios leitores.
+                    </p>
+                  </div>
 
-                <MuseuDasMargens 
-                  margens={margens}
-                  onOpenShareModal={(m) => setSharingMargem(m)}
-                  onLikeMargem={(id) => handleToggleLove(id)}
-                  onSaveMargem={(m) => {
-                    alert(`"${m.bookTitle}" salvo na sua biblioteca de inspirações.`);
-                  }}
-                />
-              </div>
+                  <MuseuDasMargens 
+                    margens={margens}
+                    onOpenShareModal={(m) => setSharingMargem(m)}
+                    onLikeMargem={(id) => handleToggleLove(id)}
+                    onSaveMargem={(m) => {
+                      alert(`"${m.bookTitle}" salvo na sua biblioteca de inspirações.`);
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -2615,7 +2644,7 @@ export default function App() {
           onClose={() => setShowWrapped(false)}
           onShare={() => {
             navigator.clipboard.writeText(`Minha Alma Literária na Marginalia: "${wrappedData.fraseWrapped}"\nSímbolo Poético: ${wrappedData.simboloPoetico}\nDescubra seu arquétipo na Marginalia.`);
-            alert("Sua Alma Literária foi copiada para a área de transferência! Compartilhe com o mundo.");
+            alert("Sua Alma Literária foi copiada para a área de transferência! Guarde ou compartilhe este rastro literário.");
           }}
         />
       )}
@@ -2670,6 +2699,46 @@ export default function App() {
               >
                 Desejo recomeçar
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* WRAPPED RETROSPECTIVE ERROR MODAL */}
+      {wrappedErrorMessage && (
+        <div className="fixed inset-0 bg-[#1C1916]/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4 animate-fade-in">
+          <div className="max-w-md w-full bg-[#FAF8F3] border border-[#BDAB9C] rounded-2xl p-6 md:p-8 space-y-6 journal-shadow text-center">
+            <div className="mx-auto w-12 h-12 bg-amber-550/10 text-[#C5895A] rounded-full flex items-center justify-center">
+              <WrappedIcon size={24} className="opacity-80" />
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="font-display text-lg font-semibold text-[#1C1916]">
+                Retrospectiva Marginalia
+              </h3>
+              <p className="font-serif italic text-xs text-[#3D3D3D] leading-relaxed">
+                {wrappedErrorMessage}
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setWrappedErrorMessage(null)}
+                className="w-full px-4 py-2 border border-[#BDAB9C] text-[#3D3D3D] rounded-full text-xs font-sans font-bold hover:bg-[#FAF8F3]/50 transition-all cursor-pointer"
+              >
+                Compreendi
+              </button>
+              {wrappedErrorMessage.includes("tentar novamente") && (
+                <button
+                  onClick={() => {
+                    setWrappedErrorMessage(null);
+                    handleTriggerWrapped();
+                  }}
+                  className="w-full px-4 py-2 bg-[#1C1916] text-[#FAF8F3] rounded-full text-xs font-sans font-bold hover:bg-[#2A2724] transition-all cursor-pointer border border-[#BDAB9C]/20"
+                >
+                  Tentar novamente
+                </button>
+              )}
             </div>
           </div>
         </div>
